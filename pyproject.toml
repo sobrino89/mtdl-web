@@ -1,0 +1,53 @@
+[project]
+name = "mtdl-web"
+version = "0.1.0.dev34"
+description = "Search, download and subscribe to the German public broadcasters' media libraries, self-hosted."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.143.0",
+    "httpx>=0.28.1",
+    "mcp>=2.3.0",
+    "regex>=2026.9.29",
+    "uvicorn>=0.54.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/sobrino89/mtdl-web"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.0",
+    "types-regex>=2026.9.29",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = ["-m", "not full and not net", "--strict-markers"]
+markers = [
+    "full: runs against the real film list in data/filmliste (slow, opt-in with -m full)",
+    "net: downloads real media from the broadcasters (opt-in with -m net, needs ffmpeg)",
+]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+files = ["src", "test", "tools"]
+mypy_path = "src"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+# German data and docstrings contain en dashes and other "ambiguous" characters on purpose.
+ignore = ["RUF001", "RUF002", "RUF003"]

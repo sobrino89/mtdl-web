@@ -1,0 +1,62 @@
+---
+title: Schnellstart
+description: mtdl-web in fünf Minuten mit Docker Compose starten und einrichten.
+---
+
+import { Code, Steps } from '@astrojs/starlight/components';
+import compose from '../../../../../compose.yaml?raw';
+
+Du brauchst einen Rechner mit Docker, etwa ein NAS oder einen kleinen Server, und einen Ordner für die Downloads.
+
+<Steps>
+
+1. **Vorlage holen.** Im Repository liegen fertige Vorlagen: `compose.yaml` für die meisten Systeme,
+   `compose.unraid.yaml` mit den Werten für Unraid (siehe [Unraid](../../install/unraid/)) und `.env.example` mit
+   allen weiteren Einstellungen. In einem neuen Ordner, etwa `mtdl-web/`:
+
+   ```sh
+   curl -LO https://raw.githubusercontent.com/sobrino89/mtdl-web/main/compose.yaml
+   ```
+
+   <Code code={compose} lang="yaml" title="compose.yaml" />
+
+   `PUID` und `PGID` sind Benutzer und Gruppe, denen der Download-Ordner gehört (`id` auf dem Server zeigt sie).
+   `/pfad/zu/downloads` ersetzt du durch deinen Ordner. Alles Weitere erklärt
+   [Docker Compose](../../install/docker-compose/).
+
+2. **Starten.**
+
+   ```sh
+   docker compose up -d
+   ```
+
+   Beim ersten Start lädt mtdl-web die Filmliste, das dauert ein bis zwei Minuten. Danach holt es stündlich nur die
+   Änderungen.
+
+3. **Einrichtungscode holen.** Beim ersten Aufruf fragt mtdl-web nach einem Passwort und nach einem Code, den nur das
+   Log des Containers zeigt. So kann niemand, der bloß die Adresse erreicht, die Instanz vor dir übernehmen.
+
+   ```sh
+   docker logs mtdl-web 2>&1 | grep "setup code"
+   ```
+
+4. **Passwort festlegen.** `http://<server>:8080` im Browser öffnen, Code und Passwort eintragen. Der Browser bleibt
+   danach 30 Tage nach der letzten Nutzung angemeldet.
+
+5. **Ersteinrichtung.** Ein kurzer Assistent prüft, ob mtdl-web in den Download-Ordner schreiben darf (mit Lösung,
+   falls nicht), zeigt den Fortschritt der ersten Filmliste und fragt, wie Downloads heißen sollen. Siehe
+   [Ersteinrichtung](../../usage/first-run/).
+
+6. **Suchen und abonnieren.** Eine Sendung suchen, Treffer herunterladen oder mit „Abo daraus machen“ alle künftigen
+   Folgen laden lassen. Siehe [Suche](../../usage/search/) und [Abos](../../usage/subscriptions/).
+
+</Steps>
+
+## Wie geht es weiter?
+
+- **Mediaserver:** Serien direkt in die Plex- oder Jellyfin-Bibliothek laden: [Bibliotheken](../../usage/libraries/).
+- **Von unterwegs:** Zugriff über VPN oder Reverse Proxy: [Anmeldung](../../install/access/) und
+  [Reverse Proxy](../../install/reverse-proxy/).
+- **Umzug von MediathekView:** Historie und Abos übernehmen: [Umzug](../../usage/takeover/).
+- **Anbinden:** Home Assistant, n8n, Sonarr oder ein KI-Assistent: [REST-API](../../integrations/rest-api/),
+  [Webhooks](../../integrations/webhooks/), [MCP](../../integrations/mcp/).

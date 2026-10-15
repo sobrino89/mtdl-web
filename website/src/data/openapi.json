@@ -1,0 +1,6414 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "mtdl-web",
+    "summary": "Search, download and subscribe to the German public broadcasters' media libraries.",
+    "description": "Everything mtdl-web's own interface does goes through this API, so scripts and other services can do it too.\n\n**Base path** `/api/v1`, JSON in and out. Film ids travel as strings: JavaScript numbers lose precision beyond 2^53.\n\n**Authentication.** Send an API key in the header `X-Api-Key`; keys are created in the settings under *Access*. A\nread key may call every `GET` and the previews (`POST` routes that change nothing), a write key everything. A read\nkey asking for a change gets `403` with the code `api_key_read_only`. Without a key the access mode decides; with a\npassword that is the browser's session cookie, which is meant for the interface, not for scripts.\n\n**Errors** carry an object in `detail` with a machine-readable `code`, sometimes with more fields:\n`{\"detail\": {\"code\": \"subscription_not_found\"}}`, `{\"detail\": {\"code\": \"library_in_use\", \"subscriptions\": [3]}}`.\nInput that does not fit the schema answers `422` with FastAPI's list of validation errors in `detail`.\nA change a browser marks as coming from another site is refused with `403` and the code `cross_site`; scripts send\nno such headers.\n\nEvents reach other services as webhooks or hook scripts; assistants use the MCP server at `/mcp` (off by default).\n",
+    "license": {
+      "name": "GPL-3.0-or-later",
+      "identifier": "GPL-3.0-or-later"
+    },
+    "version": "1"
+  },
+  "servers": [
+    {
+      "url": "http://mtdl-web:8080",
+      "description": "your instance"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Health check",
+        "description": "For the container health check: cheap, writes nothing (a write test would keep array disks awake).\n503 when degraded, so Docker marks the container unhealthy; the UI still works and shows the problems.",
+        "operationId": "get_health",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/status": {
+      "get": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Sign-in state",
+        "description": "Open without sign-in: the UI decides from it whether to show the setup, the sign-in or itself.",
+        "operationId": "get_auth_status",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthStatusOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/setup": {
+      "post": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Set the first password",
+        "description": "The first password, with the one-time code from the container log.",
+        "operationId": "post_setup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthStatusOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Sign in",
+        "operationId": "post_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthStatusOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Sign out",
+        "operationId": "post_logout",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password": {
+      "post": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Change the password",
+        "description": "Change the password (or set the first one from a local request); other sessions end.",
+        "operationId": "post_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthStatusOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/sessions/end-others": {
+      "post": {
+        "tags": [
+          "access"
+        ],
+        "summary": "End the other sessions",
+        "description": "Sign out everywhere else (a lost phone, a shared computer).",
+        "operationId": "post_end_other_sessions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object",
+                  "title": "Response Post End Other Sessions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/info": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Server information",
+        "operationId": "get_info",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/system": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "System overview",
+        "description": "What runs where, sizes and free space: for the settings page and bug reports (no secrets).",
+        "operationId": "get_system",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/filmlist": {
+      "get": {
+        "tags": [
+          "filmlist"
+        ],
+        "summary": "Film list state",
+        "operationId": "get_filmlist",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmlistOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/filmlist/update": {
+      "post": {
+        "tags": [
+          "filmlist"
+        ],
+        "summary": "Update the film list now",
+        "operationId": "post_filmlist_update",
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Post Filmlist Update"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Search films",
+        "description": "``q`` understands the MediathekViewWeb syntax: ``!sender``, ``#thema``, ``+titel``, ``*beschreibung``,\n``>minuten``, ``<minuten``, commas join words that must all occur. ``scope`` all (or ``description``) also searches\ndescriptions; ``status`` adds what mtdl-web knows per hit.",
+        "operationId": "get_search",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "topic_title",
+                "title",
+                "topic",
+                "all"
+              ],
+              "type": "string",
+              "default": "topic_title",
+              "title": "Scope"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Description"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "filmlist",
+                    "mediathekviewweb"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 2000,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/films/{film_id}": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Get a film",
+        "operationId": "get_film",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "film_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Film Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get the settings",
+        "operationId": "get_settings",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSettings"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Change settings",
+        "operationId": "patch_settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Changes"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/checks/directories": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Test the folders for writing",
+        "description": "Write test on demand (settings page, first start).",
+        "operationId": "post_directory_check",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Post Directory Check"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/naming/preview": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Preview file names",
+        "description": "Target paths of example films under a naming scheme: the live example in the settings.",
+        "operationId": "post_naming_preview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NamingPreviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object",
+                  "title": "Response Post Naming Preview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/downloads": {
+      "get": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "List downloads",
+        "description": "``order=queue`` lists in the order downloads start (for the queue), else newest first; ``subscription``\nonly that subscription's (the counts stay those of all downloads).",
+        "operationId": "get_downloads",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "queued",
+                      "running",
+                      "done",
+                      "failed",
+                      "cancelled"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "newest",
+                "queue"
+              ],
+              "type": "string",
+              "default": "newest",
+              "title": "Order"
+            }
+          },
+          {
+            "name": "subscription",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subscription"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadListOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Queue a download",
+        "operationId": "post_download",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DownloadIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/downloads/cancel": {
+      "post": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Cancel downloads",
+        "description": "Cancels everything waiting or loading, or only one subscription's downloads. The ids allow an undo\n(``/downloads/{id}/retry``).",
+        "operationId": "post_downloads_cancel",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subscription"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "title": "Response Post Downloads Cancel"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/downloads/target": {
+      "post": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Preview where a download goes",
+        "description": "Where ``POST /downloads`` would put the film, without queueing it: the preview of the download dialog.",
+        "operationId": "post_download_target",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DownloadIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/downloads/{download_id}": {
+      "get": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Get a download",
+        "operationId": "get_download",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "download_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Download Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Remove a download from the history",
+        "description": "Removes the entry (history); files stay where they are.",
+        "operationId": "delete_download",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "download_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Download Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/downloads/{download_id}/cancel": {
+      "post": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Cancel a download",
+        "operationId": "post_download_cancel",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "download_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Download Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/downloads/{download_id}/retry": {
+      "post": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Retry a download",
+        "operationId": "post_download_retry",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "download_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Download Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/downloads/{download_id}/move": {
+      "post": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Move a download in the queue",
+        "description": "Changes the order of the queue; only waiting downloads can move.",
+        "operationId": "post_download_move",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "download_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Download Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "List subscriptions",
+        "operationId": "get_subscriptions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubscriptionOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Subscriptions"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Create a subscription",
+        "operationId": "post_subscription",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionSaveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/subscriptions/preview": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Preview a subscription",
+        "description": "``subscription``: the saved subscription the draft edits; its skipped episodes show as skipped.",
+        "operationId": "post_subscription_preview",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subscription"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/{subscription_id}": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Get a subscription",
+        "operationId": "get_subscription",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Update a subscription",
+        "operationId": "put_subscription",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionSaveIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Delete a subscription",
+        "description": "Downloads stay in the history (and on disk); they only lose the link to the subscription.",
+        "operationId": "delete_subscription",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/{subscription_id}/skipped": {
+      "delete": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Release skipped episodes",
+        "description": "Releases the skipped episodes: the next check loads them like any other match.",
+        "operationId": "delete_subscription_skipped",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Delete Subscription Skipped"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/check": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Check all subscriptions",
+        "description": "Checks every active subscription now (otherwise this runs after each film list update).",
+        "operationId": "post_subscriptions_check",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object",
+                  "title": "Response Post Subscriptions Check"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/subscriptions/{subscription_id}/check": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Check a subscription",
+        "operationId": "post_subscription_check",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Post Subscription Check"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/{subscription_id}/requeue": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Load failed and cancelled episodes again",
+        "description": "Loads the subscription's failed and cancelled episodes again: they leave the history, a check queues them\nwith today's naming and quality. ``forgotten``: history entries removed, ``queued``: downloads queued.",
+        "operationId": "post_subscription_requeue",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Subscription Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Post Subscription Requeue"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/integrations": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Integration tokens set",
+        "description": "Whether the tokens of the library features are set (never their values).",
+        "operationId": "get_integrations",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationsOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/integrations/secrets": {
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Set integration tokens",
+        "operationId": "put_secrets",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/integrations/tmdb/test": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Test the TMDB token",
+        "operationId": "post_tmdb_test",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "type": "object",
+                  "title": "Response Post Tmdb Test"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/integrations/plex/test": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Test the Plex connection",
+        "operationId": "post_plex_test",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlexTestOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/metadata/series": {
+      "get": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "Search series on TMDB",
+        "description": "Series on TMDB for a name, for assigning a subscription to its series.",
+        "operationId": "get_series_search",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CandidateOut"
+                  },
+                  "title": "Response Get Series Search"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metadata/movies": {
+      "get": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "Search movies on TMDB",
+        "description": "Movies on TMDB for a title, for a single download into a movie library.",
+        "operationId": "get_movie_search",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "Q"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2200,
+                  "minimum": 1870
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CandidateOut"
+                  },
+                  "title": "Response Get Movie Search"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metadata/movies/{tmdb_id}": {
+      "get": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "Get a movie",
+        "description": "The movie as a download names it; ``library_id``: the movie library to look for its folders in.",
+        "operationId": "get_movie",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tmdb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tmdb Id"
+            }
+          },
+          {
+            "name": "library_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Library Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovieOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metadata/series/{tmdb_id}": {
+      "get": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "Get a series",
+        "description": "The series as the subscription uses it; ``refresh`` asks TMDB again (new episodes listed there);\n``library_id``: the series library to look for its folders in (default: the only one).",
+        "operationId": "get_series",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tmdb_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tmdb Id"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          },
+          {
+            "name": "library_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Library Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeriesOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/libraries/preview": {
+      "post": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "Preview the paths of a library",
+        "description": "Paths under a library template, relative to the library: a regular episode and a special, or a movie. The\nlive example of the library form.",
+        "operationId": "post_library_preview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibraryPreviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object",
+                  "title": "Response Post Library Preview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries": {
+      "get": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "List libraries",
+        "operationId": "get_libraries",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Libraries"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "Create a library",
+        "operationId": "post_library",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibraryIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/{library_id}": {
+      "put": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "Update a library",
+        "description": "A new path moves the library: downloads in it keep their place relative to it (move the files along).",
+        "operationId": "put_library",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "library_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Library Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibraryIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "libraries"
+        ],
+        "summary": "Delete a library",
+        "description": "Files stay where they are. Refused while subscriptions or unfinished downloads use the library.",
+        "operationId": "delete_library",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "library_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Library Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api-keys": {
+      "get": {
+        "tags": [
+          "access"
+        ],
+        "summary": "List API keys",
+        "operationId": "get_api_keys",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKeyOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Api Keys"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Create an API key",
+        "description": "A key for scripts, other services and assistants (MCP): header X-Api-Key, in every access mode.",
+        "operationId": "post_api_key",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyCreatedOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/api-keys/{key_id}": {
+      "delete": {
+        "tags": [
+          "access"
+        ],
+        "summary": "Delete an API key",
+        "operationId": "delete_api_key",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Key Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/takeover/mediathekview": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Take over from MediathekView",
+        "description": "Download history and subscriptions of the MediathekView desktop app: first as a dry run, then with\n``apply``. Downloads count as done (subscriptions skip them), subscriptions arrive paused.",
+        "operationId": "post_takeover",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TakeoverIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Post Takeover"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/webhooks": {
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "List webhooks",
+        "operationId": "get_webhooks",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WebhookOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Webhooks"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Create a webhook",
+        "operationId": "post_webhook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/webhooks/{webhook_id}": {
+      "put": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Update a webhook",
+        "operationId": "put_webhook",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Webhook Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Delete a webhook",
+        "operationId": "delete_webhook",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Webhook Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks/{webhook_id}/test": {
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Send a test event",
+        "description": "Sends a ``webhook.test`` event once and answers with the result.",
+        "operationId": "post_webhook_test",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Webhook Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Webhook Test"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/logos/{channel}": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Channel logo",
+        "description": "The channel's logo when the setting ``channel_logos`` is on and the MediathekView project has one; 404 otherwise\n(the UI shows the name instead).",
+        "operationId": "get_logo",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "channel",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Channel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/svg+xml": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attribution/{source}": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Logo of a data source",
+        "description": "The logo a data source asks to show with its notice (TMDB), served from here: the browser loads nothing\nfrom elsewhere.",
+        "operationId": "get_attribution",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "source",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "const": "tmdb",
+              "type": "string",
+              "title": "Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/svg+xml": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hooks": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "List hook scripts",
+        "description": "Scripts in the hooks folder (``<event>.d/``) and their last run. Read only: scripts come from the config\nfolder alone, the API neither writes nor starts one.",
+        "operationId": "get_hooks",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HooksOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/limit/pause": {
+      "put": {
+        "tags": [
+          "downloads"
+        ],
+        "summary": "Pause the scheduled bandwidth limit",
+        "description": "Inside a schedule window: ``paused`` opens the limit until the window ends; false returns to the schedule.",
+        "operationId": "put_limit_pause",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LimitOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/api/v1/status": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Current status",
+        "description": "Everything the status bar shows, in one request (the UI polls it every few seconds).",
+        "operationId": "get_status",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusOut"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiKeyCreatedOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "prefix": {
+            "type": "string",
+            "title": "Prefix"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ],
+            "title": "Scope"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "scope",
+          "created_at",
+          "last_used_at",
+          "key"
+        ],
+        "title": "ApiKeyCreatedOut"
+      },
+      "ApiKeyIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ],
+            "title": "Scope",
+            "default": "read"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ApiKeyIn"
+      },
+      "ApiKeyOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "prefix": {
+            "type": "string",
+            "title": "Prefix"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write"
+            ],
+            "title": "Scope"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "scope",
+          "created_at",
+          "last_used_at"
+        ],
+        "title": "ApiKeyOut"
+      },
+      "AppSettings": {
+        "properties": {
+          "bandwidth_limit": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Bandwidth Limit",
+            "default": 0
+          },
+          "bandwidth_enabled": {
+            "type": "boolean",
+            "title": "Bandwidth Enabled",
+            "default": true
+          },
+          "speed_unit": {
+            "type": "string",
+            "enum": [
+              "Mbit/s",
+              "MB/s"
+            ],
+            "title": "Speed Unit",
+            "default": "Mbit/s"
+          },
+          "schedule_enabled": {
+            "type": "boolean",
+            "title": "Schedule Enabled",
+            "default": false
+          },
+          "schedule_days": {
+            "items": {
+              "type": "integer",
+              "maximum": 6.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "title": "Schedule Days"
+          },
+          "schedule_start": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Schedule Start",
+            "default": "08:00"
+          },
+          "schedule_end": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Schedule End",
+            "default": "18:00"
+          },
+          "schedule_limit": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Schedule Limit",
+            "default": 2500000
+          },
+          "parallel_downloads": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Parallel Downloads",
+            "default": 2
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "hd",
+              "normal",
+              "low"
+            ],
+            "title": "Quality",
+            "default": "hd"
+          },
+          "subtitles": {
+            "type": "boolean",
+            "title": "Subtitles",
+            "default": true
+          },
+          "normalize_filenames": {
+            "type": "boolean",
+            "title": "Normalize Filenames",
+            "default": true
+          },
+          "channel_logos": {
+            "type": "boolean",
+            "title": "Channel Logos",
+            "default": false
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "filmlist",
+              "mediathekviewweb"
+            ],
+            "title": "Source",
+            "default": "filmlist"
+          },
+          "naming_scheme": {
+            "type": "string",
+            "enum": [
+              "episode_number",
+              "season_episode",
+              "date",
+              "template"
+            ],
+            "title": "Naming Scheme",
+            "default": "season_episode"
+          },
+          "naming_template": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Naming Template"
+          },
+          "library_template": {
+            "type": "string",
+            "title": "Library Template",
+            "default": "{serie} {tmdb}/{staffelordner}/{serie} - S{staffel}E{folge} - {folgentitel}"
+          },
+          "library_normalize": {
+            "type": "boolean",
+            "title": "Library Normalize",
+            "default": false
+          },
+          "plex_refresh": {
+            "type": "boolean",
+            "title": "Plex Refresh",
+            "default": false
+          },
+          "plex_library_path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^/"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plex Library Path"
+          },
+          "plex_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^https?://[^\\s/?#]+(/[^\\s?#]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plex Url"
+          },
+          "mcp_enabled": {
+            "type": "boolean",
+            "title": "Mcp Enabled",
+            "default": false
+          },
+          "setup_done": {
+            "type": "boolean",
+            "title": "Setup Done",
+            "default": false
+          },
+          "exclude_special_versions": {
+            "type": "boolean",
+            "title": "Exclude Special Versions",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AppSettings",
+        "description": "Settings the user changes at runtime. New fields need a default: stored documents may lack them."
+      },
+      "AuthStatusOut": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "password",
+              "local",
+              "proxy",
+              "none"
+            ],
+            "title": "Mode"
+          },
+          "authenticated": {
+            "type": "boolean",
+            "title": "Authenticated"
+          },
+          "via": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "session",
+                  "local",
+                  "proxy",
+                  "none"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Via"
+          },
+          "setup_required": {
+            "type": "boolean",
+            "title": "Setup Required"
+          },
+          "password_set": {
+            "type": "boolean",
+            "title": "Password Set"
+          },
+          "password_from_env": {
+            "type": "boolean",
+            "title": "Password From Env"
+          },
+          "user": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User"
+          },
+          "outside": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outside"
+          },
+          "first_run": {
+            "type": "boolean",
+            "title": "First Run"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "authenticated",
+          "via",
+          "setup_required",
+          "password_set",
+          "password_from_env",
+          "user",
+          "outside",
+          "first_run"
+        ],
+        "title": "AuthStatusOut"
+      },
+      "CandidateOut": {
+        "properties": {
+          "tmdb_id": {
+            "type": "integer",
+            "title": "Tmdb Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "original_name": {
+            "type": "string",
+            "title": "Original Name"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "overview": {
+            "type": "string",
+            "title": "Overview"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tmdb_id",
+          "name",
+          "original_name",
+          "year",
+          "overview"
+        ],
+        "title": "CandidateOut"
+      },
+      "ConditionIO": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "operator": {
+            "type": "string",
+            "title": "Operator"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "regex": {
+            "type": "boolean",
+            "title": "Regex",
+            "default": false
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ],
+        "title": "ConditionIO"
+      },
+      "ConditionResultOut": {
+        "properties": {
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "actual": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual"
+          },
+          "span": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Span"
+          }
+        },
+        "type": "object",
+        "required": [
+          "passed",
+          "code",
+          "actual",
+          "span"
+        ],
+        "title": "ConditionResultOut"
+      },
+      "DownloadIn": {
+        "properties": {
+          "film_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Film Id"
+          },
+          "film": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FilmIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quality": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "hd",
+                  "normal",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality"
+          },
+          "subtitles": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitles"
+          },
+          "naming": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NamingIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "force": {
+            "type": "boolean",
+            "title": "Force",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "DownloadIn"
+      },
+      "DownloadListOut": {
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DownloadOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "counts",
+          "items"
+        ],
+        "title": "DownloadListOut"
+      },
+      "DownloadOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "film": {
+            "$ref": "#/components/schemas/FilmOut"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "file": {
+            "type": "string",
+            "title": "File"
+          },
+          "library_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Id"
+          },
+          "quality": {
+            "type": "string",
+            "title": "Quality"
+          },
+          "subtitles": {
+            "type": "boolean",
+            "title": "Subtitles"
+          },
+          "subscription_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subscription Id"
+          },
+          "bytes_done": {
+            "type": "integer",
+            "title": "Bytes Done"
+          },
+          "bytes_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bytes Total"
+          },
+          "speed": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed"
+          },
+          "phase": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phase"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "retry_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry At"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "state",
+          "film",
+          "path",
+          "file",
+          "library_id",
+          "quality",
+          "subtitles",
+          "subscription_id",
+          "bytes_done",
+          "bytes_total",
+          "speed",
+          "phase",
+          "error",
+          "error_code",
+          "attempts",
+          "retry_at",
+          "position",
+          "created_at",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "DownloadOut"
+      },
+      "DownloadSummaryOut": {
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "running": {
+            "items": {
+              "$ref": "#/components/schemas/RunningOut"
+            },
+            "type": "array",
+            "title": "Running"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "counts",
+          "running",
+          "speed",
+          "progress"
+        ],
+        "title": "DownloadSummaryOut"
+      },
+      "EpisodeOut": {
+        "properties": {
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "air_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Air Date"
+          },
+          "runtime": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime"
+          }
+        },
+        "type": "object",
+        "required": [
+          "season",
+          "number",
+          "name",
+          "air_date",
+          "runtime"
+        ],
+        "title": "EpisodeOut"
+      },
+      "FilmIn": {
+        "properties": {
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          },
+          "topic": {
+            "type": "string",
+            "title": "Topic"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "url_low": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Low"
+          },
+          "url_hd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Hd"
+          },
+          "url_subtitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Subtitle"
+          },
+          "url_website": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Website"
+          },
+          "geo": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Geo",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "channel",
+          "topic",
+          "title"
+        ],
+        "title": "FilmIn",
+        "description": "A film from a search result, for sources other than the local film list (MediathekViewWeb)."
+      },
+      "FilmOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          },
+          "topic": {
+            "type": "string",
+            "title": "Topic"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "url_low": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Low"
+          },
+          "url_hd": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Hd"
+          },
+          "url_subtitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Subtitle"
+          },
+          "url_website": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Website"
+          },
+          "geo": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Geo"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FilmStatusOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "channel",
+          "topic",
+          "title",
+          "description",
+          "start",
+          "duration",
+          "size",
+          "url",
+          "url_low",
+          "url_hd",
+          "url_subtitle",
+          "url_website",
+          "geo"
+        ],
+        "title": "FilmOut"
+      },
+      "FilmStatusOut": {
+        "properties": {
+          "download_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Download Id"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
+          },
+          "duplicate": {
+            "type": "boolean",
+            "title": "Duplicate",
+            "default": false
+          },
+          "subscription_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subscription Id"
+          },
+          "subscription_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subscription Name"
+          }
+        },
+        "type": "object",
+        "title": "FilmStatusOut",
+        "description": "What mtdl-web knows about a search hit: downloaded (also as the same broadcast on another channel),\nwaiting, loading, and which subscription it would belong to."
+      },
+      "FilmlistOut": {
+        "properties": {
+          "films": {
+            "type": "integer",
+            "title": "Films"
+          },
+          "last_import": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImportOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "running": {
+            "type": "boolean",
+            "title": "Running"
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "next_run": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run"
+          },
+          "backoff_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backoff Until"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProgressOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "films",
+          "last_import",
+          "running",
+          "last_run",
+          "last_error",
+          "next_run",
+          "backoff_until",
+          "progress"
+        ],
+        "title": "FilmlistOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Problems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "problems"
+        ],
+        "title": "HealthOut"
+      },
+      "HookRunOut": {
+        "properties": {
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "seconds": {
+            "type": "number",
+            "title": "Seconds"
+          },
+          "exit_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exit Code"
+          },
+          "output": {
+            "type": "string",
+            "title": "Output"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "started_at",
+          "seconds",
+          "exit_code",
+          "output",
+          "error"
+        ],
+        "title": "HookRunOut"
+      },
+      "HookScriptOut": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "executable": {
+            "type": "boolean",
+            "title": "Executable"
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HookRunOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "event",
+          "name",
+          "executable",
+          "last_run"
+        ],
+        "title": "HookScriptOut"
+      },
+      "HooksOut": {
+        "properties": {
+          "directory": {
+            "type": "string",
+            "title": "Directory"
+          },
+          "timeout": {
+            "type": "number",
+            "title": "Timeout"
+          },
+          "scripts": {
+            "items": {
+              "$ref": "#/components/schemas/HookScriptOut"
+            },
+            "type": "array",
+            "title": "Scripts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "directory",
+          "timeout",
+          "scripts"
+        ],
+        "title": "HooksOut"
+      },
+      "ImportOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "list_id": {
+            "type": "string",
+            "title": "List Id"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created"
+          },
+          "added": {
+            "type": "integer",
+            "title": "Added"
+          },
+          "changed": {
+            "type": "integer",
+            "title": "Changed"
+          },
+          "removed": {
+            "type": "integer",
+            "title": "Removed"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "list_id",
+          "created",
+          "added",
+          "changed",
+          "removed",
+          "total"
+        ],
+        "title": "ImportOut"
+      },
+      "InfoOut": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "description_search": {
+            "type": "boolean",
+            "title": "Description Search"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "download_dir": {
+            "type": "string",
+            "title": "Download Dir"
+          },
+          "uid": {
+            "type": "integer",
+            "title": "Uid"
+          },
+          "gid": {
+            "type": "integer",
+            "title": "Gid"
+          },
+          "workers": {
+            "type": "integer",
+            "title": "Workers"
+          },
+          "tmdb": {
+            "type": "boolean",
+            "title": "Tmdb"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "description_search",
+          "timezone",
+          "download_dir",
+          "uid",
+          "gid",
+          "workers",
+          "tmdb"
+        ],
+        "title": "InfoOut"
+      },
+      "IntegrationsOut": {
+        "properties": {
+          "tmdb": {
+            "$ref": "#/components/schemas/SecretStateOut"
+          },
+          "plex_token": {
+            "$ref": "#/components/schemas/SecretStateOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tmdb",
+          "plex_token"
+        ],
+        "title": "IntegrationsOut"
+      },
+      "LibraryIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "series",
+              "movies"
+            ],
+            "title": "Kind"
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 1000,
+            "pattern": "^/",
+            "title": "Path"
+          },
+          "template": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Template"
+          },
+          "normalize": {
+            "type": "boolean",
+            "title": "Normalize",
+            "default": false
+          },
+          "plex_path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "pattern": "^/"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plex Path"
+          },
+          "plex_refresh": {
+            "type": "boolean",
+            "title": "Plex Refresh",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "path",
+          "template"
+        ],
+        "title": "LibraryIn"
+      },
+      "LibraryOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "series",
+              "movies"
+            ],
+            "title": "Kind"
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 1000,
+            "pattern": "^/",
+            "title": "Path"
+          },
+          "template": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Template"
+          },
+          "normalize": {
+            "type": "boolean",
+            "title": "Normalize",
+            "default": false
+          },
+          "plex_path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "pattern": "^/"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plex Path"
+          },
+          "plex_refresh": {
+            "type": "boolean",
+            "title": "Plex Refresh",
+            "default": false
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem"
+          },
+          "subscriptions": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Subscriptions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "path",
+          "template",
+          "id",
+          "problem",
+          "subscriptions"
+        ],
+        "title": "LibraryOut"
+      },
+      "LibraryPreviewIn": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "series",
+              "movies"
+            ],
+            "title": "Kind",
+            "default": "series"
+          },
+          "template": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Template"
+          },
+          "normalize": {
+            "type": "boolean",
+            "title": "Normalize",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "template"
+        ],
+        "title": "LibraryPreviewIn"
+      },
+      "LimitOut": {
+        "properties": {
+          "bandwidth_limit": {
+            "type": "integer",
+            "title": "Bandwidth Limit"
+          },
+          "bandwidth_enabled": {
+            "type": "boolean",
+            "title": "Bandwidth Enabled"
+          },
+          "speed_unit": {
+            "type": "string",
+            "title": "Speed Unit"
+          },
+          "rate": {
+            "type": "integer",
+            "title": "Rate"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "schedule",
+              "paused"
+            ],
+            "title": "Source"
+          },
+          "until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Until"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bandwidth_limit",
+          "bandwidth_enabled",
+          "speed_unit",
+          "rate",
+          "source",
+          "until"
+        ],
+        "title": "LimitOut"
+      },
+      "LoginIn": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "LoginIn"
+      },
+      "MoveIn": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index"
+        ],
+        "title": "MoveIn"
+      },
+      "MovieOut": {
+        "properties": {
+          "tmdb_id": {
+            "type": "integer",
+            "title": "Tmdb Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "original_title": {
+            "type": "string",
+            "title": "Original Title"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "release_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Release Date"
+          },
+          "imdb_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imdb Id"
+          },
+          "runtime": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "folders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Folders"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tmdb_id",
+          "title",
+          "original_title",
+          "year",
+          "release_date",
+          "imdb_id",
+          "runtime",
+          "fetched_at",
+          "folders"
+        ],
+        "title": "MovieOut"
+      },
+      "NamingIn": {
+        "properties": {
+          "scheme": {
+            "type": "string",
+            "enum": [
+              "episode_number",
+              "season_episode",
+              "date",
+              "template"
+            ],
+            "title": "Scheme",
+            "default": "date"
+          },
+          "show": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Show"
+          },
+          "folder": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folder"
+          },
+          "season": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9999.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template"
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "downloads",
+              "library"
+            ],
+            "title": "Target",
+            "default": "downloads"
+          },
+          "tmdb_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdb Id"
+          },
+          "library_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Id"
+          }
+        },
+        "type": "object",
+        "title": "NamingIn"
+      },
+      "NamingPreviewIn": {
+        "properties": {
+          "naming": {
+            "$ref": "#/components/schemas/NamingIn"
+          },
+          "normalize": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalize"
+          },
+          "films": {
+            "items": {
+              "$ref": "#/components/schemas/FilmIn"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Films"
+          }
+        },
+        "type": "object",
+        "required": [
+          "naming",
+          "films"
+        ],
+        "title": "NamingPreviewIn"
+      },
+      "PasswordIn": {
+        "properties": {
+          "current": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "PasswordIn"
+      },
+      "PauseIn": {
+        "properties": {
+          "paused": {
+            "type": "boolean",
+            "title": "Paused"
+          }
+        },
+        "type": "object",
+        "required": [
+          "paused"
+        ],
+        "title": "PauseIn"
+      },
+      "PlexSectionOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Paths"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "title",
+          "type",
+          "paths"
+        ],
+        "title": "PlexSectionOut"
+      },
+      "PlexTestOut": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/PlexSectionOut"
+            },
+            "type": "array",
+            "title": "Sections"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "sections"
+        ],
+        "title": "PlexTestOut"
+      },
+      "PreviewItemOut": {
+        "properties": {
+          "film": {
+            "$ref": "#/components/schemas/FilmOut"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "excluded_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excluded By"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "duplicate_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicate Of"
+          },
+          "download_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Download Id"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ConditionResultOut"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "episode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EpisodeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "in_library": {
+            "type": "boolean",
+            "title": "In Library",
+            "default": false
+          },
+          "special": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special"
+          }
+        },
+        "type": "object",
+        "required": [
+          "film",
+          "status",
+          "excluded_by",
+          "path",
+          "duplicate_of",
+          "download_id",
+          "results"
+        ],
+        "title": "PreviewItemOut"
+      },
+      "PreviewOut": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewStepOut"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewItemOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "counts",
+          "steps",
+          "items"
+        ],
+        "title": "PreviewOut"
+      },
+      "PreviewStepOut": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "before": {
+            "type": "integer",
+            "title": "Before"
+          },
+          "excluded": {
+            "type": "integer",
+            "title": "Excluded"
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "condition",
+              "special_versions"
+            ],
+            "title": "Kind",
+            "default": "condition"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "enabled",
+          "before",
+          "excluded",
+          "remaining"
+        ],
+        "title": "PreviewStepOut"
+      },
+      "ProgressOut": {
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "download",
+              "import"
+            ],
+            "title": "Phase"
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "done",
+          "total"
+        ],
+        "title": "ProgressOut"
+      },
+      "RunningOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          },
+          "topic": {
+            "type": "string",
+            "title": "Topic"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed"
+          },
+          "phase": {
+            "type": "string",
+            "title": "Phase"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "channel",
+          "topic",
+          "title",
+          "done",
+          "total",
+          "speed",
+          "phase"
+        ],
+        "title": "RunningOut"
+      },
+      "SearchOut": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "films": {
+            "items": {
+              "$ref": "#/components/schemas/FilmOut"
+            },
+            "type": "array",
+            "title": "Films"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "total",
+          "films"
+        ],
+        "title": "SearchOut"
+      },
+      "SeasonOut": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "episodes": {
+            "type": "integer",
+            "title": "Episodes"
+          },
+          "first_air_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Air Date"
+          },
+          "last_air_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Air Date"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "episodes",
+          "first_air_date",
+          "last_air_date"
+        ],
+        "title": "SeasonOut"
+      },
+      "SecretStateOut": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "env",
+                  "settings"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configured",
+          "source"
+        ],
+        "title": "SecretStateOut"
+      },
+      "SecretsIn": {
+        "properties": {
+          "tmdb_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tmdb Token"
+          },
+          "plex_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plex Token"
+          }
+        },
+        "type": "object",
+        "title": "SecretsIn",
+        "description": "Only the fields sent change; null or \"\" removes the stored token."
+      },
+      "SeriesOut": {
+        "properties": {
+          "tmdb_id": {
+            "type": "integer",
+            "title": "Tmdb Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "original_name": {
+            "type": "string",
+            "title": "Original Name"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "imdb_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imdb Id"
+          },
+          "tvdb_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tvdb Id"
+          },
+          "seasons": {
+            "items": {
+              "$ref": "#/components/schemas/SeasonOut"
+            },
+            "type": "array",
+            "title": "Seasons"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "folders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Folders"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tmdb_id",
+          "name",
+          "original_name",
+          "year",
+          "imdb_id",
+          "tvdb_id",
+          "seasons",
+          "fetched_at",
+          "folders"
+        ],
+        "title": "SeriesOut"
+      },
+      "SetupIn": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Code"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "password"
+        ],
+        "title": "SetupIn"
+      },
+      "StatusOut": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "filmlist": {
+            "$ref": "#/components/schemas/FilmlistOut"
+          },
+          "downloads": {
+            "$ref": "#/components/schemas/DownloadSummaryOut"
+          },
+          "limit": {
+            "$ref": "#/components/schemas/LimitOut"
+          },
+          "subscriptions": {
+            "type": "integer",
+            "title": "Subscriptions"
+          },
+          "writable": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Writable"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Problems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "filmlist",
+          "downloads",
+          "limit",
+          "subscriptions",
+          "writable",
+          "problems"
+        ],
+        "title": "StatusOut"
+      },
+      "SubscriptionIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "include_description": {
+            "type": "boolean",
+            "title": "Include Description",
+            "default": false
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "filmlist",
+                  "mediathekviewweb"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/ConditionIO"
+            },
+            "type": "array",
+            "title": "Conditions",
+            "default": []
+          },
+          "naming": {
+            "$ref": "#/components/schemas/NamingIn",
+            "default": {
+              "scheme": "date",
+              "target": "downloads"
+            }
+          },
+          "quality": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "hd",
+                  "normal",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality"
+          },
+          "subtitles": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitles"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused"
+            ],
+            "title": "State",
+            "default": "active"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Until"
+          },
+          "on_expiry": {
+            "type": "string",
+            "enum": [
+              "pause",
+              "delete"
+            ],
+            "title": "On Expiry",
+            "default": "pause"
+          },
+          "special_versions": {
+            "type": "string",
+            "enum": [
+              "setting",
+              "exclude",
+              "include"
+            ],
+            "title": "Special Versions",
+            "default": "setting"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "SubscriptionIn"
+      },
+      "SubscriptionOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "include_description": {
+            "type": "boolean",
+            "title": "Include Description",
+            "default": false
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "filmlist",
+                  "mediathekviewweb"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/ConditionIO"
+            },
+            "type": "array",
+            "title": "Conditions",
+            "default": []
+          },
+          "naming": {
+            "$ref": "#/components/schemas/NamingIn",
+            "default": {
+              "scheme": "date",
+              "target": "downloads"
+            }
+          },
+          "quality": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "hd",
+                  "normal",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality"
+          },
+          "subtitles": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitles"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused"
+            ],
+            "title": "State",
+            "default": "active"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Until"
+          },
+          "on_expiry": {
+            "type": "string",
+            "enum": [
+              "pause",
+              "delete"
+            ],
+            "title": "On Expiry",
+            "default": "pause"
+          },
+          "special_versions": {
+            "type": "string",
+            "enum": [
+              "setting",
+              "exclude",
+              "include"
+            ],
+            "title": "Special Versions",
+            "default": "setting"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "last_check": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Check"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "last_queued": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Queued"
+          },
+          "stats": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Stats"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "id",
+          "created_at",
+          "updated_at",
+          "last_check",
+          "last_error",
+          "last_queued",
+          "stats"
+        ],
+        "title": "SubscriptionOut"
+      },
+      "SubscriptionSaveIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": ""
+          },
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "include_description": {
+            "type": "boolean",
+            "title": "Include Description",
+            "default": false
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "filmlist",
+                  "mediathekviewweb"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/ConditionIO"
+            },
+            "type": "array",
+            "title": "Conditions",
+            "default": []
+          },
+          "naming": {
+            "$ref": "#/components/schemas/NamingIn",
+            "default": {
+              "scheme": "date",
+              "target": "downloads"
+            }
+          },
+          "quality": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "hd",
+                  "normal",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality"
+          },
+          "subtitles": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtitles"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused"
+            ],
+            "title": "State",
+            "default": "active"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Until"
+          },
+          "on_expiry": {
+            "type": "string",
+            "enum": [
+              "pause",
+              "delete"
+            ],
+            "title": "On Expiry",
+            "default": "pause"
+          },
+          "special_versions": {
+            "type": "string",
+            "enum": [
+              "setting",
+              "exclude",
+              "include"
+            ],
+            "title": "Special Versions",
+            "default": "setting"
+          },
+          "skip_existing": {
+            "type": "boolean",
+            "title": "Skip Existing",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "SubscriptionSaveIn"
+      },
+      "SystemOut": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "python": {
+            "type": "string",
+            "title": "Python"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "config_dir": {
+            "type": "string",
+            "title": "Config Dir"
+          },
+          "download_dir": {
+            "type": "string",
+            "title": "Download Dir"
+          },
+          "uid": {
+            "type": "integer",
+            "title": "Uid"
+          },
+          "gid": {
+            "type": "integer",
+            "title": "Gid"
+          },
+          "workers": {
+            "type": "integer",
+            "title": "Workers"
+          },
+          "films": {
+            "type": "integer",
+            "title": "Films"
+          },
+          "film_db_bytes": {
+            "type": "integer",
+            "title": "Film Db Bytes"
+          },
+          "state_db_bytes": {
+            "type": "integer",
+            "title": "State Db Bytes"
+          },
+          "download_free_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Download Free Bytes"
+          },
+          "download_total_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Download Total Bytes"
+          },
+          "writable": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Writable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "python",
+          "timezone",
+          "config_dir",
+          "download_dir",
+          "uid",
+          "gid",
+          "workers",
+          "films",
+          "film_db_bytes",
+          "state_db_bytes",
+          "download_free_bytes",
+          "download_total_bytes",
+          "writable"
+        ],
+        "title": "SystemOut"
+      },
+      "TakeoverIn": {
+        "properties": {
+          "history": {
+            "type": "string",
+            "maxLength": 20000000,
+            "title": "History",
+            "default": ""
+          },
+          "abo_history": {
+            "type": "string",
+            "maxLength": 20000000,
+            "title": "Abo History",
+            "default": ""
+          },
+          "settings": {
+            "type": "string",
+            "maxLength": 20000000,
+            "title": "Settings",
+            "default": ""
+          },
+          "apply": {
+            "type": "boolean",
+            "title": "Apply",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "TakeoverIn"
+      },
+      "TargetOut": {
+        "properties": {
+          "library_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Id"
+          },
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "file": {
+            "type": "string",
+            "title": "File"
+          },
+          "exists": {
+            "type": "boolean",
+            "title": "Exists"
+          },
+          "videos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Videos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "library_id",
+          "path",
+          "file",
+          "exists",
+          "videos"
+        ],
+        "title": "TargetOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WebhookIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "pattern": "^https?://\\S+$",
+            "title": "Url"
+          },
+          "events": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "filmlist.updated",
+                "download.queued",
+                "download.started",
+                "download.completed",
+                "download.failed",
+                "subscription.expired"
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Events"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "secret": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret",
+            "description": "Signs the body. On update: null keeps the stored one, '' removes it."
+          },
+          "headers": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headers",
+            "description": "Own headers, e.g. an API key. On update: null keeps all stored ones, an object replaces them; a header with the value null keeps its stored value."
+          },
+          "body_template": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Template",
+            "description": "Replaces the default JSON body. Placeholders: {{event}}, {{time}}, {{data.<field>}}."
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "events"
+        ],
+        "title": "WebhookIn"
+      },
+      "WebhookOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "has_secret": {
+            "type": "boolean",
+            "title": "Has Secret"
+          },
+          "header_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Header Names"
+          },
+          "body_template": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Template"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Status"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "last_event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Event"
+          },
+          "last_sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sent At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "events",
+          "enabled",
+          "has_secret",
+          "header_names",
+          "body_template",
+          "created_at",
+          "last_status",
+          "last_error",
+          "last_event",
+          "last_sent_at"
+        ],
+        "title": "WebhookOut"
+      }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "type": "apiKey",
+        "description": "An API key from the settings (Access). A read key may call GET and the previews, a write key all.",
+        "in": "header",
+        "name": "X-Api-Key"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "search",
+      "description": "Search the film list and look at single films."
+    },
+    {
+      "name": "filmlist",
+      "description": "The film list of the MediathekView project: its state, an update now."
+    },
+    {
+      "name": "downloads",
+      "description": "Queue and history: queue a film, cancel, retry, reorder."
+    },
+    {
+      "name": "subscriptions",
+      "description": "Rules that load a show's episodes by themselves: preview, check."
+    },
+    {
+      "name": "libraries",
+      "description": "Series and movie libraries, and the TMDB lookups that name their files."
+    },
+    {
+      "name": "settings",
+      "description": "Settings, folder checks, naming previews, TMDB and Plex, hook scripts, the takeover from MediathekView."
+    },
+    {
+      "name": "webhooks",
+      "description": "Events sent to other services."
+    },
+    {
+      "name": "access",
+      "description": "Sign-in, password and API keys."
+    },
+    {
+      "name": "system",
+      "description": "Health, version, status and system information."
+    }
+  ]
+}

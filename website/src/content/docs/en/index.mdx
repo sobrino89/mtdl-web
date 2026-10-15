@@ -1,0 +1,52 @@
+---
+title: mtdl-web
+description: Search the German public broadcasters' media libraries, download broadcasts and subscribe to shows, self-hosted in a small container.
+template: splash
+hero:
+  tagline: Search the media libraries of the German public broadcasters, download broadcasts and subscribe to shows. Self-hosted, as a lean web app in one container.
+  image:
+    file: ../../../assets/logo.svg
+  actions:
+    - text: Quick start
+      link: getting-started/quickstart/
+      icon: right-arrow
+    - text: What is mtdl-web?
+      link: getting-started/introduction/
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/sobrino89/mtdl-web
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+:::note[Documentation in German for now]
+The interface of mtdl-web is available in German and English. This documentation starts in German; English
+translations follow page by page. Until then, pages without a translation show the German text.
+:::
+
+<CardGrid stagger>
+  <Card title="Search" icon="magnifier">
+    About 720,000 broadcasts from the MediathekView project's film list, indexed locally: results in milliseconds,
+    with filters, grouping by show and a preview in the browser.
+  </Card>
+  <Card title="Subscribe" icon="list-format">
+    Shows with simple, visible rules. Before saving, the preview shows which episodes will load and which rule
+    leaves out the rest.
+  </Card>
+  <Card title="Download" icon="download">
+    MP4 and HLS with resume, subtitles as SRT and one shared bandwidth limit that applies at once.
+  </Card>
+  <Card title="For Plex and Jellyfin" icon="open-book">
+    File names with season and episode, or straight into the media server's library, named after TMDB.
+  </Card>
+  <Card title="Integrate" icon="puzzle">
+    REST API with OpenAPI, signed webhooks, scripts per event and an MCP server for AI assistants.
+  </Card>
+  <Card title="Secure by default" icon="padlock">
+    Password sign-in out of the box, read-only API keys, no external resources in the interface.
+  </Card>
+</CardGrid>
+
+mtdl-web is an independent project, not affiliated with the MediathekView team or any broadcaster.

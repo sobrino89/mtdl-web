@@ -1,0 +1,93 @@
+/* mtdl-web · Design-Tokens
+   Hell ist Standard (:root), Dunkel über data-theme="dark" am Wurzelelement.
+   „Wie System" setzt die App per matchMedia(prefers-color-scheme). Keine externen Ressourcen. */
+:root {
+  --sans:system-ui,-apple-system,"Segoe UI","Noto Sans","Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --r-xs:3px;
+  --r-s:5px;
+  --r-m:7px;
+  --r-l:10px;
+  --r-xl:14px;
+  color-scheme:light;
+  --bg:oklch(0.968 0.005 80);
+  --surface:oklch(0.993 0.002 80);
+  --raised:oklch(1 0 0);
+  --hover:oklch(0.952 0.006 80);
+  --active:oklch(0.925 0.007 80);
+  --line:oklch(0.905 0.007 80);
+  --line-2:oklch(0.835 0.009 80);
+  --fg:oklch(0.235 0.012 70);
+  --fg-2:oklch(0.445 0.012 70);
+  --fg-3:oklch(0.575 0.01 70);
+  --accent:oklch(0.5 0.095 225);
+  --accent-hover:oklch(0.445 0.095 225);
+  --accent-fg:oklch(0.985 0.005 225);
+  --accent-soft:oklch(0.945 0.022 225);
+  --accent-text:oklch(0.445 0.095 225);
+  --sel:oklch(0.955 0.018 225);
+  --rec:oklch(0.585 0.205 27);
+  --ok:oklch(0.56 0.12 150);
+  --ok-soft:oklch(0.948 0.03 150);
+  --ok-text:oklch(0.43 0.1 150);
+  --warn:oklch(0.74 0.14 75);
+  --warn-soft:oklch(0.955 0.04 85);
+  --warn-text:oklch(0.48 0.1 65);
+  --err:oklch(0.565 0.19 27);
+  --err-soft:oklch(0.952 0.024 25);
+  --err-text:oklch(0.48 0.16 27);
+  --skel:oklch(0.925 0.007 80);
+  --shadow-card:0 1px 2px oklch(0.25 0.02 70 / 0.07);
+  --shadow-pop:0 14px 36px -12px oklch(0.25 0.02 70 / 0.3),0 2px 6px -2px oklch(0.25 0.02 70 / 0.12)
+}
+
+[data-theme="dark"] {
+  color-scheme:dark;
+  --bg:oklch(0.17 0.006 70);
+  --surface:oklch(0.205 0.007 70);
+  --raised:oklch(0.245 0.008 70);
+  --hover:oklch(0.245 0.008 70);
+  --active:oklch(0.285 0.009 70);
+  --line:oklch(0.29 0.008 70);
+  --line-2:oklch(0.37 0.009 70);
+  --fg:oklch(0.93 0.006 80);
+  --fg-2:oklch(0.77 0.008 80);
+  --fg-3:oklch(0.63 0.008 80);
+  --accent:oklch(0.75 0.1 215);
+  --accent-hover:oklch(0.81 0.09 215);
+  --accent-fg:oklch(0.2 0.02 225);
+  --accent-soft:oklch(0.3 0.04 225);
+  --accent-text:oklch(0.8 0.09 215);
+  --sel:oklch(0.26 0.03 225);
+  --rec:oklch(0.68 0.19 27);
+  --ok:oklch(0.74 0.13 150);
+  --ok-soft:oklch(0.29 0.04 150);
+  --ok-text:oklch(0.8 0.12 150);
+  --warn:oklch(0.8 0.13 80);
+  --warn-soft:oklch(0.3 0.045 80);
+  --warn-text:oklch(0.86 0.11 85);
+  --err:oklch(0.68 0.18 27);
+  --err-soft:oklch(0.3 0.06 25);
+  --err-text:oklch(0.79 0.14 27);
+  --skel:oklch(0.27 0.008 70);
+  --shadow-card:none;
+  --shadow-pop:0 18px 44px -12px oklch(0 0 0 / 0.65),0 0 0 1px oklch(0.34 0.009 70)
+}
+
+/* Basis */
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default}
+input,select,textarea{accent-color:var(--accent)}
+::placeholder{color:var(--fg-3);opacity:1}
+::selection{background:var(--accent-soft)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+a{color:var(--accent-text);text-decoration:none}
+a:hover{text-decoration:underline}
+*{scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+@keyframes mtdl-rec{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes mtdl-skel{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes mtdl-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+

@@ -1,0 +1,24 @@
+{
+  "Nikita": [
+    {
+      "id": "631020601785407427",
+      "channel": "3Sat",
+      "topic": "Spielfilm",
+      "title": "Nikita - Spielfilm, Frankreich/Italien 1990",
+      "description": "Beim Einbruch in eine Apotheke erschießt die drogenabhängige Punkerin Nikita einen Polizisten. Sie wird geschnappt und zu lebenslanger Haft verurteilt.",
+      "timestamp": 1791753360,
+      "duration": 6629,
+      "size": 2412773376,
+      "url": "https://nrodlzdf-a.akamaihd.net/dach/3sat/26/10/261011_nikita_spielfilm/1/261011_nikita_spielfilm_3360k_p36v17.mp4",
+      "url_low": "https://rodlzdf-a.akamaihd.net/dach/3sat/26/10/261011_nikita_spielfilm/1/261011_nikita_spielfilm_808k_p11v17.mp4",
+      "url_hd": "https://nrodlzdf-a.akamaihd.net/dach/3sat/26/10/261011_nikita_spielfilm/1/261011_nikita_spielfilm_6660k_p37v17.mp4",
+      "url_subtitle": null,
+      "url_website": "https://www.3sat.de/film/spielfilm/nikita-100.html",
+      "geo": [
+        "DE",
+        "AT",
+        "CH"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "Die Anstalt": {
+    "page": 1,
+    "total_results": 2,
+    "results": [
+      {
+        "id": 73860,
+        "name": "Die Anstalt",
+        "original_name": "Die Anstalt",
+        "first_air_date": "2014-02-04",
+        "overview": "Claus von Wagner und Max Uthoff nehmen gesellschaftliche und politische Missstände satirisch aufs Korn. In immer neuen Spielarten und Rollen präsentieren sie mit ihren Gästen aktuelles Kabarett.",
+        "origin_country": [
+          "DE"
+        ]
+      },
+      {
+        "id": 65343,
+        "name": "Die Anstalt - Zurück ins Leben",
+        "original_name": "Die Anstalt - Zurück ins Leben",
+        "first_air_date": "2007-09-23",
+        "overview": "Die Anstalt – Zurück ins Leben, das ist die geschlossene Station P2 einer psychiatrischen Klinik in Berlin",
+        "origin_country": [
+          "DE"
+        ]
+      }
+    ]
+  },
+  "Werwölfe": {
+    "page": 1,
+    "total_results": 1,
+    "results": [
+      {
+        "id": 300292,
+        "name": "Werwölfe – Das Spiel von List und Täuschung",
+        "original_name": "Werwölfe – Das Spiel von List und Täuschung",
+        "first_air_date": "2025-10-02",
+        "overview": "13 Menschen mit besonderen Fähigkeiten stellen sich einem packenden Spiel aus Wahrheit und Täuschung.  Unter ihnen verbergen sich drei Werwölfe, die alles daransetzen, ihre wahre Identität geheim zu halten und die zehn Dorfbewohner geschickt auszuschalten. Raffinierte Psychospiele, taktische Manöver und ein Nervenkitzel, der unter die Haut geht.",
+        "origin_country": [
+          "DE"
+        ]
+      }
+    ]
+  },
+  "Das Gipfeltreffen": {
+    "page": 1,
+    "total_results": 1,
+    "results": [
+      {
+        "id": 119293,
+        "name": "Das Gipfeltreffen",
+        "original_name": "Das Gipfeltreffen",
+        "first_air_date": "2020-05-02",
+        "overview": "Ab jetzt wird die Welt in ganz Deutschland gerettet. Der richtige Mann dafür ist Olaf Schubert. Aber wie mit allem, kann man ihn dabei nicht alleine lassen. Torsten Sträter, Johann König und Olaf Schubert sind die furiosen Drei, angetreten, um der Welt zu helfen, sich selbst zu retten. Durch Wissen. Denn Wissen ist Macht. Und gerne geben die drei Experten ihr Wissen an die Bedürftigen weiter. Die müssen nur fragen. Und das tun sie in der neuen Comedy-Show \"Das Gipfeltreffen\".",
+        "origin_country": [
+          "DE"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+/* Colours of the app (ui/src/styles/tokens.css): warm greys, a calm blue as accent. Starlight is dark by default,
+   light under data-theme="light"; in light mode "white" is the text colour and "black" the background. */
+:root {
+  --sl-color-accent-low: oklch(0.3 0.045 225);
+  --sl-color-accent: oklch(0.62 0.1 220);
+  --sl-color-accent-high: oklch(0.86 0.07 215);
+  --sl-color-white: oklch(0.985 0.003 80);
+  --sl-color-gray-1: oklch(0.93 0.006 80);
+  --sl-color-gray-2: oklch(0.82 0.008 80);
+  --sl-color-gray-3: oklch(0.68 0.008 80);
+  --sl-color-gray-4: oklch(0.46 0.009 70);
+  --sl-color-gray-5: oklch(0.33 0.008 70);
+  --sl-color-gray-6: oklch(0.245 0.008 70);
+  --sl-color-black: oklch(0.18 0.006 70);
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: oklch(0.93 0.03 225);
+  --sl-color-accent: oklch(0.5 0.095 225);
+  --sl-color-accent-high: oklch(0.34 0.075 225);
+  --sl-color-white: oklch(0.2 0.012 70);
+  --sl-color-gray-1: oklch(0.27 0.012 70);
+  --sl-color-gray-2: oklch(0.38 0.012 70);
+  --sl-color-gray-3: oklch(0.52 0.01 70);
+  --sl-color-gray-4: oklch(0.7 0.009 80);
+  --sl-color-gray-5: oklch(0.86 0.007 80);
+  --sl-color-gray-6: oklch(0.95 0.005 80);
+  --sl-color-gray-7: oklch(0.975 0.004 80);
+  --sl-color-black: oklch(0.993 0.002 80);
+}

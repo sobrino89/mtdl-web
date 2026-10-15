@@ -1,0 +1,241 @@
+{
+  "tv": {
+    "id": 300292,
+    "name": "Werwölfe – Das Spiel von List und Täuschung",
+    "original_name": "Werwölfe – Das Spiel von List und Täuschung",
+    "first_air_date": "2025-10-02",
+    "external_ids": {
+      "imdb_id": "tt36625953",
+      "tvdb_id": 464385
+    },
+    "seasons": [
+      {
+        "season_number": 0,
+        "name": "Extras",
+        "air_date": "2026-10-29",
+        "episode_count": 3
+      },
+      {
+        "season_number": 1,
+        "name": "Staffel 1",
+        "air_date": "2025-10-02",
+        "episode_count": 12
+      },
+      {
+        "season_number": 2,
+        "name": "Staffel 2",
+        "air_date": "2026-09-24",
+        "episode_count": 12
+      }
+    ]
+  },
+  "seasons": {
+    "0": {
+      "season_number": 0,
+      "name": "Extras",
+      "episodes": [
+        {
+          "season_number": 0,
+          "episode_number": 1,
+          "name": "Bonus: Lézan und Michael Kessler erkunden das Set",
+          "air_date": "2026-10-29",
+          "runtime": 15
+        },
+        {
+          "season_number": 0,
+          "episode_number": 2,
+          "name": "Bonus: Valentina erklärt die Spielregeln",
+          "air_date": "2026-11-05",
+          "runtime": 1
+        },
+        {
+          "season_number": 0,
+          "episode_number": 3,
+          "name": "Creator vs. Cast",
+          "air_date": "2026-10-29",
+          "runtime": 51
+        }
+      ]
+    },
+    "1": {
+      "season_number": 1,
+      "name": "Staffel 1",
+      "episodes": [
+        {
+          "season_number": 1,
+          "episode_number": 1,
+          "name": "Ich bin ein Dorfbewohner",
+          "air_date": "2025-10-02",
+          "runtime": 33
+        },
+        {
+          "season_number": 1,
+          "episode_number": 2,
+          "name": "Das kleine Mädchen",
+          "air_date": "2025-10-02",
+          "runtime": 26
+        },
+        {
+          "season_number": 1,
+          "episode_number": 3,
+          "name": "Vertrauenssache",
+          "air_date": "2025-10-08",
+          "runtime": 40
+        },
+        {
+          "season_number": 1,
+          "episode_number": 4,
+          "name": "All In",
+          "air_date": "2025-10-08",
+          "runtime": 40
+        },
+        {
+          "season_number": 1,
+          "episode_number": 5,
+          "name": "Ein Funken Hoffnung",
+          "air_date": "2025-10-14",
+          "runtime": 40
+        },
+        {
+          "season_number": 1,
+          "episode_number": 6,
+          "name": "Ich bin ein Werwolf",
+          "air_date": "2025-10-15",
+          "runtime": 38
+        },
+        {
+          "season_number": 1,
+          "episode_number": 7,
+          "name": "Das Gerücht",
+          "air_date": "2025-10-15",
+          "runtime": 31
+        },
+        {
+          "season_number": 1,
+          "episode_number": 8,
+          "name": "Ablenkungsmanöver",
+          "air_date": "2025-10-15",
+          "runtime": 34
+        },
+        {
+          "season_number": 1,
+          "episode_number": 9,
+          "name": "Hochmut kommt vor dem Fall",
+          "air_date": "2025-10-21",
+          "runtime": 37
+        },
+        {
+          "season_number": 1,
+          "episode_number": 10,
+          "name": "Der Fuchs",
+          "air_date": "2025-10-21",
+          "runtime": 36
+        },
+        {
+          "season_number": 1,
+          "episode_number": 11,
+          "name": "Der Verrat",
+          "air_date": "2025-10-22",
+          "runtime": 29
+        },
+        {
+          "season_number": 1,
+          "episode_number": 12,
+          "name": "Das Finale",
+          "air_date": "2025-10-22",
+          "runtime": 41
+        }
+      ]
+    },
+    "2": {
+      "season_number": 2,
+      "name": "Staffel 2",
+      "episodes": [
+        {
+          "season_number": 2,
+          "episode_number": 1,
+          "name": "Ich bin ein Dorfbewohner",
+          "air_date": "2026-09-24",
+          "runtime": 27
+        },
+        {
+          "season_number": 2,
+          "episode_number": 2,
+          "name": "Der Wolfshund",
+          "air_date": "2026-09-24",
+          "runtime": 24
+        },
+        {
+          "season_number": 2,
+          "episode_number": 3,
+          "name": "Was für ein Theater",
+          "air_date": "2026-09-24",
+          "runtime": 25
+        },
+        {
+          "season_number": 2,
+          "episode_number": 4,
+          "name": "Das Komplott",
+          "air_date": "2026-09-24",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 5,
+          "name": "Die Nachricht",
+          "air_date": "2026-10-01",
+          "runtime": 25
+        },
+        {
+          "season_number": 2,
+          "episode_number": 6,
+          "name": "Fassungslos",
+          "air_date": "2026-10-01",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 7,
+          "name": "Der Bärenführer",
+          "air_date": "2026-10-01",
+          "runtime": 35
+        },
+        {
+          "season_number": 2,
+          "episode_number": 8,
+          "name": "Abschied & Neubeginn",
+          "air_date": "2026-10-01",
+          "runtime": 35
+        },
+        {
+          "season_number": 2,
+          "episode_number": 9,
+          "name": "Nur auf Einladung",
+          "air_date": "2026-10-08",
+          "runtime": 35
+        },
+        {
+          "season_number": 2,
+          "episode_number": 10,
+          "name": "Die Vertrauensfrage",
+          "air_date": "2026-10-08",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 11,
+          "name": "Das Urteil",
+          "air_date": "2026-10-08",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 12,
+          "name": "Das Duell",
+          "air_date": "2026-10-08",
+          "runtime": 30
+        }
+      ]
+    }
+  }
+}

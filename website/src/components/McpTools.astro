@@ -1,0 +1,134 @@
+---
+// The MCP tools as the server lists them to an assistant: src/data/mcp-tools.json, written from the code by
+// tools/docs_data.py (test_docs_data.py fails when it is stale). Descriptions stay as the assistant reads them.
+import { Badge } from '@astrojs/starlight/components';
+import data from '../data/mcp-tools.json';
+
+type Schema = Record<string, any>;
+
+function typeOf(s: Schema | undefined): string {
+  if (!s) return '';
+  if (s.$ref) return String(s.$ref).split('/').pop() ?? '';
+  if (s.anyOf) {
+    const kinds = (s.anyOf as Schema[]).filter((x) => x.type !== 'null').map(typeOf);
+    return kinds.join(' | ');
+  }
+  if (s.enum) return (s.enum as unknown[]).map((v) => JSON.stringify(v)).join(' | ');
+  if (s.type === 'array') return `${typeOf(s.items)}[]`;
+  if (Array.isArray(s.type)) return s.type.join(' | ');
+  return s.type ?? 'any';
+}
+
+function rows(schema: Schema) {
+  const required = new Set<string>(schema.required ?? []);
+  return Object.entries((schema.properties ?? {}) as Record<string, Schema>).map(([name, s]) => ({
+    name,
+    type: typeOf(s),
+    required: required.has(name),
+    fallback: 'default' in s ? JSON.stringify(s.default) : '',
+    description: s.description ?? '',
+  }));
+}
+
+// The first sentence of the first paragraph, for the overview table.
+const summary = (text: string) => {
+  const paragraph = text.split('\n\n')[0].replace(/\s+/g, ' ');
+  const end = paragraph.search(/[.:;](\s|$)/);
+  return end === -1 ? paragraph : paragraph.slice(0, end + 1).replace(/[:;]$/, '.');
+};
+const tools = data.tools as { name: string; write: boolean; description: string; input_schema: Schema }[];
+const types = new Map<string, Schema>();
+for (const tool of tools) {
+  for (const [name, def] of Object.entries((tool.input_schema.$defs ?? {}) as Record<string, Schema>)) {
+    types.set(name, def);
+  }
+}
+const sortedTypes = [...types.entries()].sort(([a], [b]) => a.localeCompare(b));
+---
+
+<table>
+  <thead>
+    <tr><th>Werkzeug</th><th>Recht</th><th>Was es tut</th></tr>
+  </thead>
+  <tbody>
+    {
+      tools.map((tool) => (
+        <tr>
+          <td><a href={`#${tool.name}`}><code>{tool.name}</code></a></td>
+          <td>{tool.write ? 'ändern' : 'lesen'}</td>
+          <td>{summary(tool.description)}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+
+{
+  tools.map((tool) => {
+    const params = rows(tool.input_schema);
+    return (
+      <section class="tool">
+        <h3 id={tool.name}>
+          <code>{tool.name}</code> <Badge text={tool.write ? 'ändern' : 'lesen'} variant={tool.write ? 'caution' : 'note'} />
+        </h3>
+        <p class="desc">{tool.description}</p>
+        {params.length > 0 ? (
+          <table>
+            <thead>
+              <tr><th>Parameter</th><th>Typ</th><th>Pflicht</th><th>Standard</th><th>Bedeutung</th></tr>
+            </thead>
+            <tbody>
+              {params.map((p) => (
+                <tr>
+                  <td><code>{p.name}</code></td>
+                  <td>{types.has(p.type) ? <a href={`#type-${p.type}`}><code>{p.type}</code></a> : <code>{p.type}</code>}</td>
+                  <td>{p.required ? 'ja' : ''}</td>
+                  <td>{p.fallback && <code>{p.fallback}</code>}</td>
+                  <td>{p.description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>Keine Parameter.</p>
+        )}
+      </section>
+    );
+  })
+}
+
+<h2 id="datentypen">Datentypen</h2>
+
+{
+  sortedTypes.map(([name, def]) => (
+    <section class="tool">
+      <h3 id={`type-${name}`}><code>{name}</code></h3>
+      {def.description && <p class="desc">{def.description}</p>}
+      <table>
+        <thead>
+          <tr><th>Feld</th><th>Typ</th><th>Pflicht</th><th>Standard</th><th>Bedeutung</th></tr>
+        </thead>
+        <tbody>
+          {rows(def).map((p) => (
+            <tr>
+              <td><code>{p.name}</code></td>
+              <td>{types.has(p.type) ? <a href={`#type-${p.type}`}><code>{p.type}</code></a> : <code>{p.type}</code>}</td>
+              <td>{p.required ? 'ja' : ''}</td>
+              <td>{p.fallback && <code>{p.fallback}</code>}</td>
+              <td>{p.description}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  ))
+}
+
+<style>
+  .desc {
+    white-space: pre-line;
+  }
+  .tool {
+    margin-top: 2rem;
+  }
+</style>

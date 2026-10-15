@@ -1,0 +1,68 @@
+---
+title: Unraid
+description: mtdl-web auf Unraid als Docker-Container einrichten, über die Oberfläche oder mit Docker Compose.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import compose from '../../../../../compose.unraid.yaml?raw';
+
+Auf Unraid läuft mtdl-web als gewöhnlicher Docker-Container. Die Standardwerte des Images passen schon:
+`PUID` 99 und `PGID` 100 sind Unraids Benutzer `nobody` und Gruppe `users`, denen die Freigaben gehören. Einrichten
+lässt es sich über die Docker-Oberfläche von Unraid oder mit Docker Compose.
+
+:::note[App für Community Applications geplant]
+Eine Vorlage für Community Applications, den App-Katalog von Unraid, ist geplant und soll zu einem späteren Zeitpunkt
+erscheinen. Bis dahin richtest du mtdl-web wie hier beschrieben ein.
+:::
+
+## Container anlegen
+
+Unter **Docker**, **Container hinzufügen**:
+
+| Feld | Wert |
+|---|---|
+| Name | `mtdl-web` |
+| Repository | `ghcr.io/sobrino89/mtdl-web:latest` |
+| Netzwerktyp | `bridge` |
+| WebUI | `http://[IP]:[PORT:8080]/` |
+
+Dazu mit **Pfad, Port, Variable … hinzufügen**:
+
+| Art | Container | Host | Hinweis |
+|---|---|---|---|
+| Pfad | `/config` | `/mnt/user/appdata/mtdl-web` | Zustand und Cache |
+| Pfad | `/downloads` | ein Ordner einer Freigabe | Ziel der Downloads |
+| Port | `8080` | `8080` oder ein freier Port | Oberfläche, API, MCP |
+| Variable | `TZ` | `Europe/Berlin` | |
+| Variable | `UMASK` | `000` | siehe unten |
+
+Optional je Bibliothek ein weiterer Pfad, etwa `/library/shows` auf den Serienordner, den auch Plex oder
+Jellyfin einliest. Wie Bibliotheken funktionieren, steht unter [Bibliotheken](../../usage/libraries/).
+
+## Mit Docker Compose
+
+Wer Stacks mit Docker Compose verwaltet, etwa über das Plugin Compose Manager, nimmt die Vorlage
+[`compose.unraid.yaml`](https://github.com/sobrino89/mtdl-web/blob/main/compose.unraid.yaml). Benutzer, Gruppe und
+`UMASK` stehen darin schon passend für Unraid; anpassen musst du nur die Pfade zu deinen Freigaben. Weitere
+Einstellungen kommen aus einer `.env` neben der Datei, siehe [Umgebungsvariablen](../environment/).
+
+<Code code={compose} lang="yaml" title="compose.unraid.yaml" />
+
+## Rechte auf Freigaben
+
+Unraid-Freigaben gehören `nobody:users`. Mit den Standardwerten legt mtdl-web Dateien genauso an. Willst du die
+Dateien später auch über SMB als eigener Benutzer umbenennen oder löschen, setze `UMASK` auf `000` (wie viele
+Unraid-Container) oder `002`: Dann dürfen auch andere Mitglieder der Gruppe schreiben.
+
+## Array gestoppt
+
+Ist das Array gestoppt oder fehlt eine Freigabe, kann mtdl-web nicht in den Download-Ordner oder eine Bibliothek
+schreiben. Downloads dorthin scheitern dann nicht, sondern warten in der Warteschlange. mtdl-web prüft den Ordner
+jede Minute neu und lädt von selbst weiter, sobald er wieder da ist. Solange alles in Ordnung ist, prüft es nichts:
+Schlafende Platten bleiben schlafen.
+
+## Plex im eigenen Container
+
+Plex sieht die Bibliothek oft unter einem anderen Pfad als mtdl-web, etwa `/tv` statt `/library/shows`. Trage
+diesen Pfad bei der Bibliothek unter **Ordner aus Sicht von Plex** ein, dann kann mtdl-web Plex nach einem Download
+gezielt neu einlesen lassen. Das ist nur nötig, wenn Plex Änderungen nicht selbst bemerkt.

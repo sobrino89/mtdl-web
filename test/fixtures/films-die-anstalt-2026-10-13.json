@@ -1,0 +1,50 @@
+[
+ {
+  "id": 6231108083154161763,
+  "channel": "3Sat",
+  "topic": "Die Anstalt",
+  "title": "Die Anstalt - Politsatire mit Max Uthoff, Maike Kühl und Claus von Wagner (S2026/E08)",
+  "description": "Wortgewandt, unkonventionell und mit viel satirischer Schärfe: Max Uthoff und Maike Kühl klären aus der Anstalt über die Themen auf, die die Nation bewegen.",
+  "timestamp": 1791317700,
+  "duration": 2576,
+  "size": 931135488,
+  "url": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/10/261006_sendung_dan/1/261006_sendung_dan_3360k_p36v17.mp4",
+  "url_low": "https://rodlzdf-a.akamaihd.net/none/zdf/26/10/261006_sendung_dan/1/261006_sendung_dan_808k_p11v17.mp4",
+  "url_hd": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/10/261006_sendung_dan/1/261006_sendung_dan_6660k_p37v17.mp4",
+  "url_subtitle": "https://utstreaming.zdf.de/mtt/zdf/26/10/261006_sendung_dan/4/061026_die_anstalt.xml",
+  "url_website": "https://www.3sat.de/kabarett/die-anstalt/die-anstalt-vom-6-oktober-2026-100.html",
+  "geo": []
+ },
+ {
+  "id": 316634119111183984,
+  "channel": "ZDF",
+  "topic": "Die Anstalt",
+  "title": "Die Anstalt – Jetzt erst rechts! - Politsatire mit Max Uthoff, Maike Kühl und Claus von Wagner (S2026/E08)",
+  "description": "Das Anstaltsensemble sucht für den Kanzler Wege aus der Krise. Liegt sein Heil in der Flucht nach rechts oder in die andere Richtung? Und wie macht man aus Friedrich Merz einen toughen Siegertyp?",
+  "timestamp": 1791317700,
+  "duration": 2576,
+  "size": 931135488,
+  "url": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/10/261006_sendung_dan/1/261006_sendung_dan_3360k_p36v17.mp4",
+  "url_low": "https://rodlzdf-a.akamaihd.net/none/zdf/26/10/261006_sendung_dan/1/261006_sendung_dan_808k_p11v17.mp4",
+  "url_hd": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/10/261006_sendung_dan/1/261006_sendung_dan_6660k_p37v17.mp4",
+  "url_subtitle": "https://utstreaming.zdf.de/mtt/zdf/26/10/261006_sendung_dan/4/061026_die_anstalt.xml",
+  "url_website": "https://www.zdf.de/video/shows/die-anstalt-104/die-anstalt-vom-6-oktober-2026-100",
+  "geo": []
+ },
+ {
+  "id": 5178004720710945336,
+  "channel": "ZDF",
+  "topic": "Die Anstalt",
+  "title": "Die AntifAnstalt 100 - Politsatire mit Max Uthoff, Maike Kühl und Claus von Wagner (S2026/E07)",
+  "description": "Zur 100. Jubiläumsfolge haben sich bei Maike Kühl, Max Uthoff und Claus von Wagner unter anderem Christian Tramitz, Lutz van der Horst, Gisa Flake, Julia Gámez Martin und Die Sterne angekündigt.",
+  "timestamp": 1784657700,
+  "duration": 4211,
+  "size": 1518338048,
+  "url": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/07/260721_sendung1231jbl_dan/7/260721_sendung1231jbl_dan_3360k_p36v17.mp4",
+  "url_low": "https://rodlzdf-a.akamaihd.net/none/zdf/26/07/260721_sendung1231jbl_dan/7/260721_sendung1231jbl_dan_808k_p11v17.mp4",
+  "url_hd": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/07/260721_sendung1231jbl_dan/7/260721_sendung1231jbl_dan_6660k_p37v17.mp4",
+  "url_subtitle": "https://utstreaming.zdf.de/mtt/zdf/26/07/260721_sendung1231jbl_dan/7/anstalt_2_210726.xml",
+  "url_website": "https://www.zdf.de/video/shows/die-anstalt-104/die-anstalt-vom-21-juli-2026-100",
+  "geo": []
+ }
+]

@@ -1,0 +1,35 @@
+---
+// One section of .env.example as a table. The template in the repository root is the only list of variables
+// (test_templates.py checks it against the code); the page shows it, nothing is copied. A section that does not
+// exist stops the build, check-env.mjs makes sure every section is on the page.
+import example from '../../../.env.example?raw';
+import { envSections } from '../env-sections.mjs';
+
+interface Props {
+  section: string;
+}
+
+const { section } = Astro.props;
+const sections = envSections(example);
+const rows = sections.get(section);
+if (!rows) {
+  throw new Error(`.env.example has no section "${section}" (it has: ${[...sections.keys()].join(', ')})`);
+}
+---
+
+<table>
+  <thead>
+    <tr><th>Variable</th><th>Standard</th><th>Bedeutung</th></tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((row) => (
+        <tr>
+          <td><code>{row.name}</code></td>
+          <td>{row.fallback ? <code>{row.fallback}</code> : 'leer'}</td>
+          <td>{row.meaning}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>

@@ -1,0 +1,20 @@
+{
+  "name": "mtdl-web-website",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "node check-links.mjs && node check-env.mjs",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "7.3.1",
+    "@astrojs/starlight": "0.42.4",
+    "astro": "7.3.5",
+    "starlight-openapi": "0.26.3"
+  }
+}

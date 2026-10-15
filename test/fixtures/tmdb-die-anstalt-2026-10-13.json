@@ -1,0 +1,919 @@
+{
+  "tv": {
+    "id": 73860,
+    "name": "Die Anstalt",
+    "original_name": "Die Anstalt",
+    "first_air_date": "2014-02-04",
+    "external_ids": {
+      "imdb_id": "tt4277128",
+      "tvdb_id": 279577
+    },
+    "seasons": [
+      {
+        "season_number": 0,
+        "name": "Extras",
+        "air_date": "2026-01-30",
+        "episode_count": 2
+      },
+      {
+        "season_number": 1,
+        "name": "Staffel 1",
+        "air_date": "2014-02-04",
+        "episode_count": 8
+      },
+      {
+        "season_number": 2,
+        "name": "Staffel 2",
+        "air_date": "2015-02-03",
+        "episode_count": 8
+      },
+      {
+        "season_number": 3,
+        "name": "Staffel 3",
+        "air_date": "2016-02-23",
+        "episode_count": 8
+      },
+      {
+        "season_number": 4,
+        "name": "Staffel 4",
+        "air_date": "2017-02-07",
+        "episode_count": 8
+      },
+      {
+        "season_number": 5,
+        "name": "Staffel 5",
+        "air_date": "2018-02-27",
+        "episode_count": 8
+      },
+      {
+        "season_number": 6,
+        "name": "Staffel 6",
+        "air_date": "2019-01-29",
+        "episode_count": 8
+      },
+      {
+        "season_number": 7,
+        "name": "Staffel 7",
+        "air_date": "2020-02-11",
+        "episode_count": 8
+      },
+      {
+        "season_number": 8,
+        "name": "Staffel 8",
+        "air_date": "2021-02-02",
+        "episode_count": 8
+      },
+      {
+        "season_number": 9,
+        "name": "Staffel 9",
+        "air_date": "2022-02-01",
+        "episode_count": 8
+      },
+      {
+        "season_number": 10,
+        "name": "Staffel 10",
+        "air_date": "2023-03-14",
+        "episode_count": 7
+      },
+      {
+        "season_number": 11,
+        "name": "Staffel 11",
+        "air_date": "2024-02-13",
+        "episode_count": 8
+      },
+      {
+        "season_number": 12,
+        "name": "Staffel 12",
+        "air_date": "2025-02-11",
+        "episode_count": 8
+      },
+      {
+        "season_number": 13,
+        "name": "Staffel 13",
+        "air_date": "2026-01-30",
+        "episode_count": 8
+      }
+    ]
+  },
+  "seasons": {
+    "0": {
+      "season_number": 0,
+      "name": "Extras",
+      "episodes": [
+        {
+          "season_number": 0,
+          "episode_number": 1,
+          "name": "Spezialauftrag (1): Die Prüf-Anstalt",
+          "air_date": "2026-01-30",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 2,
+          "name": "Spezialauftrag (2): Die Renten-Anstalt",
+          "air_date": "2026-02-06",
+          "runtime": 31
+        }
+      ]
+    },
+    "1": {
+      "season_number": 1,
+      "name": "Staffel 1",
+      "episodes": [
+        {
+          "season_number": 1,
+          "episode_number": 1,
+          "name": "Revolution",
+          "air_date": "2014-02-04",
+          "runtime": null
+        },
+        {
+          "season_number": 1,
+          "episode_number": 2,
+          "name": "Rente und Ukraine-Krise",
+          "air_date": "2014-03-11",
+          "runtime": null
+        },
+        {
+          "season_number": 1,
+          "episode_number": 3,
+          "name": "Europäische Union",
+          "air_date": "2014-04-29",
+          "runtime": null
+        },
+        {
+          "season_number": 1,
+          "episode_number": 4,
+          "name": "Fußball-Weltmeisterschaft",
+          "air_date": "2014-05-27",
+          "runtime": null
+        },
+        {
+          "season_number": 1,
+          "episode_number": 5,
+          "name": "Erster Weltkrieg",
+          "air_date": "2014-09-23",
+          "runtime": 45
+        },
+        {
+          "season_number": 1,
+          "episode_number": 6,
+          "name": "Steuern",
+          "air_date": "2014-10-28",
+          "runtime": null
+        },
+        {
+          "season_number": 1,
+          "episode_number": 7,
+          "name": "Flüchtlinge",
+          "air_date": "2014-11-18",
+          "runtime": null
+        },
+        {
+          "season_number": 1,
+          "episode_number": 8,
+          "name": "Weihnachtsfeier und Jahresrückblick",
+          "air_date": "2014-12-09",
+          "runtime": null
+        }
+      ]
+    },
+    "2": {
+      "season_number": 2,
+      "name": "Staffel 2",
+      "episodes": [
+        {
+          "season_number": 2,
+          "episode_number": 1,
+          "name": "Religion",
+          "air_date": "2015-02-03",
+          "runtime": null
+        },
+        {
+          "season_number": 2,
+          "episode_number": 2,
+          "name": "Griechenland",
+          "air_date": "2015-03-31",
+          "runtime": null
+        },
+        {
+          "season_number": 2,
+          "episode_number": 3,
+          "name": "Feminismus",
+          "air_date": "2015-04-28",
+          "runtime": null
+        },
+        {
+          "season_number": 2,
+          "episode_number": 4,
+          "name": "Spionage",
+          "air_date": "2015-05-26",
+          "runtime": null
+        },
+        {
+          "season_number": 2,
+          "episode_number": 5,
+          "name": "Fluchtursachen",
+          "air_date": "2015-09-22",
+          "runtime": null
+        },
+        {
+          "season_number": 2,
+          "episode_number": 6,
+          "name": "Konflikte im Nahen und Mittleren Osten",
+          "air_date": "2015-10-20",
+          "runtime": null
+        },
+        {
+          "season_number": 2,
+          "episode_number": 7,
+          "name": "Rechtsextremismus",
+          "air_date": "2015-11-17",
+          "runtime": null
+        },
+        {
+          "season_number": 2,
+          "episode_number": 8,
+          "name": "Weihnachtsfeier und Terrorismus",
+          "air_date": "2015-12-08",
+          "runtime": null
+        }
+      ]
+    },
+    "3": {
+      "season_number": 3,
+      "name": "Staffel 3",
+      "episodes": [
+        {
+          "season_number": 3,
+          "episode_number": 1,
+          "name": "Sexismus und Fremdenfeindlichkeit",
+          "air_date": "2016-02-23",
+          "runtime": null
+        },
+        {
+          "season_number": 3,
+          "episode_number": 2,
+          "name": "Armut und Reichtum",
+          "air_date": "2016-04-05",
+          "runtime": null
+        },
+        {
+          "season_number": 3,
+          "episode_number": 3,
+          "name": "Rechtspopulismus",
+          "air_date": "2016-04-26",
+          "runtime": null
+        },
+        {
+          "season_number": 3,
+          "episode_number": 4,
+          "name": "Transatlantisches Freihandelsabkommen",
+          "air_date": "2016-05-24",
+          "runtime": null
+        },
+        {
+          "season_number": 3,
+          "episode_number": 5,
+          "name": "Europäische Union",
+          "air_date": "2016-09-06",
+          "runtime": 51
+        },
+        {
+          "season_number": 3,
+          "episode_number": 6,
+          "name": "Deutsche Innen- und Außenpolitik",
+          "air_date": "2016-10-04",
+          "runtime": 54
+        },
+        {
+          "season_number": 3,
+          "episode_number": 7,
+          "name": "Syrienkonflikt und Völkerrecht",
+          "air_date": "2016-11-01",
+          "runtime": null
+        },
+        {
+          "season_number": 3,
+          "episode_number": 8,
+          "name": "Bundestagswahl 2017",
+          "air_date": "2016-12-06",
+          "runtime": null
+        }
+      ]
+    },
+    "4": {
+      "season_number": 4,
+      "name": "Staffel 4",
+      "episodes": [
+        {
+          "season_number": 4,
+          "episode_number": 1,
+          "name": "Fake News und Donald Trump",
+          "air_date": "2017-02-07",
+          "runtime": 53
+        },
+        {
+          "season_number": 4,
+          "episode_number": 2,
+          "name": "Automobilindustrie",
+          "air_date": "2017-03-07",
+          "runtime": 55
+        },
+        {
+          "season_number": 4,
+          "episode_number": 3,
+          "name": "Demokratie",
+          "air_date": "2017-04-04",
+          "runtime": 57
+        },
+        {
+          "season_number": 4,
+          "episode_number": 4,
+          "name": "Arbeit",
+          "air_date": "2017-05-16",
+          "runtime": 53
+        },
+        {
+          "season_number": 4,
+          "episode_number": 5,
+          "name": "Wahlprogramme 2017",
+          "air_date": "2017-09-19",
+          "runtime": 54
+        },
+        {
+          "season_number": 4,
+          "episode_number": 6,
+          "name": "Rechtsruck mit der Bundestagswahl 2017 und Abrechnung mit den \"Vorgängern\"",
+          "air_date": "2017-10-17",
+          "runtime": 70
+        },
+        {
+          "season_number": 4,
+          "episode_number": 7,
+          "name": "Neoliberalismus",
+          "air_date": "2017-11-07",
+          "runtime": 48
+        },
+        {
+          "season_number": 4,
+          "episode_number": 8,
+          "name": "Pflegenotstand",
+          "air_date": "2017-12-05",
+          "runtime": 62
+        }
+      ]
+    },
+    "5": {
+      "season_number": 5,
+      "name": "Staffel 5",
+      "episodes": [
+        {
+          "season_number": 5,
+          "episode_number": 1,
+          "name": "Klimawandel",
+          "air_date": "2018-02-27",
+          "runtime": 53
+        },
+        {
+          "season_number": 5,
+          "episode_number": 2,
+          "name": "Waffenexporte",
+          "air_date": "2018-03-27",
+          "runtime": 52
+        },
+        {
+          "season_number": 5,
+          "episode_number": 3,
+          "name": "Hartz IV",
+          "air_date": "2018-04-24",
+          "runtime": 59
+        },
+        {
+          "season_number": 5,
+          "episode_number": 4,
+          "name": "Medienkonzerne",
+          "air_date": "2018-05-22",
+          "runtime": 50
+        },
+        {
+          "season_number": 5,
+          "episode_number": 5,
+          "name": "Angst wegen Zuwanderung",
+          "air_date": "2018-09-25",
+          "runtime": 49
+        },
+        {
+          "season_number": 5,
+          "episode_number": 6,
+          "name": "Immobilienmarkt",
+          "air_date": "2018-10-23",
+          "runtime": 51
+        },
+        {
+          "season_number": 5,
+          "episode_number": 7,
+          "name": "Novemberrevolution",
+          "air_date": "2018-11-20",
+          "runtime": 50
+        },
+        {
+          "season_number": 5,
+          "episode_number": 8,
+          "name": "Ernährung des Menschen",
+          "air_date": "2018-12-18",
+          "runtime": 65
+        }
+      ]
+    },
+    "6": {
+      "season_number": 6,
+      "name": "Staffel 6",
+      "episodes": [
+        {
+          "season_number": 6,
+          "episode_number": 1,
+          "name": "Deutsche Bahn",
+          "air_date": "2019-01-29",
+          "runtime": 48
+        },
+        {
+          "season_number": 6,
+          "episode_number": 2,
+          "name": "Dieselgate",
+          "air_date": "2019-03-12",
+          "runtime": 55
+        },
+        {
+          "season_number": 6,
+          "episode_number": 3,
+          "name": "Energiewende",
+          "air_date": "2019-04-09",
+          "runtime": 52
+        },
+        {
+          "season_number": 6,
+          "episode_number": 4,
+          "name": "Europa",
+          "air_date": "2019-05-28",
+          "runtime": 55
+        },
+        {
+          "season_number": 6,
+          "episode_number": 5,
+          "name": "Sommerfest der Demokratie",
+          "air_date": "2019-07-16",
+          "runtime": 51
+        },
+        {
+          "season_number": 6,
+          "episode_number": 6,
+          "name": "Klimaschutz",
+          "air_date": "2019-10-01",
+          "runtime": 52
+        },
+        {
+          "season_number": 6,
+          "episode_number": 7,
+          "name": "Treuhandanstalt",
+          "air_date": "2019-11-05",
+          "runtime": 51
+        },
+        {
+          "season_number": 6,
+          "episode_number": 8,
+          "name": "Klima",
+          "air_date": "2019-12-10",
+          "runtime": 61
+        }
+      ]
+    },
+    "7": {
+      "season_number": 7,
+      "name": "Staffel 7",
+      "episodes": [
+        {
+          "season_number": 7,
+          "episode_number": 1,
+          "name": "Rechte Netzwerke",
+          "air_date": "2020-02-11",
+          "runtime": 53
+        },
+        {
+          "season_number": 7,
+          "episode_number": 2,
+          "name": "Coronavirus – Homeoffice Edition",
+          "air_date": "2020-03-24",
+          "runtime": 51
+        },
+        {
+          "season_number": 7,
+          "episode_number": 3,
+          "name": "Krankenhauskonzerne",
+          "air_date": "2020-05-05",
+          "runtime": 49
+        },
+        {
+          "season_number": 7,
+          "episode_number": 4,
+          "name": "\"Die Doku\"",
+          "air_date": "2020-06-02",
+          "runtime": 47
+        },
+        {
+          "season_number": 7,
+          "episode_number": 5,
+          "name": "Ich bin ein Rassist, holt mich hier raus!",
+          "air_date": "2020-07-14",
+          "runtime": 48
+        },
+        {
+          "season_number": 7,
+          "episode_number": 6,
+          "name": "Umgang westlicher Staaten mit Dissidenten",
+          "air_date": "2020-09-29",
+          "runtime": 42
+        },
+        {
+          "season_number": 7,
+          "episode_number": 7,
+          "name": "Die USAbwahl 2020",
+          "air_date": "2020-11-03",
+          "runtime": 44
+        },
+        {
+          "season_number": 7,
+          "episode_number": 8,
+          "name": "Mensch, 2020!",
+          "air_date": "2020-12-08",
+          "runtime": null
+        }
+      ]
+    },
+    "8": {
+      "season_number": 8,
+      "name": "Staffel 8",
+      "episodes": [
+        {
+          "season_number": 8,
+          "episode_number": 1,
+          "name": "Covid-19 und das Impfen",
+          "air_date": "2021-02-02",
+          "runtime": 46
+        },
+        {
+          "season_number": 8,
+          "episode_number": 2,
+          "name": "Tarifautonomie, Impfstoffentwicklung",
+          "air_date": "2021-03-16",
+          "runtime": 47
+        },
+        {
+          "season_number": 8,
+          "episode_number": 3,
+          "name": "Affären der Union",
+          "air_date": "2021-05-04",
+          "runtime": 48
+        },
+        {
+          "season_number": 8,
+          "episode_number": 4,
+          "name": "Lieferkettengesetz",
+          "air_date": "2021-06-22",
+          "runtime": 46
+        },
+        {
+          "season_number": 8,
+          "episode_number": 5,
+          "name": "Bundestagswahl 2021",
+          "air_date": "2021-07-23",
+          "runtime": 44
+        },
+        {
+          "season_number": 8,
+          "episode_number": 6,
+          "name": "Wahlanalyse zur Bundestagswahl 2021",
+          "air_date": "2021-10-05",
+          "runtime": 47
+        },
+        {
+          "season_number": 8,
+          "episode_number": 7,
+          "name": "Abholzung des Regenwaldes, Artensterben",
+          "air_date": "2021-11-02",
+          "runtime": 46
+        },
+        {
+          "season_number": 8,
+          "episode_number": 8,
+          "name": "Maßnahmen zur Bekämpfung der Corona-Pandemie in Deutschland",
+          "air_date": "2021-12-07",
+          "runtime": 47
+        }
+      ]
+    },
+    "9": {
+      "season_number": 9,
+      "name": "Staffel 9",
+      "episodes": [
+        {
+          "season_number": 9,
+          "episode_number": 1,
+          "name": "Frontex",
+          "air_date": "2022-02-01",
+          "runtime": 48
+        },
+        {
+          "season_number": 9,
+          "episode_number": 2,
+          "name": "Spezialsendung Putin",
+          "air_date": "2022-03-08",
+          "runtime": 42
+        },
+        {
+          "season_number": 9,
+          "episode_number": 3,
+          "name": "Krieg in der Ukraine",
+          "air_date": "2022-04-05",
+          "runtime": 45
+        },
+        {
+          "season_number": 9,
+          "episode_number": 4,
+          "name": "Klimawandel",
+          "air_date": "2022-05-24",
+          "runtime": 48
+        },
+        {
+          "season_number": 9,
+          "episode_number": 5,
+          "name": "Der Große Preis - Die Inflationsshow",
+          "air_date": "2022-07-19",
+          "runtime": 44
+        },
+        {
+          "season_number": 9,
+          "episode_number": 6,
+          "name": "Blackout - Der Strommarkt",
+          "air_date": "2022-10-04",
+          "runtime": 47
+        },
+        {
+          "season_number": 9,
+          "episode_number": 7,
+          "name": "Die Iranstalt",
+          "air_date": "2022-11-15",
+          "runtime": 49
+        },
+        {
+          "season_number": 9,
+          "episode_number": 8,
+          "name": "Inklusion",
+          "air_date": "2022-12-20",
+          "runtime": 48
+        }
+      ]
+    },
+    "10": {
+      "season_number": 10,
+      "name": "Staffel 10",
+      "episodes": [
+        {
+          "season_number": 10,
+          "episode_number": 1,
+          "name": "Die Anstalt ermittelt",
+          "air_date": "2023-03-14",
+          "runtime": 45
+        },
+        {
+          "season_number": 10,
+          "episode_number": 2,
+          "name": "E-Fuels oder doch eher \"Ö-Fuels\"?",
+          "air_date": "2023-04-25",
+          "runtime": 44
+        },
+        {
+          "season_number": 10,
+          "episode_number": 3,
+          "name": "Der schnöde Mammon",
+          "air_date": "2023-05-23",
+          "runtime": 48
+        },
+        {
+          "season_number": 10,
+          "episode_number": 4,
+          "name": "Die (ganz normale) Anstalt",
+          "air_date": "2023-07-11",
+          "runtime": 49
+        },
+        {
+          "season_number": 10,
+          "episode_number": 5,
+          "name": "Die AFD und das Klimageld",
+          "air_date": "2023-10-10",
+          "runtime": 49
+        },
+        {
+          "season_number": 10,
+          "episode_number": 6,
+          "name": "Die Abschiebeanstalt",
+          "air_date": "2023-11-14",
+          "runtime": 45
+        },
+        {
+          "season_number": 10,
+          "episode_number": 7,
+          "name": "Nahost-Konflikt, Moral und der Weihnachtsmann",
+          "air_date": "2023-12-12",
+          "runtime": 45
+        }
+      ]
+    },
+    "11": {
+      "season_number": 11,
+      "name": "Staffel 11",
+      "episodes": [
+        {
+          "season_number": 11,
+          "episode_number": 1,
+          "name": "10 Jahre \"Die Anstalt\"",
+          "air_date": "2024-02-13",
+          "runtime": 49
+        },
+        {
+          "season_number": 11,
+          "episode_number": 2,
+          "name": "Schuldenbremse voraus!",
+          "air_date": "2024-03-12",
+          "runtime": 47
+        },
+        {
+          "season_number": 11,
+          "episode_number": 3,
+          "name": "Die Rente ist sicher (für Pensionäre)",
+          "air_date": "2024-05-07",
+          "runtime": 49
+        },
+        {
+          "season_number": 11,
+          "episode_number": 4,
+          "name": "Europa auf der rechten Spur",
+          "air_date": "2024-06-11",
+          "runtime": 47
+        },
+        {
+          "season_number": 11,
+          "episode_number": 5,
+          "name": "Neues vom Klima",
+          "air_date": "2024-07-16",
+          "runtime": 46
+        },
+        {
+          "season_number": 11,
+          "episode_number": 6,
+          "name": "Placebo-Ängste und gefühlte Wahrheiten",
+          "air_date": "2024-10-08",
+          "runtime": 48
+        },
+        {
+          "season_number": 11,
+          "episode_number": 7,
+          "name": "Freunde des Patriarchats",
+          "air_date": "2024-11-12",
+          "runtime": 47
+        },
+        {
+          "season_number": 11,
+          "episode_number": 8,
+          "name": "SOKO Ampel",
+          "air_date": "2024-12-10",
+          "runtime": 46
+        }
+      ]
+    },
+    "12": {
+      "season_number": 12,
+      "name": "Staffel 12",
+      "episodes": [
+        {
+          "season_number": 12,
+          "episode_number": 1,
+          "name": "Die Anstalts-Testwahl",
+          "air_date": "2025-02-11",
+          "runtime": 49
+        },
+        {
+          "season_number": 12,
+          "episode_number": 2,
+          "name": "Die Bürokratie-Anstalt",
+          "air_date": "2025-03-11",
+          "runtime": 45
+        },
+        {
+          "season_number": 12,
+          "episode_number": 3,
+          "name": "Die Aufrüstungs-Anstalt",
+          "air_date": "2025-04-08",
+          "runtime": 49
+        },
+        {
+          "season_number": 12,
+          "episode_number": 4,
+          "name": "Die Plastik-Anstalt",
+          "air_date": "2025-05-27",
+          "runtime": 49
+        },
+        {
+          "season_number": 12,
+          "episode_number": 5,
+          "name": "Die gute Anstalt",
+          "air_date": "2025-07-15",
+          "runtime": 45
+        },
+        {
+          "season_number": 12,
+          "episode_number": 6,
+          "name": "Union unter Strom",
+          "air_date": "2025-10-07",
+          "runtime": 45
+        },
+        {
+          "season_number": 12,
+          "episode_number": 7,
+          "name": "Die Abriss-Anstalt",
+          "air_date": "2025-11-11",
+          "runtime": 48
+        },
+        {
+          "season_number": 12,
+          "episode_number": 8,
+          "name": "Weihnachten, aber normal",
+          "air_date": "2025-12-16",
+          "runtime": 51
+        }
+      ]
+    },
+    "13": {
+      "season_number": 13,
+      "name": "Staffel 13",
+      "episodes": [
+        {
+          "season_number": 13,
+          "episode_number": 1,
+          "name": "Die Prüf-Anstalt",
+          "air_date": "2026-01-30",
+          "runtime": 30
+        },
+        {
+          "season_number": 13,
+          "episode_number": 2,
+          "name": "Die Renten-Anstalt",
+          "air_date": "2026-02-06",
+          "runtime": 32
+        },
+        {
+          "season_number": 13,
+          "episode_number": 3,
+          "name": "Die Krankstalt",
+          "air_date": "2026-02-17",
+          "runtime": 50
+        },
+        {
+          "season_number": 13,
+          "episode_number": 4,
+          "name": "Die IRANstalt 2",
+          "air_date": "2026-03-17",
+          "runtime": 48
+        },
+        {
+          "season_number": 13,
+          "episode_number": 5,
+          "name": "Die Prostitutionsanstalt",
+          "air_date": "2026-04-28",
+          "runtime": 49
+        },
+        {
+          "season_number": 13,
+          "episode_number": 6,
+          "name": "Die Energie-Anstalt",
+          "air_date": "2026-06-02",
+          "runtime": 50
+        },
+        {
+          "season_number": 13,
+          "episode_number": 7,
+          "name": "Die AntifAnstalt 100",
+          "air_date": "2026-07-21",
+          "runtime": 70
+        },
+        {
+          "season_number": 13,
+          "episode_number": 8,
+          "name": "Die Anstalt - Jetzt erst rechts!",
+          "air_date": "2026-10-06",
+          "runtime": 43
+        }
+      ]
+    }
+  }
+}

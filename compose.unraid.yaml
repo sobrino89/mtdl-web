@@ -1,0 +1,24 @@
+# mtdl-web auf Unraid mit Docker Compose (etwa über das Plugin Compose Manager). Benutzer und Rechte wie bei
+# Unraid-Freigaben üblich. Pfade auf deine Freigaben anpassen; weitere Einstellungen: .env.example nach .env kopieren.
+# Anleitung: https://sobrino89.github.io/mtdl-web/install/unraid/
+services:
+  mtdl-web:
+    image: ghcr.io/sobrino89/mtdl-web:latest     # latest: neueste Version; 0.1 bliebe bei 0.1.x
+    container_name: mtdl-web
+    environment:
+      PUID: "99"                                 # nobody, Besitzer der Unraid-Freigaben
+      PGID: "100"                                # users
+      UMASK: "000"                               # neue Dateien auch per SMB von anderen Benutzern änderbar
+      TZ: Europe/Berlin                          # Zeitzone für Sendetage und Anzeigen
+    env_file:
+      - path: .env                               # weitere Einstellungen, optional (Vorlage: .env.example)
+        required: false
+    volumes:
+      - /mnt/user/appdata/mtdl-web:/config       # Zustand und Cache (Cache rund 1 GB, gehört nicht ins Backup)
+      - /mnt/user/downloads/mtdl-web:/downloads  # Download-Ordner auf einer Freigabe
+      # Bibliotheken für Plex oder Jellyfin, je Ordner ein Mount, anlegen in den Einstellungen:
+      # - /mnt/user/media/serien:/library/shows
+      # - /mnt/user/media/filme:/library/movies
+    ports:
+      - "8080:8080"                              # Oberfläche, API und MCP-Server
+    restart: unless-stopped

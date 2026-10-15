@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Profile: EBU-TT-D-Basic-DE-->
+<tt:tt xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ebuttm="urn:ebu:tt:metadata" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling" ttp:timeBase="media" ttp:cellResolution="50 30" xml:lang="de-DE">
+  <tt:head>
+    <tt:metadata>
+      <ebuttm:documentMetadata>
+        <ebuttm:documentEbuttVersion>v1.0</ebuttm:documentEbuttVersion>
+      </ebuttm:documentMetadata>
+    </tt:metadata>
+    <tt:styling>
+      <tt:style xml:id="defaultStyle" tts:fontFamily="Verdana,Arial,Tiresias" tts:fontSize="160%" tts:lineHeight="125%" />
+      <tt:style xml:id="textBlack" tts:color="#000000" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textRed" tts:color="#FF0000" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textGreen" tts:color="#00FF00" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textYellow" tts:color="#FFFF00" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textBlue" tts:color="#0000FF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textMagenta" tts:color="#FF00FF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textCyan" tts:color="#00FFFF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textWhite" tts:color="#FFFFFF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textCenter" tts:textAlign="center" />
+      <tt:style xml:id="textLeft" tts:textAlign="left" />
+      <tt:style xml:id="textRight" tts:textAlign="right" />
+    </tt:styling>
+    <tt:layout>
+      <tt:region xml:id="top" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="before" />
+      <tt:region xml:id="bottom" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="after" />
+    </tt:layout>
+  </tt:head>
+  <tt:body>
+    <tt:div style="defaultStyle">
+      <tt:p xml:id="sub0" style="textCenter" region="bottom" begin="00:00:00.000" end="00:00:01.040">
+        <tt:span style="textWhite">***</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub1" style="textCenter" region="bottom" begin="00:00:01.160" end="00:00:02.440">
+        <tt:span style="textCyan">Haha!</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub2" style="textCenter" region="bottom" begin="00:00:04.160" end="00:00:05.440">
+        <tt:span style="textCyan">Juhu!</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub3" style="textCenter" region="bottom" begin="00:00:05.560" end="00:00:07.400">
+        <tt:span style="textWhite">*Titel-Musik*</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub4" style="textCenter" region="bottom" begin="00:00:16.800" end="00:00:20.480">
+        <tt:span style="textWhite">Hallo, der Tag ist rum.</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">Es ist Baumhaus-Zeit.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub5" style="textCenter" region="bottom" begin="00:00:20.600" end="00:00:23.160">
+        <tt:span style="textCyan">Heute malen wir Gesichter.</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">- Ja!</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub6" style="textCenter" region="bottom" begin="00:00:23.280" end="00:00:27.280">
+        <tt:span style="textWhite">Fidi hat mein Lächel-T-Shirt</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">gestern so gut gefallen.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub7" style="textCenter" region="bottom" begin="00:00:27.400" end="00:00:30.040">
+        <tt:span style="textWhite">Punkt, Punkt, Komma, Strich.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub8" style="textCenter" region="bottom" begin="00:00:30.160" end="00:00:32.680">
+        <tt:span style="textCyan">Fertig ist das Lach-Gesicht.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub9" style="textCenter" region="bottom" begin="00:00:32.800" end="00:00:37.600">
+        <tt:span style="textCyan">Jetzt wolltest du mir zeigen,</tt:span>
+        <tt:br />
+        <tt:span style="textCyan">wie ein Muffel-Gesicht aussieht.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub10" style="textCenter" region="bottom" begin="00:00:37.720" end="00:00:40.960">
+        <tt:span style="textWhite">Also jemand,</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">der schlechte Laune hat.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub11" style="textCenter" region="bottom" begin="00:00:41.080" end="00:00:44.160">
+        <tt:span style="textWhite">Da mache ich auch Punkt, Punkt.</tt:span>
+      </tt:p>
+</tt:div>
+</tt:body>
+</tt:tt>

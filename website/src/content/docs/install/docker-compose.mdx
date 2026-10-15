@@ -1,0 +1,117 @@
+---
+title: Docker Compose
+description: mtdl-web mit Docker Compose betreiben, mit allen Ordnern, Ports und Optionen.
+---
+
+import { Code } from '@astrojs/starlight/components';
+import compose from '../../../../../compose.yaml?raw';
+
+mtdl-web kommt als ein Container-Image für `linux/amd64` und `linux/arm64`. Es enthält alles, was es braucht,
+ffmpeg eingeschlossen.
+
+## Vorlage
+
+Im Repository liegen fertige Vorlagen: [`compose.yaml`](https://github.com/sobrino89/mtdl-web/blob/main/compose.yaml)
+für die meisten Systeme, [`compose.unraid.yaml`](https://github.com/sobrino89/mtdl-web/blob/main/compose.unraid.yaml)
+für [Unraid](../unraid/) und [`.env.example`](https://github.com/sobrino89/mtdl-web/blob/main/.env.example) mit
+allen weiteren Einstellungen.
+
+<Code code={compose} lang="yaml" title="compose.yaml" />
+
+Für weitere Einstellungen kopierst du `.env.example` nach `.env` und schaltest dort die gewünschten Zeilen ein,
+siehe [Umgebungsvariablen](../environment/). Alles andere, von Bandbreite über Benennung bis Webhooks, stellst du in
+der Oberfläche ein.
+
+## Image und Versionen
+
+| Tag | Bedeutung |
+|---|---|
+| `0.1.0` | genau diese Version |
+| `0.1` | die neueste 0.1.x: Fehlerbehebungen kommen mit, Neues nicht |
+| `latest` | die neueste veröffentlichte Version |
+
+## Ordner
+
+| Im Container | Inhalt | Sichern? |
+|---|---|---|
+| `/config` | Zustand: Einstellungen, Abos, Verlauf, Schlüssel (`mtdl-web.sqlite`), dazu `hooks/` für eigene Skripte | ja |
+| `/config/cache` | Filmliste und Suchindex, rund 1 GB; lässt sich jederzeit neu laden | nein |
+| `/downloads` | Ziel für einzelne Downloads und für Abos, die nicht in eine Bibliothek laden | nach Bedarf |
+| `/library/...` | Bibliotheken für Serien und Filme, frei benannt, je Ordner ein Mount | nach Bedarf |
+
+Den Cache kannst du auf ein eigenes Laufwerk legen, etwa eine SSD oder einen Pfad ohne Backup: in der `.env`
+`MTDL_CACHE_DIR=/cache` einschalten und den Ordner einbinden.
+
+```yaml
+    volumes:
+      - /pfad/zum/cache:/cache
+```
+
+:::caution[Jeder Zielordner muss eingebunden sein]
+mtdl-web schreibt nur in Ordner, die als Volume eingebunden sind. Fehlt ein Mount, lägen die Dateien im Container
+selbst und wären beim nächsten Update weg. mtdl-web erkennt das, lädt dorthin nicht und sagt in der Oberfläche,
+welcher Ordner fehlt. Details unter [Ordner und Rechte](../folders/).
+:::
+
+## Benutzer und Rechte
+
+Mit `PUID` und `PGID` braucht der Start einen Moment root: Nur root darf einen Prozess auf einen anderen Benutzer
+umstellen und `/config` diesem Benutzer übergeben. Gleich danach gibt der Container die Rechte ab; die App und alle
+ihre Prozesse laufen nur noch als `PUID`:`PGID`, ohne weitere Gruppen und ohne Sonderrechte. Neue Dateien bekommen
+die Rechte aus `UMASK`. Download-Ordner und Bibliotheken ändert er nie, er prüft sie nur: Darf er dort nicht
+schreiben, zeigt die Oberfläche den passenden Befehl. Mehr unter [Ordner und Rechte](../folders/).
+
+### Ganz ohne root
+
+Mit `user:` startet Docker den Container gleich als dieser Benutzer, ohne jeden root-Schritt. `PUID` und `PGID`
+gelten dann nicht, und der config-Ordner muss vorher existieren und diesem Benutzer gehören:
+
+```sh
+mkdir -p config && chown 1000:1000 config
+```
+
+```yaml
+    user: "1000:1000"
+```
+
+Bei rootless Docker oder Podman ist root im Container ohnehin kein root auf dem Host.
+
+## Port
+
+Die Oberfläche, die API und der MCP-Server laufen auf Port `8080`. Für einen anderen Port auf dem Host genügt die
+linke Seite der Portangabe (`"8095:8080"`).
+
+`MTDL_PORT` ändert den Port im Container selbst. Das brauchst du nur, wenn sich mtdl-web das Netz mit einem anderen
+Container teilt und es deshalb keine Portangabe gibt: hinter einem VPN-Container wie gluetun
+(`network_mode: service:gluetun`), wo 8080 oft schon belegt ist, oder mit `network_mode: host`. Der Healthcheck
+folgt der Einstellung.
+
+## Gesundheit
+
+Das Image bringt einen Healthcheck mit: Jede Minute fragt Docker `/api/health` ab. Er schreibt nichts, damit
+schlafende Platten schlafen bleiben, und meldet `unhealthy`, wenn ein Zielordner nicht beschreibbar ist oder noch
+gar keine Filmliste geladen werden konnte. Die Oberfläche läuft dann weiter und zeigt, was fehlt.
+
+## Ressourcen
+
+| | Bedarf |
+|---|---|
+| Image | rund 650 MB, davon das meiste ffmpeg |
+| Arbeitsspeicher | unter 100 MB im Leerlauf, beim Einlesen der Filmliste kurz mehr |
+| Platz | rund 1 GB für den Cache, dazu die Downloads |
+| Prozessor | beim stündlichen Abgleich und beim Zusammensetzen von HLS-Videos kurz gefordert; `MTDL_WORKERS` begrenzt die Prozesse |
+
+## Ohne Compose
+
+```sh
+docker run -d --name mtdl-web \
+  -e PUID=1000 -e PGID=1000 -e TZ=Europe/Berlin \
+  -v "$PWD/config:/config" \
+  -v /pfad/zu/downloads:/downloads \
+  -p 8080:8080 \
+  --restart unless-stopped \
+  ghcr.io/sobrino89/mtdl-web:latest
+```
+
+Die Zeilen der `.env.example` taugen hier nicht für `--env-file`: `docker run` nähme die Kommentare hinter den
+Werten mit. Einzelne Einstellungen gibst du mit `-e`, etwa `-e MTDL_TMDB_TOKEN=…`.

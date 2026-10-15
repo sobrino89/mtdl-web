@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--Profile: EBU-TT-D-Basic-DE-->
+<tt:tt xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ebuttm="urn:ebu:tt:metadata" ttp:timeBase="media" ttp:cellResolution="50 30" xml:lang="de-DE">
+  <tt:head>
+    <tt:metadata>
+      <ebuttm:documentMetadata>
+        <ebuttm:documentEbuttVersion>v1.0</ebuttm:documentEbuttVersion>
+      </ebuttm:documentMetadata>
+    </tt:metadata>
+    <tt:styling>
+      <tt:style xml:id="defaultStyle" tts:fontFamily="Verdana,Arial,Tiresias" tts:fontSize="160%" tts:lineHeight="125%" />
+      <tt:style xml:id="textBlack" tts:color="#000000" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textRed" tts:color="#FF0000" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textGreen" tts:color="#00FF00" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textYellow" tts:color="#FFFF00" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textBlue" tts:color="#0000FF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textMagenta" tts:color="#FF00FF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textCyan" tts:color="#00FFFF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textWhite" tts:color="#FFFFFF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textCenter" tts:textAlign="center" />
+      <tt:style xml:id="textLeft" tts:textAlign="left" />
+      <tt:style xml:id="textRight" tts:textAlign="right" />
+    </tt:styling>
+    <tt:layout>
+      <tt:region xml:id="top" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="before" />
+      <tt:region xml:id="bottom" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="after" />
+    </tt:layout>
+  </tt:head>
+  <tt:body>
+    <tt:div style="defaultStyle">
+      <tt:p xml:id="sub0" style="textCenter" region="top" begin="00:00:00.000" end="00:00:01.480">
+        <tt:span style="textWhite">***</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub1" style="textCenter" region="top" begin="00:00:01.600" end="00:00:04.840">
+        <tt:span style="textWhite">Der MDR und die Mitteldeutsche</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">Medienförderung präsentieren:</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub2" style="textCenter" region="top" begin="00:00:04.960" end="00:00:08.600">
+        <tt:span style="textWhite">KEY FRAMES, neue Animationsfilme</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">aus Mitteldeutschland.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub3" style="textCenter" region="bottom" begin="00:00:08.720" end="00:00:12.400">
+        <tt:span style="textWhite">*Jemand trinkt und stellt sein Glas</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">knallend auf einen Tisch.*</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub4" style="textCenter" region="bottom" begin="00:00:12.520" end="00:00:14.720">
+        <tt:span style="textYellow">Krethi und Plethi</tt:span>
+        <tt:br />
+        <tt:span style="textYellow">kommen in unser Land.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub5" style="textCenter" region="bottom" begin="00:00:14.840" end="00:00:17.600">
+        <tt:span style="textYellow">Wir haben die Kontrolle</tt:span>
+        <tt:br />
+        <tt:span style="textYellow">über unsere Grenzen verloren.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub6" style="textCenter" region="bottom" begin="00:00:17.720" end="00:00:20.080">
+        <tt:span style="textWhite">Krethi und Plehti, von wem redest du?</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub7" style="textCenter" region="bottom" begin="00:00:20.200" end="00:00:22.600">
+        <tt:span style="textYellow">Wie die alle heißen,</tt:span>
+        <tt:br />
+        <tt:span style="textYellow">die Ausländer eben.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub8" style="textCenter" region="bottom" begin="00:00:22.720" end="00:00:24.440">
+        <tt:span style="textWhite">Ausländer?</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">Wen meinst du damit?</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub9" style="textCenter" region="bottom" begin="00:00:24.560" end="00:00:25.840">
+        <tt:span style="textYellow">Dich nicht.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub10" style="textCenter" region="bottom" begin="00:00:25.960" end="00:00:27.200">
+        <tt:span style="textYellow">Du, du bist ja ...</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub11" style="textCenter" region="bottom" begin="00:00:27.320" end="00:00:30.480">
+        <tt:span style="textYellow">Du bist ja eine von den Guten.</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">- Vielen Dank.</tt:span>
+      </tt:p>
+</tt:div>
+</tt:body>
+</tt:tt>

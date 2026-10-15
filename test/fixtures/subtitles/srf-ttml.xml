@@ -1,0 +1,52 @@
+<tt xml:lang="en" xmlns="http://www.w3.org/ns/ttml" xmlns:ttm="http://www.w3.org/ns/ttml#metadata" xmlns:tts="http://www.w3.org/ns/ttml#styling">
+    <head>
+        <styling/>
+        <layout/>
+    </head>
+    <body>
+        <div><p end="00:00:05.625" dur="1978ms" begin="00:00:03.647">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">.</span>
+            </p><p end="00:00:11.446" dur="5500ms" begin="00:00:05.946">
+                <span tts:backgroundColor="#0000ff" tts:color="#ffffff">Mit Live-Untertiteln von SWISS TXT</span>
+            </p><p end="00:00:17.446" dur="5677ms" begin="00:00:11.769">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">Guten Abend und herzlich willkommen</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">bei &quot;Meteo&quot;.</span>
+            </p><p end="00:00:25.836" dur="5984ms" begin="00:00:19.852">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">Ein herrlicher Herbsttag, den wir</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">heute hatten,</span>
+            </p><p end="00:00:29.75" dur="2629ms" begin="00:00:26.446">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">mit viel Sonnenschein, im Flachland</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">und in den Bergen.</span>
+            </p><p end="00:00:32.868" dur="3471ms" begin="00:00:29.397">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">Zu verdanken haben wir das natürlich</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">einem Hochdruckgebiet,</span>
+            </p><p end="00:00:35.868" dur="2677ms" begin="00:00:33.191">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">das genau über uns liegt und uns mit</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">trockener Luft versorgt.</span>
+            </p><p end="00:00:39.616" dur="3426ms" begin="00:00:36.19">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">Wir sehen hier: von Westen her</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">kommen immer mehr Wolken.</span>
+            </p><p end="00:00:43.68" dur="3131ms" begin="00:00:39.937">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">In der Nacht ist immer noch das hoch</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">dominant, es sternenklar, es kann</span>
+            </p><p end="00:00:45.148" dur="1759ms" begin="00:00:43.389">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">kühler werden, Tiefstwerte</span>
+            </p><p end="00:00:49.62" dur="3594ms" begin="00:00:45.468">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">morgen früh um die 6 °C im</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">Flachland.</span>
+            </p><p end="00:00:55.62" dur="5678ms" begin="00:00:49.384">
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">Und wir warten verbreitet Bodenfrost</span>
+                <br/>
+                <span tts:backgroundColor="#000000" tts:color="#ffffff">im Flachland.</span>
+            </p>
+</div>
+</body>
+</tt>

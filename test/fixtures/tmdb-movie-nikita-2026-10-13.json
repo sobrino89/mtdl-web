@@ -1,0 +1,90 @@
+{
+  "adult": false,
+  "backdrop_path": "/rk56vslwBXUCcNlQ74s6gmpJqxa.jpg",
+  "belongs_to_collection": null,
+  "budget": 6000000,
+  "genres": [
+    {
+      "id": 28,
+      "name": "Action"
+    },
+    {
+      "id": 53,
+      "name": "Thriller"
+    }
+  ],
+  "homepage": "http://www.gaumont.com/de/film/nikita",
+  "id": 9322,
+  "imdb_id": "tt0100263",
+  "origin_country": [
+    "FR"
+  ],
+  "original_language": "fr",
+  "original_title": "Nikita",
+  "overview": "Die Tat war brutal und brutal schlägt der Staat zurück: Nach einem Blutbad in einer Apotheke erhält die drogenabhängige Nikita lebenslänglich. Im Gefängnis wird sie überfallartig zu Tode gespritzt - scheinbar. Denn als Nikita erwacht, stellt sie der mysteriöse Bob vor die Wahl: Entweder läßt sie sich zur Killerin im Dienst der Regierung ausbilden, oder die nächste Spritze ist tödlich. Nikita entscheidet sich für das Leben. Unter neuer Identität mordet sie fortan präzise wie ein Roboter ihr unbekannte Menschen. Aber sie hat sich noch einen Rest von Gefühl und Wärme bewahrt...",
+  "popularity": 6.8857,
+  "poster_path": "/kCI8fNHv0Coi4eWTHw7HBMefUQt.jpg",
+  "production_companies": [
+    {
+      "id": 9,
+      "logo_path": "/h4zSRszvKHr1tjqEp8voJVahuza.png",
+      "name": "Gaumont",
+      "origin_country": "FR"
+    },
+    {
+      "id": 371,
+      "logo_path": "/caz3eGyRd4OW7oR31Aij5ZwjOXD.png",
+      "name": "Cecchi Gori Group Tiger Cinematografica",
+      "origin_country": "IT"
+    },
+    {
+      "id": 22191,
+      "logo_path": null,
+      "name": "Les Films du Loup",
+      "origin_country": "FR"
+    },
+    {
+      "id": 37458,
+      "logo_path": null,
+      "name": "Tiger Cinematografica",
+      "origin_country": "IT"
+    }
+  ],
+  "production_countries": [
+    {
+      "iso_3166_1": "FR",
+      "name": "France"
+    },
+    {
+      "iso_3166_1": "IT",
+      "name": "Italy"
+    }
+  ],
+  "release_date": "1990-02-21",
+  "revenue": 5018604,
+  "runtime": 118,
+  "softcore": false,
+  "spoken_languages": [
+    {
+      "english_name": "English",
+      "iso_639_1": "en",
+      "name": "English"
+    },
+    {
+      "english_name": "French",
+      "iso_639_1": "fr",
+      "name": "Français"
+    },
+    {
+      "english_name": "Italian",
+      "iso_639_1": "it",
+      "name": "Italiano"
+    }
+  ],
+  "status": "Released",
+  "tagline": "Sie hat keine Angst! Sie tötet. Sie liebt...",
+  "title": "Nikita",
+  "video": false,
+  "vote_average": 7.1,
+  "vote_count": 2240
+}

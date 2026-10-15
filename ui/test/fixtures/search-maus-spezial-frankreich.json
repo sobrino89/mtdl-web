@@ -1,0 +1,57 @@
+{
+  "source": "filmlist",
+  "total": 3,
+  "films": [
+    {
+      "id": "1765258727088297454",
+      "channel": "ARD",
+      "topic": "Die Sendung mit der Maus",
+      "title": "Maus-Spezial: Frankreich - Audiodeskription",
+      "description": "Ralph Caspers und die Maus packen wieder die Koffer - am 48. Maus-Geburtstag: Zur zehnten \"Mauslands\"-Reise geht es nach Frankreich. Der zwölfjährige Louis zeigt in einer Sonderausgabe der \"Sendung mit der Maus\", wie er mit seiner Familie in der französischen Hauptstadt Paris lebt.",
+      "start": "2023-08-01T07:00:00Z",
+      "duration": 1680,
+      "size": 310378496,
+      "url": "https://wdrmedien-a.akamaihd.net/medp/ondemand/weltweit/fsk0/237/2379115/2379115_53443273.mp4",
+      "url_low": "https://wdrmedien-a.akamaihd.net/medp/ondemand/weltweit/fsk0/237/2379115/2379115_53443272.mp4",
+      "url_hd": "https://wdrmedien-a.akamaihd.net/medp/ondemand/weltweit/fsk0/237/2379115/2379115_53443270.mp4",
+      "url_subtitle": null,
+      "url_website": "https://www.ardmediathek.de/video/Y3JpZDovL3dkci5kZS9CZWl0cmFnLTI2ZmRkM2ViLTY2ZTMtNDU1My04ZjdkLTRiZGI4ZjYyNDM4Zi9hdWRpb2Rlc2tyaXB0aW9u",
+      "geo": [],
+      "status": null
+    },
+    {
+      "id": "4602347415161351933",
+      "channel": "WDR",
+      "topic": "Die Sendung mit der Maus",
+      "title": "Maus-Spezial: Frankreich (Audiodeskription)",
+      "description": "Ralph Caspers und die Maus packen wieder die Koffer - am 48. Maus-Geburtstag: Zur zehnten \"Mauslands\"-Reise geht es nach Frankreich. Der zwölfjährige Louis zeigt in einer Sonderausgabe der \"Sendung mit der Maus\", wie er mit seiner Familie in der französischen Hauptstadt Paris lebt.",
+      "start": "2023-08-01T07:00:00Z",
+      "duration": 1680,
+      "size": 550502400,
+      "url": "https://wdrmedien-a.akamaihd.net/medp/ondemand/weltweit/fsk0/237/2379115/2379115_53443274.mp4",
+      "url_low": "https://wdrmedien-a.akamaihd.net/medp/ondemand/weltweit/fsk0/237/2379115/2379115_53443272.mp4",
+      "url_hd": "https://wdrmedien-a.akamaihd.net/medp/ondemand/weltweit/fsk0/237/2379115/2379115_53443270.mp4",
+      "url_subtitle": null,
+      "url_website": "https://www.ardmediathek.de/video/Y3JpZDovL3dkci5kZS9CZWl0cmFnLTI2ZmRkM2ViLTY2ZTMtNDU1My04ZjdkLTRiZGI4ZjYyNDM4Zg",
+      "geo": [],
+      "status": null
+    },
+    {
+      "id": "5373069480817396014",
+      "channel": "WDR",
+      "topic": "Die Sendung mit der Maus",
+      "title": "Maus-Spezial: Frankreich",
+      "description": "Ralph Caspers und die Maus packen wieder die Koffer - am 48. Maus-Geburtstag: Zur zehnten \"Mauslands\"-Reise geht es nach Frankreich. Der zwölfjährige Louis zeigt in einer Sonderausgabe der \"Sendung mit der Maus\", wie er mit seiner Familie in der französischen Hauptstadt Paris lebt.",
+      "start": "2023-08-01T07:00:00Z",
+      "duration": 1680,
+      "size": 797966336,
+      "url": "https://wdrmedien-a.akamaihd.net/medp/ondemand/weltweit/fsk0/237/2379115/2379115_32949947.mp4",
+      "url_low": "https://wdrmedien-a.akamaihd.net/medp/ondemand/weltweit/fsk0/237/2379115/2379115_32949945.mp4",
+      "url_hd": null,
+      "url_subtitle": null,
+      "url_website": "https://www.ardmediathek.de/video/Y3JpZDovL3dkci5kZS9CZWl0cmFnLTI2ZmRkM2ViLTY2ZTMtNDU1My04ZjdkLTRiZGI4ZjYyNDM4Zg",
+      "geo": [],
+      "status": null
+    }
+  ]
+}

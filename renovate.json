@@ -1,0 +1,42 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Updates for every pinned dependency: Python (uv.lock), the UI and the website (npm), base images by digest, Debian packages in the Dockerfile and GitHub Actions by commit. A release waits two weeks before it is proposed.",
+  "extends": ["config:recommended", "docker:pinDigests", "helpers:pinGitHubActionDigests", ":semanticCommitsDisabled"],
+  "minimumReleaseAge": "14 days",
+  "internalChecksFilter": "strict",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "packageRules": [
+    {
+      "matchFileNames": ["pyproject.toml", "uv.lock"],
+      "commitMessagePrefix": "Backend:"
+    },
+    {
+      "matchFileNames": ["ui/**"],
+      "groupName": "UI dependencies",
+      "commitMessagePrefix": "UI:"
+    },
+    {
+      "matchFileNames": ["website/**"],
+      "groupName": "website dependencies",
+      "commitMessagePrefix": "Docs:"
+    },
+    {
+      "matchFileNames": ["Dockerfile", ".github/**"],
+      "commitMessagePrefix": "Build:"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Debian packages pinned in the Dockerfile: apt-get install name=version",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": ["\\s(?<depName>[a-z0-9][a-z0-9.+-]*)=(?<currentValue>\\d[^\\s\\\\]*)"],
+      "datasourceTemplate": "deb",
+      "versioningTemplate": "deb",
+      "registryUrlTemplate": "https://deb.debian.org/debian?suite=trixie&components=main&binaryArch=amd64"
+    }
+  ]
+}

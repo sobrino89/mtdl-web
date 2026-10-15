@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--Profile: EBU-TT-D-Basic-DE-->
+<tt:tt xmlns:tt="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling" xmlns:ebuttm="urn:ebu:tt:metadata" ttp:timeBase="media" ttp:cellResolution="50 30" xml:lang="de-DE">
+  <tt:head>
+    <tt:metadata>
+      <ebuttm:documentMetadata>
+        <ebuttm:documentEbuttVersion>v1.0</ebuttm:documentEbuttVersion>
+      </ebuttm:documentMetadata>
+    </tt:metadata>
+    <tt:styling>
+      <tt:style xml:id="defaultStyle" tts:fontFamily="Verdana,Arial,Tiresias" tts:fontSize="160%" tts:lineHeight="125%" />
+      <tt:style xml:id="textBlack" tts:color="#000000" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textRed" tts:color="#FF0000" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textGreen" tts:color="#00FF00" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textYellow" tts:color="#FFFF00" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textBlue" tts:color="#0000FF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textMagenta" tts:color="#FF00FF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textCyan" tts:color="#00FFFF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textWhite" tts:color="#FFFFFF" tts:backgroundColor="#000000c2" />
+      <tt:style xml:id="textCenter" tts:textAlign="center" />
+      <tt:style xml:id="textLeft" tts:textAlign="left" />
+      <tt:style xml:id="textRight" tts:textAlign="right" />
+    </tt:styling>
+    <tt:layout>
+      <tt:region xml:id="top" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="before" />
+      <tt:region xml:id="bottom" tts:origin="10% 10%" tts:extent="80% 80%" tts:displayAlign="after" />
+    </tt:layout>
+  </tt:head>
+  <tt:body>
+    <tt:div style="defaultStyle">
+      <tt:p xml:id="sub0" style="textCenter" region="bottom" begin="00:00:00.560" end="00:00:03.200">
+        <tt:span style="textWhite">Kannst du noch eins nebenan kleben?</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">- Ja, ja, klar.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub1" style="textCenter" region="bottom" begin="00:00:03.240" end="00:00:05.280">
+        <tt:span style="textWhite">Cool. So.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub2" style="textCenter" region="bottom" begin="00:00:05.320" end="00:00:06.920">
+        <tt:span style="textWhite">* Fröhliche Titelmusik *</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub3" style="textCenter" region="bottom" begin="00:00:08.240" end="00:00:11.280">
+        <tt:span style="textWhite">Ich bin heute in Darmstadt</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">und lerne Verena Becker kennen.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub4" style="textCenter" region="bottom" begin="00:00:11.320" end="00:00:13.280">
+        <tt:span style="textWhite">Beim Projekt &quot;Buntes Begegnen&quot;</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub5" style="textCenter" region="bottom" begin="00:00:13.320" end="00:00:15.960">
+        <tt:span style="textWhite">hat sie ihr</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">eigenes Lese- und Kreativprogramm</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub6" style="textCenter" region="bottom" begin="00:00:16.000" end="00:00:17.280">
+        <tt:span style="textWhite">auf die Beine gestellt</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub7" style="textCenter" region="bottom" begin="00:00:17.320" end="00:00:21.480">
+        <tt:span style="textWhite">und holt die Teilnehmerinnen und</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">Teilnehmer gerne auch persönlich ab.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub8" style="textCenter" region="bottom" begin="00:00:21.520" end="00:00:23.800">
+        <tt:span style="textWhite">Ich mach mit und freu mich darauf.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub9" style="textCenter" region="top" begin="00:00:27.880" end="00:00:31.520">
+        <tt:span style="textWhite">Hi, ich bin Verena und ich bringe</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">gerne Menschen zusammen.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub10" style="textCenter" region="bottom" begin="00:00:33.040" end="00:00:35.360">
+        <tt:span style="textWhite">Ich finde es schön,</tt:span>
+        <tt:br />
+        <tt:span style="textWhite">dass ihr heute da seid.</tt:span>
+      </tt:p>
+      <tt:p xml:id="sub11" style="textCenter" region="bottom" begin="00:00:35.400" end="00:00:37.080">
+        <tt:span style="textWhite">Das wird heute ausgestaltet.</tt:span>
+      </tt:p>
+</tt:div>
+</tt:body>
+</tt:tt>

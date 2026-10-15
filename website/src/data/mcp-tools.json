@@ -1,0 +1,1385 @@
+{
+  "instructions": "mtdl-web searches the media libraries (Mediatheken) of the German public broadcasters (ARD, ZDF, arte, 3sat and\nmore) and downloads from them; a subscription loads new episodes of a show by itself. Titles, topics and\ndescriptions are German.\n\nFind films with search (film ids come from its results) and look at one with get_film. A single film:\nenqueue_download, then get_download or list_downloads for the progress. A show: build a draft, check it with\npreview_subscription (which episodes it would load, and why the others are left out), then create_subscription.\nget_status shows what runs now and the bandwidth limit in effect; check it (or set one with update_settings) before\nstarting many downloads. cancel_downloads stops what was started, requeue_subscription loads cancelled or failed\nepisodes again. Tools that change something need an API key that may write; a read-only key does not get them.",
+  "tools": [
+    {
+      "name": "search",
+      "write": false,
+      "description": "Search films in mtdl-web's film list.\n\nThe query uses the MediathekViewWeb syntax: plain words search topic and title (word prefixes, case does not\nmatter); !channel (!zdf), #topic (#tatort), +title, *description, >minutes and <minutes for the length. Words after\none selector joined by commas must all occur (#sturm,der,liebe); the same selector twice means either (!ard !zdf).",
+      "input_schema": {
+        "properties": {
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "include_description": {
+            "default": false,
+            "description": "Search the descriptions too.",
+            "title": "Include Description",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "searchArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_film",
+      "write": false,
+      "description": "One film with its whole description, the broadcaster's page and the size.",
+      "input_schema": {
+        "properties": {
+          "film_id": {
+            "description": "A film id from search.",
+            "pattern": "^\\d{1,20}$",
+            "title": "Film Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "film_id"
+        ],
+        "title": "get_filmArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "list_subscriptions",
+      "write": false,
+      "description": "All subscriptions with their query, conditions, naming, state and the last check.",
+      "input_schema": {
+        "properties": {},
+        "title": "list_subscriptionsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "preview_subscription",
+      "write": false,
+      "description": "What a subscription would load now, film by film: status load (would be loaded), exists (loaded before), excluded\n(excluded_by_condition says which condition, counted from 0; one past the last is the special versions step, the\nfilm then names its special_version), duplicate (same broadcast elsewhere), skipped,\nfailed, cancelled, unavailable, unmatched (no TMDB episode, see reason). Give subscription_id for a saved\nsubscription or draft for a new one; nothing is saved.\n\nA subscription draft: query finds the candidates (search syntax). conditions narrow them down, all must hold, each\n{field, operator, value, regex (default false), enabled (default true)}:\n- topic, title, description: is, is_not, contains, not_contains with a text. With regex true only is (matches) and\n  is_not (does not match), search semantics, anchors decide: title is regex \"\\(\\d+\\)$\" keeps numbered episodes.\n- channel: any_of, none_of with a list of channel names ([\"ZDF\", \"3sat\"]).\n- date: after, before with a day (YYYY-MM-DD). duration: at_least, at_most with minutes.\nnaming says where files go: scheme season_episode (\"(S02/E03)\" in the title, else the number \"(39)\" as season 1,\nelse the date), episode_number, date (default) or template; show and folder replace the show name (default: the\ntopic), season fixes the season. Into a series library under TMDB's names instead: target \"library\", library_id\n(list_libraries) and tmdb_id (find_series). Optional: quality hd/normal/low, subtitles, valid_until (last day,\nYYYY-MM-DD) with on_expiry pause or delete, state active or paused. special_versions: versions with audio\ndescription, sign language, \"Hörfassung\" or \"klare Sprache\" are left out as the setting says (\"setting\", default:\nout), \"exclude\" or \"include\" (a subscription for exactly such a version needs \"include\").",
+      "input_schema": {
+        "$defs": {
+          "ConditionIO": {
+            "properties": {
+              "field": {
+                "title": "Field",
+                "type": "string"
+              },
+              "operator": {
+                "title": "Operator",
+                "type": "string"
+              },
+              "value": {
+                "title": "Value"
+              },
+              "regex": {
+                "default": false,
+                "title": "Regex",
+                "type": "boolean"
+              },
+              "enabled": {
+                "default": true,
+                "title": "Enabled",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "field",
+              "operator",
+              "value"
+            ],
+            "title": "ConditionIO",
+            "type": "object"
+          },
+          "NamingIn": {
+            "properties": {
+              "scheme": {
+                "default": "date",
+                "enum": [
+                  "episode_number",
+                  "season_episode",
+                  "date",
+                  "template"
+                ],
+                "title": "Scheme",
+                "type": "string"
+              },
+              "show": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Show"
+              },
+              "folder": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Folder"
+              },
+              "season": {
+                "anyOf": [
+                  {
+                    "maximum": 9999,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Season"
+              },
+              "template": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Template"
+              },
+              "target": {
+                "default": "downloads",
+                "enum": [
+                  "downloads",
+                  "library"
+                ],
+                "title": "Target",
+                "type": "string"
+              },
+              "tmdb_id": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Tmdb Id"
+              },
+              "library_id": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Library Id"
+              }
+            },
+            "title": "NamingIn",
+            "type": "object"
+          },
+          "SubscriptionIn": {
+            "properties": {
+              "name": {
+                "default": "",
+                "title": "Name",
+                "type": "string"
+              },
+              "query": {
+                "title": "Query",
+                "type": "string"
+              },
+              "include_description": {
+                "default": false,
+                "title": "Include Description",
+                "type": "boolean"
+              },
+              "source": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "filmlist",
+                      "mediathekviewweb"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Source"
+              },
+              "conditions": {
+                "default": [],
+                "items": {
+                  "$ref": "#/$defs/ConditionIO"
+                },
+                "title": "Conditions",
+                "type": "array"
+              },
+              "naming": {
+                "$ref": "#/$defs/NamingIn",
+                "default": {
+                  "scheme": "date",
+                  "show": null,
+                  "folder": null,
+                  "season": null,
+                  "template": null,
+                  "target": "downloads",
+                  "tmdb_id": null,
+                  "library_id": null
+                }
+              },
+              "quality": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "hd",
+                      "normal",
+                      "low"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Quality"
+              },
+              "subtitles": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Subtitles"
+              },
+              "state": {
+                "default": "active",
+                "enum": [
+                  "active",
+                  "paused"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "valid_until": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Valid Until"
+              },
+              "on_expiry": {
+                "default": "pause",
+                "enum": [
+                  "pause",
+                  "delete"
+                ],
+                "title": "On Expiry",
+                "type": "string"
+              },
+              "special_versions": {
+                "default": "setting",
+                "enum": [
+                  "setting",
+                  "exclude",
+                  "include"
+                ],
+                "title": "Special Versions",
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "title": "SubscriptionIn",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "subscription_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subscription Id"
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SubscriptionIn"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "limit": {
+            "default": 50,
+            "description": "Films listed at most; counts cover all.",
+            "maximum": 500,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "preview_subscriptionArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "list_downloads",
+      "write": false,
+      "description": "Downloads, newest first, optionally one subscription's only; counts are per state over all\ndownloads. A failed one has error and error_code. file is where mtdl-web saved the video: someone may\nhave moved or renamed it since.",
+      "input_schema": {
+        "properties": {
+          "state": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "queued",
+                    "running",
+                    "done",
+                    "failed",
+                    "cancelled"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "State"
+          },
+          "subscription_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subscription Id"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "list_downloadsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_download",
+      "write": false,
+      "description": "One download: state, progress while running, the error if it failed, and file, where mtdl-web saved\nthe video (it may have been moved or renamed since).",
+      "input_schema": {
+        "properties": {
+          "download_id": {
+            "title": "Download Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "download_id"
+        ],
+        "title": "get_downloadArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_status",
+      "write": false,
+      "description": "What mtdl-web does now: running downloads with progress and speed, the counts per state, the\nbandwidth limit in effect (null: unlimited; source normal, or schedule while a time window applies),\nthe film list and problems such as a folder that cannot be written.",
+      "input_schema": {
+        "properties": {},
+        "title": "get_statusArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_settings",
+      "write": false,
+      "description": "The settings: bandwidth_limit in byte/s (bandwidth_enabled switches it), the limit schedule,\nparallel_downloads, quality, subtitles, naming of single downloads, the search source and more.",
+      "input_schema": {
+        "properties": {},
+        "title": "get_settingsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "list_libraries",
+      "write": false,
+      "description": "The libraries (series or movies) that subscriptions and downloads can load into.",
+      "input_schema": {
+        "properties": {},
+        "title": "list_librariesArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "find_series",
+      "write": false,
+      "description": "Series on TMDB by name, for a subscription into a series library (naming.tmdb_id). Needs a TMDB\ntoken in mtdl-web.",
+      "input_schema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "find_seriesArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "create_subscription",
+      "write": true,
+      "description": "Save a subscription: mtdl-web checks it after every film list update and loads what matches. Check the draft\nwith preview_subscription first. skip_existing true leaves what matches today alone and loads only episodes that\nappear from now on.\n\nA subscription draft: query finds the candidates (search syntax). conditions narrow them down, all must hold, each\n{field, operator, value, regex (default false), enabled (default true)}:\n- topic, title, description: is, is_not, contains, not_contains with a text. With regex true only is (matches) and\n  is_not (does not match), search semantics, anchors decide: title is regex \"\\(\\d+\\)$\" keeps numbered episodes.\n- channel: any_of, none_of with a list of channel names ([\"ZDF\", \"3sat\"]).\n- date: after, before with a day (YYYY-MM-DD). duration: at_least, at_most with minutes.\nnaming says where files go: scheme season_episode (\"(S02/E03)\" in the title, else the number \"(39)\" as season 1,\nelse the date), episode_number, date (default) or template; show and folder replace the show name (default: the\ntopic), season fixes the season. Into a series library under TMDB's names instead: target \"library\", library_id\n(list_libraries) and tmdb_id (find_series). Optional: quality hd/normal/low, subtitles, valid_until (last day,\nYYYY-MM-DD) with on_expiry pause or delete, state active or paused. special_versions: versions with audio\ndescription, sign language, \"Hörfassung\" or \"klare Sprache\" are left out as the setting says (\"setting\", default:\nout), \"exclude\" or \"include\" (a subscription for exactly such a version needs \"include\").",
+      "input_schema": {
+        "$defs": {
+          "ConditionIO": {
+            "properties": {
+              "field": {
+                "title": "Field",
+                "type": "string"
+              },
+              "operator": {
+                "title": "Operator",
+                "type": "string"
+              },
+              "value": {
+                "title": "Value"
+              },
+              "regex": {
+                "default": false,
+                "title": "Regex",
+                "type": "boolean"
+              },
+              "enabled": {
+                "default": true,
+                "title": "Enabled",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "field",
+              "operator",
+              "value"
+            ],
+            "title": "ConditionIO",
+            "type": "object"
+          },
+          "NamingIn": {
+            "properties": {
+              "scheme": {
+                "default": "date",
+                "enum": [
+                  "episode_number",
+                  "season_episode",
+                  "date",
+                  "template"
+                ],
+                "title": "Scheme",
+                "type": "string"
+              },
+              "show": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Show"
+              },
+              "folder": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Folder"
+              },
+              "season": {
+                "anyOf": [
+                  {
+                    "maximum": 9999,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Season"
+              },
+              "template": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Template"
+              },
+              "target": {
+                "default": "downloads",
+                "enum": [
+                  "downloads",
+                  "library"
+                ],
+                "title": "Target",
+                "type": "string"
+              },
+              "tmdb_id": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Tmdb Id"
+              },
+              "library_id": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Library Id"
+              }
+            },
+            "title": "NamingIn",
+            "type": "object"
+          },
+          "SubscriptionSaveIn": {
+            "properties": {
+              "name": {
+                "default": "",
+                "title": "Name",
+                "type": "string"
+              },
+              "query": {
+                "title": "Query",
+                "type": "string"
+              },
+              "include_description": {
+                "default": false,
+                "title": "Include Description",
+                "type": "boolean"
+              },
+              "source": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "filmlist",
+                      "mediathekviewweb"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Source"
+              },
+              "conditions": {
+                "default": [],
+                "items": {
+                  "$ref": "#/$defs/ConditionIO"
+                },
+                "title": "Conditions",
+                "type": "array"
+              },
+              "naming": {
+                "$ref": "#/$defs/NamingIn",
+                "default": {
+                  "scheme": "date",
+                  "show": null,
+                  "folder": null,
+                  "season": null,
+                  "template": null,
+                  "target": "downloads",
+                  "tmdb_id": null,
+                  "library_id": null
+                }
+              },
+              "quality": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "hd",
+                      "normal",
+                      "low"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Quality"
+              },
+              "subtitles": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Subtitles"
+              },
+              "state": {
+                "default": "active",
+                "enum": [
+                  "active",
+                  "paused"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "valid_until": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Valid Until"
+              },
+              "on_expiry": {
+                "default": "pause",
+                "enum": [
+                  "pause",
+                  "delete"
+                ],
+                "title": "On Expiry",
+                "type": "string"
+              },
+              "special_versions": {
+                "default": "setting",
+                "enum": [
+                  "setting",
+                  "exclude",
+                  "include"
+                ],
+                "title": "Special Versions",
+                "type": "string"
+              },
+              "skip_existing": {
+                "default": false,
+                "title": "Skip Existing",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "query"
+            ],
+            "title": "SubscriptionSaveIn",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "subscription": {
+            "$ref": "#/$defs/SubscriptionSaveIn"
+          }
+        },
+        "required": [
+          "subscription"
+        ],
+        "title": "create_subscriptionArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "set_subscription_state",
+      "write": true,
+      "description": "Pause a subscription or let it search again.",
+      "input_schema": {
+        "properties": {
+          "subscription_id": {
+            "title": "Subscription Id",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "active",
+              "paused"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subscription_id",
+          "state"
+        ],
+        "title": "set_subscription_stateArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "update_subscription",
+      "write": true,
+      "description": "Change a saved subscription: give only what changes, the rest stays (valid_until null removes the last day,\nconditions replace all conditions). To pause or resume, set_subscription_state is shorter.\n\nA subscription draft: query finds the candidates (search syntax). conditions narrow them down, all must hold, each\n{field, operator, value, regex (default false), enabled (default true)}:\n- topic, title, description: is, is_not, contains, not_contains with a text. With regex true only is (matches) and\n  is_not (does not match), search semantics, anchors decide: title is regex \"\\(\\d+\\)$\" keeps numbered episodes.\n- channel: any_of, none_of with a list of channel names ([\"ZDF\", \"3sat\"]).\n- date: after, before with a day (YYYY-MM-DD). duration: at_least, at_most with minutes.\nnaming says where files go: scheme season_episode (\"(S02/E03)\" in the title, else the number \"(39)\" as season 1,\nelse the date), episode_number, date (default) or template; show and folder replace the show name (default: the\ntopic), season fixes the season. Into a series library under TMDB's names instead: target \"library\", library_id\n(list_libraries) and tmdb_id (find_series). Optional: quality hd/normal/low, subtitles, valid_until (last day,\nYYYY-MM-DD) with on_expiry pause or delete, state active or paused. special_versions: versions with audio\ndescription, sign language, \"Hörfassung\" or \"klare Sprache\" are left out as the setting says (\"setting\", default:\nout), \"exclude\" or \"include\" (a subscription for exactly such a version needs \"include\").",
+      "input_schema": {
+        "$defs": {
+          "ConditionIO": {
+            "properties": {
+              "field": {
+                "title": "Field",
+                "type": "string"
+              },
+              "operator": {
+                "title": "Operator",
+                "type": "string"
+              },
+              "value": {
+                "title": "Value"
+              },
+              "regex": {
+                "default": false,
+                "title": "Regex",
+                "type": "boolean"
+              },
+              "enabled": {
+                "default": true,
+                "title": "Enabled",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "field",
+              "operator",
+              "value"
+            ],
+            "title": "ConditionIO",
+            "type": "object"
+          },
+          "NamingIn": {
+            "properties": {
+              "scheme": {
+                "default": "date",
+                "enum": [
+                  "episode_number",
+                  "season_episode",
+                  "date",
+                  "template"
+                ],
+                "title": "Scheme",
+                "type": "string"
+              },
+              "show": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Show"
+              },
+              "folder": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Folder"
+              },
+              "season": {
+                "anyOf": [
+                  {
+                    "maximum": 9999,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Season"
+              },
+              "template": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Template"
+              },
+              "target": {
+                "default": "downloads",
+                "enum": [
+                  "downloads",
+                  "library"
+                ],
+                "title": "Target",
+                "type": "string"
+              },
+              "tmdb_id": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Tmdb Id"
+              },
+              "library_id": {
+                "anyOf": [
+                  {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Library Id"
+              }
+            },
+            "title": "NamingIn",
+            "type": "object"
+          },
+          "SubscriptionChanges": {
+            "additionalProperties": false,
+            "description": "What to change in a saved subscription; fields left out stay as they are.",
+            "properties": {
+              "name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Name"
+              },
+              "query": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Query"
+              },
+              "include_description": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Include Description"
+              },
+              "source": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "filmlist",
+                      "mediathekviewweb"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Source"
+              },
+              "conditions": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "$ref": "#/$defs/ConditionIO"
+                    },
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Replaces all conditions.",
+                "title": "Conditions"
+              },
+              "naming": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/NamingIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null
+              },
+              "quality": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "hd",
+                      "normal",
+                      "low"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "null: as in the settings.",
+                "title": "Quality"
+              },
+              "subtitles": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "null: as in the settings.",
+                "title": "Subtitles"
+              },
+              "state": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "active",
+                      "paused"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "State"
+              },
+              "valid_until": {
+                "anyOf": [
+                  {
+                    "format": "date",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The last day; null removes it.",
+                "title": "Valid Until"
+              },
+              "on_expiry": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "pause",
+                      "delete"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "On Expiry"
+              },
+              "special_versions": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "setting",
+                      "exclude",
+                      "include"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Special Versions"
+              }
+            },
+            "title": "SubscriptionChanges",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "subscription_id": {
+            "title": "Subscription Id",
+            "type": "integer"
+          },
+          "changes": {
+            "$ref": "#/$defs/SubscriptionChanges"
+          }
+        },
+        "required": [
+          "subscription_id",
+          "changes"
+        ],
+        "title": "update_subscriptionArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "check_subscription",
+      "write": true,
+      "description": "Check a subscription now instead of after the next film list update; queues what it finds and lists\nwhat of the subscription waits or loads now.",
+      "input_schema": {
+        "properties": {
+          "subscription_id": {
+            "title": "Subscription Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "subscription_id"
+        ],
+        "title": "check_subscriptionArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "requeue_subscription",
+      "write": true,
+      "description": "Load a subscription's cancelled and failed episodes again: they leave the history and are queued\nanew with the subscription's naming and quality of today. Episodes loaded fine stay as they are.",
+      "input_schema": {
+        "properties": {
+          "subscription_id": {
+            "title": "Subscription Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "subscription_id"
+        ],
+        "title": "requeue_subscriptionArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "cancel_downloads",
+      "write": true,
+      "description": "Stop downloads that wait or load: the ones named by id, a subscription's, or with everything true\nall of them. Partial files are removed; the history keeps them as cancelled (requeue_subscription or\nenqueue_download with force load them again). Pausing a subscription does not stop its downloads.",
+      "input_schema": {
+        "properties": {
+          "download_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Download Ids"
+          },
+          "subscription_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subscription Id"
+          },
+          "everything": {
+            "default": false,
+            "description": "Cancel all that waits or loads.",
+            "title": "Everything",
+            "type": "boolean"
+          }
+        },
+        "title": "cancel_downloadsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "update_settings",
+      "write": true,
+      "description": "Change the bandwidth limit (Mbit/s, for all downloads together, live), the preferred quality,\nsubtitles or how many downloads run at once. A limit schedule from the settings page may set another\nlimit at times; get_status shows the one in effect.",
+      "input_schema": {
+        "$defs": {
+          "SettingsChanges": {
+            "additionalProperties": false,
+            "description": "Settings to change; fields left out stay as they are.",
+            "properties": {
+              "bandwidth_limit_mbit": {
+                "anyOf": [
+                  {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Limit for all downloads together in Mbit/s; 0 = unlimited.",
+                "title": "Bandwidth Limit Mbit"
+              },
+              "bandwidth_enabled": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Switch the limit on or off; the value stays.",
+                "title": "Bandwidth Enabled"
+              },
+              "quality": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "hd",
+                      "normal",
+                      "low"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Preferred quality; a film without it loads the next lower one.",
+                "title": "Quality"
+              },
+              "subtitles": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Subtitles"
+              },
+              "parallel_downloads": {
+                "anyOf": [
+                  {
+                    "maximum": 10,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Parallel Downloads"
+              }
+            },
+            "title": "SettingsChanges",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "changes": {
+            "$ref": "#/$defs/SettingsChanges"
+          }
+        },
+        "required": [
+          "changes"
+        ],
+        "title": "update_settingsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "enqueue_download",
+      "write": true,
+      "description": "Queue one film (an id from search) into the download folder, named after the settings. Quality and\nsubtitles default to the settings.",
+      "input_schema": {
+        "properties": {
+          "film_id": {
+            "description": "A film id from search.",
+            "pattern": "^\\d{1,20}$",
+            "title": "Film Id",
+            "type": "string"
+          },
+          "quality": {
+            "anyOf": [
+              {
+                "enum": [
+                  "hd",
+                  "normal",
+                  "low"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Quality"
+          },
+          "subtitles": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Subtitles"
+          },
+          "force": {
+            "default": false,
+            "description": "Load even if the broadcast was loaded before.",
+            "title": "Force",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "film_id"
+        ],
+        "title": "enqueue_downloadArguments",
+        "type": "object"
+      }
+    }
+  ]
+}

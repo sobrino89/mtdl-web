@@ -1,0 +1,57 @@
+---
+title: mtdl-web
+description: Mediatheken der öffentlich-rechtlichen Sender durchsuchen, herunterladen und Serien abonnieren, selbst gehostet in einem kleinen Container.
+template: splash
+hero:
+  tagline: Mediatheken der öffentlich-rechtlichen Sender durchsuchen, Sendungen herunterladen und Serien abonnieren. Selbst gehostet, als schlanke Web-App in einem Container.
+  image:
+    file: ../../assets/logo.svg
+  actions:
+    - text: Schnellstart
+      link: getting-started/quickstart/
+      icon: right-arrow
+    - text: Was ist mtdl-web?
+      link: getting-started/introduction/
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/sobrino89/mtdl-web
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="Suchen" icon="magnifier">
+    Rund 720.000 Sendungen aus der Filmliste des MediathekView-Projekts, lokal indexiert: Treffer in
+    Millisekunden, mit Filtern, Gruppierung nach Thema und Vorschau im Browser.
+  </Card>
+  <Card title="Abonnieren" icon="list-format">
+    Serien mit einfachen, sichtbaren Regeln. Die Vorschau zeigt vor dem Speichern, welche Folgen geladen werden und
+    welche Regel die übrigen ausschließt.
+  </Card>
+  <Card title="Herunterladen" icon="download">
+    MP4 und HLS mit Wiederaufnahme, Untertiteln als SRT und einem gemeinsamen Bandbreitenlimit, das sofort wirkt.
+  </Card>
+  <Card title="Für Plex und Jellyfin" icon="open-book">
+    Dateinamen mit Staffel und Folge, auf Wunsch direkt in die Bibliothek des Mediaservers, benannt nach TMDB.
+  </Card>
+  <Card title="Anbinden" icon="puzzle">
+    REST-API mit OpenAPI, signierte Webhooks, Skripte je Ereignis und ein MCP-Server für KI-Assistenten.
+  </Card>
+  <Card title="Sicher betreiben" icon="padlock">
+    Anmeldung mit Passwort ab Werk, API-Schlüssel mit Leserecht, keine externen Ressourcen in der Oberfläche.
+  </Card>
+</CardGrid>
+
+## Warum
+
+Der bewährte Desktop-Client [MediathekView](https://mediathekview.de) läuft auf Servern meist als Java-Anwendung in
+einem VNC-Container: über ein GB Image, mehrere GB Arbeitsspeicher, Desktop-Bedienung im Browserfenster. mtdl-web
+bietet die Kernfunktionen als Web-App in einem kleinen Container, bedienbar vom Rechner wie vom Handy.
+
+:::note[Kein Projekt des MediathekView-Teams]
+Die Daten stammen aus der Filmliste des MediathekView-Projekts und optional von MediathekViewWeb. mtdl-web ist ein
+eigenständiges Projekt und nicht mit dem MediathekView-Team verbunden. Mehr unter
+[Lizenz und Dank](project/license/).
+:::

@@ -1,0 +1,21 @@
+{
+  "name": "mtdl-web-ui",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit -p tsconfig.json",
+    "test": "node run-tests.mjs",
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "hls.js": "1.7.3",
+    "preact": "11.0.1",
+    "swagger-ui-dist": "5.33.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
+  }
+}

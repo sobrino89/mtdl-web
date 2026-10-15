@@ -1,0 +1,647 @@
+{
+  "tv": {
+    "id": 119293,
+    "name": "Das Gipfeltreffen",
+    "original_name": "Das Gipfeltreffen",
+    "first_air_date": "2020-05-02",
+    "external_ids": {
+      "imdb_id": "tt13998708",
+      "tvdb_id": 382536
+    },
+    "seasons": [
+      {
+        "season_number": 0,
+        "name": "Extras",
+        "air_date": "2020-12-31",
+        "episode_count": 11
+      },
+      {
+        "season_number": 1,
+        "name": "Staffel 1",
+        "air_date": "2020-05-02",
+        "episode_count": 8
+      },
+      {
+        "season_number": 2,
+        "name": "Staffel 2",
+        "air_date": "2020-10-10",
+        "episode_count": 7
+      },
+      {
+        "season_number": 3,
+        "name": "Staffel 3",
+        "air_date": "2021-02-04",
+        "episode_count": 8
+      },
+      {
+        "season_number": 4,
+        "name": "Staffel 4",
+        "air_date": "2022-01-13",
+        "episode_count": 6
+      },
+      {
+        "season_number": 5,
+        "name": "Staffel 5",
+        "air_date": "2023-06-22",
+        "episode_count": 5
+      },
+      {
+        "season_number": 6,
+        "name": "Staffel 6",
+        "air_date": "2024-01-11",
+        "episode_count": 8
+      },
+      {
+        "season_number": 7,
+        "name": "Staffel 7",
+        "air_date": "2025-01-23",
+        "episode_count": 8
+      },
+      {
+        "season_number": 8,
+        "name": "Staffel 8",
+        "air_date": "2026-01-22",
+        "episode_count": 8
+      },
+      {
+        "season_number": 9,
+        "name": "Staffel 9",
+        "air_date": "2026-07-29",
+        "episode_count": 4
+      }
+    ]
+  },
+  "seasons": {
+    "0": {
+      "season_number": 0,
+      "name": "Extras",
+      "episodes": [
+        {
+          "season_number": 0,
+          "episode_number": 1,
+          "name": "Frohes neues Jahr!",
+          "air_date": "2020-12-31",
+          "runtime": 4
+        },
+        {
+          "season_number": 0,
+          "episode_number": 2,
+          "name": "Best of Gipfeltreffen 2020",
+          "air_date": "2020-12-30",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 3,
+          "name": "Das Gipfeltreffen - Best of 2021 (1/2)",
+          "air_date": "2021-12-23",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 4,
+          "name": "Das Gipfeltreffen - Best of 2021 (2/2)",
+          "air_date": "2021-12-30",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 5,
+          "name": "Das Gipfeltreffen - Best of 2022 (1/2)",
+          "air_date": "2022-01-06",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 6,
+          "name": "Das Gipfeltreffen - Best of 2022 (2/2)",
+          "air_date": "2022-01-06",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 7,
+          "name": "Das Gipfeltreffen - Best of 2023 (1/2)",
+          "air_date": "2023-12-06",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 8,
+          "name": "Das Gipfeltreffen - Best of 2023 (2/2)",
+          "air_date": "2023-12-06",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 9,
+          "name": "Das Gipfeltreffen - Best of 2024 (1/2)",
+          "air_date": "2024-12-04",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 10,
+          "name": "Das Gipfeltreffen - Best of 2024 (2/2)",
+          "air_date": "2024-12-11",
+          "runtime": 30
+        },
+        {
+          "season_number": 0,
+          "episode_number": 11,
+          "name": "Das Gipfeltreffen - Best of 2025",
+          "air_date": "2025-12-05",
+          "runtime": 60
+        }
+      ]
+    },
+    "1": {
+      "season_number": 1,
+      "name": "Staffel 1",
+      "episodes": [
+        {
+          "season_number": 1,
+          "episode_number": 1,
+          "name": "Das Gipfeltreffen 1",
+          "air_date": "2020-05-02",
+          "runtime": 30
+        },
+        {
+          "season_number": 1,
+          "episode_number": 2,
+          "name": "Das Gipfeltreffen 2",
+          "air_date": "2020-05-09",
+          "runtime": 30
+        },
+        {
+          "season_number": 1,
+          "episode_number": 3,
+          "name": "Das Gipfeltreffen 3",
+          "air_date": "2020-05-16",
+          "runtime": 30
+        },
+        {
+          "season_number": 1,
+          "episode_number": 4,
+          "name": "Das Gipfeltreffen 4",
+          "air_date": "2020-05-23",
+          "runtime": 30
+        },
+        {
+          "season_number": 1,
+          "episode_number": 5,
+          "name": "Das Gipfeltreffen 5",
+          "air_date": "2020-05-30",
+          "runtime": 30
+        },
+        {
+          "season_number": 1,
+          "episode_number": 6,
+          "name": "Das Gipfeltreffen 6",
+          "air_date": "2020-06-06",
+          "runtime": 30
+        },
+        {
+          "season_number": 1,
+          "episode_number": 7,
+          "name": "Das Gipfeltreffen 7",
+          "air_date": "2020-06-13",
+          "runtime": 30
+        },
+        {
+          "season_number": 1,
+          "episode_number": 8,
+          "name": "Das Gipfeltreffen 8",
+          "air_date": "2020-06-20",
+          "runtime": 30
+        }
+      ]
+    },
+    "2": {
+      "season_number": 2,
+      "name": "Staffel 2",
+      "episodes": [
+        {
+          "season_number": 2,
+          "episode_number": 1,
+          "name": "Das Gipfeltreffen (9)",
+          "air_date": "2020-10-10",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 2,
+          "name": "Impfstoff-Test und Quallen-Shake",
+          "air_date": "2020-10-17",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 3,
+          "name": "Gott im Himmel und Müll im Park",
+          "air_date": "2020-10-24",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 4,
+          "name": "Batman oder Ablassbrief",
+          "air_date": "2020-10-31",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 5,
+          "name": "Eine erste Analyse der US-Wahl",
+          "air_date": "2020-11-07",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 6,
+          "name": "2 Wochen Lockdown light - wie bitter ist das?",
+          "air_date": "2020-11-14",
+          "runtime": 30
+        },
+        {
+          "season_number": 2,
+          "episode_number": 7,
+          "name": "Weihnachten ohne Lockdown",
+          "air_date": "2020-11-19",
+          "runtime": 30
+        }
+      ]
+    },
+    "3": {
+      "season_number": 3,
+      "name": "Staffel 3",
+      "episodes": [
+        {
+          "season_number": 3,
+          "episode_number": 1,
+          "name": "Mutation auf Wunsch",
+          "air_date": "2021-02-04",
+          "runtime": 30
+        },
+        {
+          "season_number": 3,
+          "episode_number": 2,
+          "name": "Das Gipfeltreffen (17)",
+          "air_date": "2021-02-11",
+          "runtime": 30
+        },
+        {
+          "season_number": 3,
+          "episode_number": 3,
+          "name": "Was macht am meisten Spaß?",
+          "air_date": "2021-02-18",
+          "runtime": 30
+        },
+        {
+          "season_number": 3,
+          "episode_number": 4,
+          "name": "Das Gipfeltreffen (19)",
+          "air_date": "2021-02-25",
+          "runtime": 30
+        },
+        {
+          "season_number": 3,
+          "episode_number": 5,
+          "name": "Impfneid ist ein schöner Vorname",
+          "air_date": "2021-05-20",
+          "runtime": 30
+        },
+        {
+          "season_number": 3,
+          "episode_number": 6,
+          "name": "Hotline gegen Langeweile",
+          "air_date": "2021-05-27",
+          "runtime": 30
+        },
+        {
+          "season_number": 3,
+          "episode_number": 7,
+          "name": "Wird Jogi Löw Europa-Meister?",
+          "air_date": "2021-06-03",
+          "runtime": 30
+        },
+        {
+          "season_number": 3,
+          "episode_number": 8,
+          "name": "Batterie-Fabrik in Brandenburg?",
+          "air_date": "2021-06-10",
+          "runtime": 30
+        }
+      ]
+    },
+    "4": {
+      "season_number": 4,
+      "name": "Staffel 4",
+      "episodes": [
+        {
+          "season_number": 4,
+          "episode_number": 1,
+          "name": "Gute Vorsätze für 2022?",
+          "air_date": "2022-01-13",
+          "runtime": 30
+        },
+        {
+          "season_number": 4,
+          "episode_number": 2,
+          "name": "Kernkraft ist das neue Grün?",
+          "air_date": "2022-01-20",
+          "runtime": 30
+        },
+        {
+          "season_number": 4,
+          "episode_number": 3,
+          "name": "Jetzt ein gemütliches Schneckenbad",
+          "air_date": "2022-01-27",
+          "runtime": 30
+        },
+        {
+          "season_number": 4,
+          "episode_number": 4,
+          "name": "Das Gipfeltreffen (27)",
+          "air_date": "2022-02-10",
+          "runtime": 30
+        },
+        {
+          "season_number": 4,
+          "episode_number": 5,
+          "name": "100 Milliarden Umvermögen",
+          "air_date": "2022-06-02",
+          "runtime": 30
+        },
+        {
+          "season_number": 4,
+          "episode_number": 6,
+          "name": "DIY - der beste Trend fürs Oberstübchen",
+          "air_date": "2022-06-09",
+          "runtime": 30
+        }
+      ]
+    },
+    "5": {
+      "season_number": 5,
+      "name": "Staffel 5",
+      "episodes": [
+        {
+          "season_number": 5,
+          "episode_number": 1,
+          "name": "Aus bestem Holz geschnitzt",
+          "air_date": "2023-06-22",
+          "runtime": 30
+        },
+        {
+          "season_number": 5,
+          "episode_number": 2,
+          "name": "To chip or not to chip?",
+          "air_date": "2023-06-30",
+          "runtime": 30
+        },
+        {
+          "season_number": 5,
+          "episode_number": 3,
+          "name": "Trauriger Höhepunkt",
+          "air_date": "2023-07-06",
+          "runtime": 30
+        },
+        {
+          "season_number": 5,
+          "episode_number": 4,
+          "name": "Bei Gewürzen kann man viel falsch machen",
+          "air_date": "2023-07-13",
+          "runtime": 30
+        },
+        {
+          "season_number": 5,
+          "episode_number": 5,
+          "name": "Wenn alle Menschen Frauen wären",
+          "air_date": "2023-08-26",
+          "runtime": 29
+        }
+      ]
+    },
+    "6": {
+      "season_number": 6,
+      "name": "Staffel 6",
+      "episodes": [
+        {
+          "season_number": 6,
+          "episode_number": 1,
+          "name": "Der Papst trägt Overknees",
+          "air_date": "2024-01-11",
+          "runtime": 30
+        },
+        {
+          "season_number": 6,
+          "episode_number": 2,
+          "name": "Treffen sich zwei Parallelen",
+          "air_date": "2024-01-18",
+          "runtime": 30
+        },
+        {
+          "season_number": 6,
+          "episode_number": 3,
+          "name": "Ein Schlauch ist auch ein Rohr",
+          "air_date": "2024-01-25",
+          "runtime": 30
+        },
+        {
+          "season_number": 6,
+          "episode_number": 4,
+          "name": "Mit Senf, du Vogel!",
+          "air_date": "2024-02-01",
+          "runtime": 30
+        },
+        {
+          "season_number": 6,
+          "episode_number": 5,
+          "name": "Menschenjagd in gut",
+          "air_date": "2024-03-14",
+          "runtime": 30
+        },
+        {
+          "season_number": 6,
+          "episode_number": 6,
+          "name": "Gesüßte Salzkartoffeln",
+          "air_date": "2024-03-21",
+          "runtime": 30
+        },
+        {
+          "season_number": 6,
+          "episode_number": 7,
+          "name": "Austern im Rachen",
+          "air_date": "2024-04-04",
+          "runtime": 30
+        },
+        {
+          "season_number": 6,
+          "episode_number": 8,
+          "name": "Jetzt wird's deep",
+          "air_date": "2024-04-11",
+          "runtime": 30
+        }
+      ]
+    },
+    "7": {
+      "season_number": 7,
+      "name": "Staffel 7",
+      "episodes": [
+        {
+          "season_number": 7,
+          "episode_number": 1,
+          "name": "Brückentage in der Erdbeerwoche",
+          "air_date": "2025-01-23",
+          "runtime": 30
+        },
+        {
+          "season_number": 7,
+          "episode_number": 2,
+          "name": "Harte Fakten für Weicheier",
+          "air_date": "2025-01-30",
+          "runtime": 30
+        },
+        {
+          "season_number": 7,
+          "episode_number": 3,
+          "name": "MPU für Hänsel und Gretel",
+          "air_date": "2025-02-06",
+          "runtime": 30
+        },
+        {
+          "season_number": 7,
+          "episode_number": 4,
+          "name": "Honig auf die Eichel",
+          "air_date": "2025-02-13",
+          "runtime": 30
+        },
+        {
+          "season_number": 7,
+          "episode_number": 5,
+          "name": "Pumpen ist ein Tu-Wort",
+          "air_date": "2025-02-20",
+          "runtime": 30
+        },
+        {
+          "season_number": 7,
+          "episode_number": 6,
+          "name": "Wehrpflicht bei Vollmond",
+          "air_date": "2025-03-21",
+          "runtime": 30
+        },
+        {
+          "season_number": 7,
+          "episode_number": 7,
+          "name": "Ungeimpfte Sackratten",
+          "air_date": "2025-03-27",
+          "runtime": 29
+        },
+        {
+          "season_number": 7,
+          "episode_number": 8,
+          "name": "Der Wurmfortsatz des Pythagoras",
+          "air_date": "2025-04-03",
+          "runtime": 30
+        }
+      ]
+    },
+    "8": {
+      "season_number": 8,
+      "name": "Staffel 8",
+      "episodes": [
+        {
+          "season_number": 8,
+          "episode_number": 1,
+          "name": "Schmerz lass nach!",
+          "air_date": "2026-01-22",
+          "runtime": 30
+        },
+        {
+          "season_number": 8,
+          "episode_number": 2,
+          "name": "Berufsunfähig im Bundestag",
+          "air_date": "2026-01-29",
+          "runtime": 30
+        },
+        {
+          "season_number": 8,
+          "episode_number": 3,
+          "name": "Asche macht keine Geräusche",
+          "air_date": "2026-02-05",
+          "runtime": 30
+        },
+        {
+          "season_number": 8,
+          "episode_number": 4,
+          "name": "Gestrickte Wollust",
+          "air_date": "2026-02-12",
+          "runtime": 30
+        },
+        {
+          "season_number": 8,
+          "episode_number": 5,
+          "name": "Flachpfeifen ohne Beauty-Filter",
+          "air_date": "2026-07-30",
+          "runtime": 30
+        },
+        {
+          "season_number": 8,
+          "episode_number": 6,
+          "name": "Bestäub mich, Brummhummel!",
+          "air_date": "2026-08-06",
+          "runtime": 29
+        },
+        {
+          "season_number": 8,
+          "episode_number": 7,
+          "name": "Eulen vor die Säue",
+          "air_date": "2026-08-13",
+          "runtime": 29
+        },
+        {
+          "season_number": 8,
+          "episode_number": 8,
+          "name": "Das Beste kommt noch!",
+          "air_date": "2026-08-20",
+          "runtime": 30
+        }
+      ]
+    },
+    "9": {
+      "season_number": 9,
+      "name": "Staffel 9",
+      "episodes": [
+        {
+          "season_number": 9,
+          "episode_number": 1,
+          "name": "Folge 1",
+          "air_date": "2026-07-29",
+          "runtime": null
+        },
+        {
+          "season_number": 9,
+          "episode_number": 2,
+          "name": "Folge 2",
+          "air_date": "2026-07-29",
+          "runtime": null
+        },
+        {
+          "season_number": 9,
+          "episode_number": 3,
+          "name": "Folge 3",
+          "air_date": "2026-07-29",
+          "runtime": null
+        },
+        {
+          "season_number": 9,
+          "episode_number": 4,
+          "name": "Folge 4",
+          "air_date": "2026-07-29",
+          "runtime": null
+        }
+      ]
+    }
+  }
+}

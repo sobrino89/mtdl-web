@@ -1,0 +1,62 @@
+---
+title: Umgebungsvariablen
+description: Alle Einstellungen, die mtdl-web beim Start aus der Umgebung liest.
+---
+
+import EnvTable from '../../../components/EnvTable.astro';
+
+Was sich im Betrieb ändern soll (Bandbreite, Qualität, Untertitel, Benennung, Datenquelle, Webhooks, Plex), stellst
+du in der Oberfläche ein. Über die Umgebung kommt nur, was beim Start feststehen muss. Ein ungültiger Wert verhindert
+den Start, das Log nennt die Variable und die erlaubten Werte. Schalter verstehen `true`, `false`, `1`, `0`, `yes`,
+`no`, `on` und `off`.
+
+## Vorlage
+
+`PUID`, `PGID`, `UMASK` und `TZ` stehen in der Compose-Datei. Alle übrigen Variablen enthält die Vorlage
+[`.env.example`](https://github.com/sobrino89/mtdl-web/blob/main/.env.example), jede mit ihrem Standardwert und
+einer kurzen Erklärung: nach `.env` kopieren, die gewünschten Zeilen einschalten (`#` am Anfang entfernen), den
+Container neu erstellen (`docker compose up -d`). Eine eingeschaltete Zeile ändert nichts, bis du ihren Wert
+änderst. Die Tabellen unten entstehen aus dieser Datei.
+
+## Container
+
+| Variable | Standard im Image | Bedeutung |
+|---|---|---|
+| `PUID`, `PGID` | `99`, `100` | Benutzer und Gruppe, unter denen mtdl-web läuft und Dateien anlegt |
+| `UMASK` | `022` | Rechte neuer Dateien und Ordner |
+| `TZ` | `Europe/Berlin` | Zeitzone für Sendetage, Datumsregeln und Anzeigen |
+
+Mehr dazu unter [Ordner und Rechte](../folders/).
+
+## Anmeldung
+
+<EnvTable section="Anmeldung" />
+
+Die Modi und ein vergessenes Passwort erklärt [Anmeldung](../access/), den Modus `proxy`
+[Reverse Proxy](../reverse-proxy/#anmeldung-über-den-proxy).
+
+## Integrationen
+
+<EnvTable section="Integrationen" />
+
+Tokens aus der Umgebung haben Vorrang. Die Oberfläche zeigt dann nur, dass sie gesetzt sind, und lässt sie nicht
+ändern. Kein Token erscheint je im Log oder in einer Antwort der API.
+
+## Betrieb
+
+<EnvTable section="Betrieb" />
+
+Skripte: [Skripte nach Ereignissen](../../integrations/hooks/). Eingebundene Ordner: [Ordner und
+Rechte](../folders/#nur-eingebundene-ordner).
+
+## Pfade und Port
+
+<EnvTable section="Pfade und Port im Container" />
+
+Wann ein anderer Port im Container nötig ist, steht unter [Port](../docker-compose/#port).
+
+## Abkürzung
+
+<EnvTable section="Abkürzung" />
+
+Sonst legst du Bibliotheken in der Oberfläche an, siehe [Bibliotheken](../../usage/libraries/).
