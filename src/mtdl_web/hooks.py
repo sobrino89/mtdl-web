@@ -19,6 +19,7 @@ import datetime as dt
 import json
 import logging
 import os
+import re
 import signal
 import stat
 import time
@@ -52,12 +53,17 @@ class Script:
     executable: bool
 
 
+_CONTROL = re.compile(r"[\x00-\x1f\x7f]+")
+
+
 def _text(value: Any) -> str:
+    """A field as an environment value: on one line, control characters as a space (a NUL could not be passed at
+    all). The JSON on stdin keeps the field as it is."""
     if value is None:
         return ""
     if isinstance(value, bool):
         return "true" if value else "false"
-    return str(value)
+    return _CONTROL.sub(" ", str(value))
 
 
 class _Tail:
@@ -168,7 +174,7 @@ class HookRunner:
                 env=os.environ | self.environment(body),
                 start_new_session=True,  # its own process group: the timeout stops children too
             )
-        except OSError as exc:  # no shebang, missing interpreter, no permission, no download folder
+        except (OSError, ValueError) as exc:  # no shebang or interpreter, no permission or folder, an unusable value
             return self._done(script, Run(script.event, started_at, 0.0, None, "", f"{type(exc).__name__}: {exc}"))
         self._running = proc
         assert proc.stdin is not None and proc.stdout is not None

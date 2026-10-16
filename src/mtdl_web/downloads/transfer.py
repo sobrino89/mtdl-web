@@ -9,6 +9,7 @@ import httpx
 
 from mtdl_web.downloads import DownloadError
 from mtdl_web.downloads.bandwidth import TokenBucket
+from mtdl_web.http import NotPublic
 
 RETRIES = 4
 
@@ -17,6 +18,11 @@ Progress = Callable[[int, int | None], None]  # bytes so far, total if known
 
 def _no_progress(done: int, total: int | None) -> None:
     pass
+
+
+def refused(exc: NotPublic) -> DownloadError:
+    """A url of the film list or a playlist that leads into the own network: trying again will not change that."""
+    return DownloadError(str(exc), code="not_public")
 
 
 def _gave_up(exc: Exception, url: str) -> DownloadError:
@@ -80,6 +86,8 @@ async def fetch(
                 if total is not None and offset < total:
                     raise httpx.ReadError(f"connection closed after {offset} of {total} bytes")
                 return offset
+        except NotPublic as exc:
+            raise refused(exc) from exc
         except (httpx.TransportError, DownloadError) as exc:
             if isinstance(exc, DownloadError) and not exc.retryable:
                 raise
@@ -116,6 +124,8 @@ async def fetch_bytes(
                     if len(data) > limit:
                         raise DownloadError(f"{url}: larger than {limit} bytes", code="format")
                 return bytes(data)
+        except NotPublic as exc:
+            raise refused(exc) from exc
         except (httpx.TransportError, DownloadError) as exc:
             if isinstance(exc, DownloadError) and not exc.retryable:
                 raise

@@ -76,8 +76,9 @@ def test_a_missing_library_is_reported_and_loads_nothing(tmp_path: Path, monkeyp
     hosts: dict[str, Callable[[httpx.Request], httpx.Response]] = {"api.themoviedb.org": FakeTmdb().handler}
     with running_app(tmp_path, MediaServer(), servers=hosts, shows_dir=shows, tmdb_token=TOKEN) as api:
         assert api.get("/api/v1/libraries").json()[0]["problem"] == "missing (not mounted?)"
-        health = api.get("/api/health")
-        assert health.status_code == 503 and "library Serien not writable" in health.json()["problems"][0]
+        health = api.get("/api/health")  # open without sign-in: no names, paths or error texts
+        assert (health.status_code, health.json()["problems"]) == (503, ["library not writable"])
+        assert api.get("/api/v1/status").json()["problems"] == ["library Serien not writable: missing (not mounted?)"]
         runtime_of(api).subscriptions._sources = lambda name: Stub(films("Die Anstalt"))
         sub = api.post("/api/v1/subscriptions", json=only("Krankstalt")).json()
         assert api.post(f"/api/v1/subscriptions/{sub['id']}/check").json() == {"queued": 1}

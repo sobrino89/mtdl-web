@@ -22,6 +22,7 @@ from typing import TextIO
 
 from mtdl_web.filmlist.parser import (
     CHANNEL,
+    MAX_VALUE,
     TITLE,
     TOPIC,
     URL,
@@ -75,10 +76,13 @@ def parse_piece(text: str) -> list[Partial]:
 class ParallelFilmListReader:
     """Same import interface as ``FilmListReader`` (``meta``, ``prepared()``)."""
 
-    def __init__(self, stream: TextIO, workers: int, piece_chars: int = PIECE_CHARS) -> None:
+    def __init__(
+        self, stream: TextIO, workers: int, piece_chars: int = PIECE_CHARS, max_entry_chars: int = MAX_VALUE
+    ) -> None:
         self._stream = stream
         self._processes = max(1, min(workers - 1, MAX_PARSE_PROCESSES))  # the main process writes
         self._piece_chars = piece_chars
+        self._max_entry_chars = max_entry_chars
         buf = stream.read(max(piece_chars, HEADER_CHARS))
         try:
             head = _HEADER.match(buf)
@@ -98,19 +102,30 @@ class ParallelFilmListReader:
         self._has_entries = first is not None
 
     def _pieces(self) -> Iterator[str]:
+        """Whole entries, at least ``piece_chars`` per piece. As in the sequential reader, an entry beyond
+        ``max_entry_chars`` is an error: a manipulated list must not fill the memory. The search for the next
+        separator reads every character once; one that crosses the end of the buffer starts at its last comma."""
         buf, start = self._buf, self._start
         if not self._has_entries:
             if buf[start:].strip() != "}":
                 raise FilmListError("unexpected end of input")
             return
+        resume = 0  # in buf: no separator starts before this position
         while True:
-            separator = _SEPARATOR.search(buf, start + self._piece_chars)
+            begin = max(resume, start + self._piece_chars)
+            separator = _SEPARATOR.search(buf, begin)
             if separator is not None:
+                if separator.start() - (start + self._piece_chars) > self._max_entry_chars:
+                    raise FilmListError(f"an entry is longer than {self._max_entry_chars} characters")
                 yield buf[start : separator.start()]
                 start = separator.end()
                 continue
+            if len(buf) - start > self._piece_chars + self._max_entry_chars:
+                raise FilmListError(f"an entry is longer than {self._max_entry_chars} characters")
             data = self._stream.read(self._piece_chars)
             if data:
+                comma = buf.rfind(",", begin)
+                resume = (comma if comma != -1 else len(buf)) - start
                 buf, start = buf[start:] + data, 0
                 continue
             rest = buf[start:].rstrip()

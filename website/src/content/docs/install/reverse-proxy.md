@@ -12,10 +12,25 @@ Internet. Steht es dort doch, gehört es in den Modus `password` oder `proxy`, s
 | Kopfzeile | Wozu |
 |---|---|
 | `Host` (oder `X-Forwarded-Host`) | Schutz vor fremden Webseiten: mtdl-web vergleicht die Herkunft einer Änderung mit der aufgerufenen Adresse |
-| `X-Forwarded-For` | Adresse des Besuchers, für die Modi `local` und `none` |
+| `X-Forwarded-For` | Adresse des Besuchers, für die Modi `local` und `none` und für falsche Passwörter (unten) |
 | `X-Forwarded-Proto` | bei `https` bekommt das Sitzungs-Cookie das Attribut `Secure` |
 
 Caddy, Traefik und Nginx Proxy Manager tun das von selbst. WebSockets braucht mtdl-web nicht.
+
+## Falsche Passwörter je Besucher
+
+Nach mehreren falschen Passwörtern muss eine Adresse eine Weile warten. Hinter einem Reverse Proxy kommen alle
+Anfragen von seiner Adresse; dann müsste jeder warten, sobald sich einer vertippt oder jemand rät. Mit der Adresse
+des Proxys in `MTDL_TRUSTED_PROXIES` zählt mtdl-web die Versuche je Besucher, nach der Adresse, die der Proxy in
+`X-Forwarded-For` nennt:
+
+```yaml
+    environment:
+      MTDL_TRUSTED_PROXIES: 172.18.0.0/16    # Adresse oder Netz des Proxys, mehrere mit Komma
+```
+
+Anderen Absendern glaubt mtdl-web diese Kopfzeile nicht, sonst könnte jeder mit einer erfundenen Adresse beliebig
+oft raten.
 
 ## Beispiele
 

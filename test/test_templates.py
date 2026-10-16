@@ -67,3 +67,4 @@ def test_compose_templates(name: str, basics: dict[str, str]) -> None:
     assert "      - path: .env " in text and "        required: false" in text
     assert re.search(r"^    image: ghcr\.io/sobrino89/mtdl-web:latest ", text, re.MULTILINE)
     assert "    container_name: mtdl-web\n" in text  # the docs name the container in their commands
+    assert "    security_opt:\n      - no-new-privileges:true " in text  # no setuid way back to root

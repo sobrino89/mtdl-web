@@ -5,6 +5,8 @@ services:
   mtdl-web:
     image: ghcr.io/sobrino89/mtdl-web:latest     # latest: neueste Version; 0.1 bliebe bei 0.1.x
     container_name: mtdl-web
+    security_opt:
+      - no-new-privileges:true                   # kein Prozess im Container kann sich mehr Rechte holen
     environment:
       PUID: "99"                                 # nobody, Besitzer der Unraid-Freigaben
       PGID: "100"                                # users

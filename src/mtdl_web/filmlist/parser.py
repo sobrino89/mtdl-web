@@ -64,7 +64,7 @@ COLUMNS = (
 ) = range(len(COLUMNS))
 
 _CHUNK = 1 << 22
-_MAX_VALUE = 1 << 24  # no single entry comes close; beyond this the input is broken, not truncated
+MAX_VALUE = 1 << 24  # no single entry comes close; beyond this the input is broken, not truncated
 _WHITESPACE = " \t\r\n"
 _XZ_MAGIC = b"\xfd7zXZ\x00"
 _decoder = json.JSONDecoder()
@@ -118,7 +118,7 @@ def _pairs(stream: TextIO) -> Iterator[tuple[object, object]]:
                 val, pos = _decoder.raw_decode(buf, pos)
                 return val
             except json.JSONDecodeError as exc:
-                if len(buf) - pos > _MAX_VALUE or not more():
+                if len(buf) - pos > MAX_VALUE or not more():
                     raise FilmListError(f"invalid JSON: {exc.msg}") from exc
 
     if peek() != "{":
@@ -229,6 +229,7 @@ _RELATIVE = re.compile(r"(\d+)\|")
 _VALID_URL = re.compile(r"https?://[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+(?::\d+)?/")
 _DOUBLE_SCHEME = re.compile(r"https?://[A-Za-z0-9.-]+(https?://.+)")
 _SCHEMELESS = re.compile(r"[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/")
+_WEBSITE = re.compile(r"https?://[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+(?::\d+)?(?:[/?#]|\Z)")
 
 
 def resolve_relative(base: str, value: str) -> str:
@@ -249,6 +250,15 @@ def clean_url(value: str) -> str | None:
     elif _SCHEMELESS.match(url):  # "subtitles.swr.de/swr/…"
         url = "https://" + url
     return url if _VALID_URL.match(url) else None
+
+
+def website_url(value: str) -> str | None:
+    """The broadcaster's page of a film, which the interface shows as a link: only http(s), never "javascript:".
+    Unlike a media url it may end at the host ("https://www.dw.com")."""
+    url = value.strip()
+    if _SCHEMELESS.match(url):  # "www.tivi.de/fernsehen/…"
+        url = "https://" + url
+    return url if _WEBSITE.match(url) else None
 
 
 def _seconds(hms: str) -> int | None:
@@ -278,7 +288,7 @@ def convert_fields(row: list[str]) -> Fields:
         clean_url(resolve_relative(url, row[URL_LOW])),
         clean_url(resolve_relative(url, row[URL_HD])),
         clean_url(row[URL_SUBTITLE] or row[URL_RTMP]),  # KiKA puts its subtitle urls into the obsolete RTMP column
-        row[WEBSITE].strip() or None,
+        website_url(row[WEBSITE]),
         row[GEO],
     )
 

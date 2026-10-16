@@ -19,6 +19,7 @@ MTDL_PASSWORD and restart.
 
 import base64
 import collections
+import contextlib
 import dataclasses
 import hashlib
 import hmac
@@ -30,6 +31,7 @@ import secrets
 import sys
 import time
 from collections.abc import Callable, Mapping
+from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
@@ -97,8 +99,22 @@ _ADDRESS_HEADERS = (
     "fastly-client-ip",
 )
 _PROXY_HEADERS = ("forwarded", "x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "x-forwarded-server", "via")
-# Names only the own network resolves. Not ".ts.net": Tailscale Funnel publishes such names on the internet.
-_LOCAL_SUFFIXES = (".local", ".lan", ".home.arpa", ".internal", ".localhost")
+# Names only the own network resolves: suffixes the root zone does not delegate, and fritz.box, which routers of that
+# brand answer themselves and whose public zone belongs to their maker. Not ".ts.net": Tailscale Funnel publishes
+# such names on the internet.
+_LOCAL_SUFFIXES = (
+    ".local",
+    ".lan",
+    ".home.arpa",
+    ".internal",
+    ".localhost",
+    ".localdomain",
+    ".home",
+    ".corp",
+    ".intranet",
+    ".private",
+    ".fritz.box",
+)
 _FORWARDED_FOR = re.compile(r"for=\s*(\"[^\"]*\"|[^;,\s]+)", re.IGNORECASE)
 
 
@@ -159,15 +175,35 @@ def outside(peer: str | None, headers: Mapping[str, str], header_lists: Callable
     return None
 
 
+def default_gateways(route: Path = Path("/proc/net/route"), route6: Path = Path("/proc/net/ipv6_route")) -> set[str]:
+    """The addresses of the default routes: in a Docker network its bridge. Connections that Docker hands on itself
+    (its userland proxy, Docker Desktop, rootless Docker) arrive from there, whoever sent them."""
+    found: set[str] = set()
+    with contextlib.suppress(OSError, ValueError):
+        for line in route.read_text().splitlines()[1:]:
+            fields = line.split()  # Iface Destination Gateway Flags …, addresses little-endian hex
+            if len(fields) > 3 and fields[1] == "00000000" and int(fields[3], 16) & 0x2:  # RTF_GATEWAY
+                found.add(str(ipaddress.IPv4Address(bytes.fromhex(fields[2])[::-1])))
+    with contextlib.suppress(OSError, ValueError):
+        for line in route6.read_text().splitlines():
+            fields = line.split()  # destination, its prefix, source, its prefix, next hop, metric, …, flags, iface
+            if len(fields) == 10 and fields[0] == "0" * 32 and fields[1] == "00" and int(fields[8], 16) & 0x2:
+                found.add(str(ipaddress.IPv6Address(bytes.fromhex(fields[4]))))
+    return found
+
+
 # -- failed attempts -------------------------------------------------------------------------------------------------
 
 
 class Throttle:
-    """Failed sign-ins: an address waits after LIMIT failures within WINDOW seconds, everyone after GLOBAL (many
-    addresses guessing together). Kept in memory: a restart forgets them, which is fine for minutes-long waits."""
+    """Failed sign-ins: an address waits after LIMIT failures within WINDOW seconds. Beyond GLOBAL failures of all
+    addresses together (many guessing at once) every attempt waits a pause after the last failure, one second more
+    per failure up to PAUSE: guessing slows to a crawl, but nobody can lock the owner out for long. Kept in memory: a
+    restart forgets them, which is fine for minutes-long waits."""
 
     LIMIT = 5
     GLOBAL = 50
+    PAUSE = 30
     WINDOW = 15 * 60
 
     def __init__(self, clock: Callable[[], float] = time.monotonic) -> None:
@@ -189,7 +225,7 @@ class Throttle:
         if len(mine) >= self.LIMIT:
             waits.append(mine[-self.LIMIT] + self.WINDOW - now)
         if len(self._all) >= self.GLOBAL:
-            waits.append(self._all[-self.GLOBAL] + self.WINDOW - now)
+            waits.append(self._all[-1] + min(self.PAUSE, len(self._all) - self.GLOBAL + 1) - now)
         return int(max(waits) + 0.999)
 
     def failed(self, address: str) -> None:
@@ -231,6 +267,9 @@ class Access:
         self.throttle = Throttle()
         # Mode "none": when a request last looked like it came from outside, and why (the UI warns).
         self.outside_seen: tuple[float, str] | None = None
+        self._refused_logged: float | None = None
+        self.gateways = default_gateways() if settings.auth == "local" else set()
+        self._gateway_logged: float | None = None
         # The password from the environment, hashed once (compared like a stored one).
         self._fixed = hash_password(settings.password) if settings.password else None
 
@@ -251,6 +290,34 @@ class Access:
         if self.outside_seen is None or self.outside_seen[0] < now - 3600:
             log.warning("MTDL_AUTH=none, but a request came from outside (%s): set MTDL_AUTH=password", reason)
         self.outside_seen = (now, reason)
+
+    def through_gateway(self, peer: str | None) -> bool:
+        """Mode local, a request from the container's gateway: Docker's userland proxy (ports published on IPv6,
+        requests of the host itself), Docker Desktop and rootless Docker hand connections on from there, maybe from
+        the internet. It does not count as local then; logged at most hourly."""
+        ip = _ip(peer or "")
+        if ip is None or str(ip) not in self.gateways:
+            return False
+        now = self._clock()
+        if self._gateway_logged is None or self._gateway_logged < now - 3600:
+            log.warning(
+                "MTDL_AUTH=local: a request came through the container's gateway %s, which hides who sent it (Docker's "
+                "userland proxy, Docker Desktop, rootless Docker); it needs the password",
+                ip,
+            )
+            self._gateway_logged = now
+        return True
+
+    def note_refused(self, name: str) -> None:
+        """Mode none, a request under a name that is not local: refused, logged at most hourly."""
+        now = self._clock()
+        if self._refused_logged is None or self._refused_logged < now - 3600:
+            log.warning(
+                "MTDL_AUTH=none: refused a request for %r, a name that is not local; without sign-in mtdl-web answers "
+                "only under its address or a local name (or set MTDL_AUTH=password)",
+                name[:100],
+            )
+            self._refused_logged = now
 
     # -- password and setup ------------------------------------------------------------------------------------------
 
@@ -380,12 +447,28 @@ class Access:
 
     # -- proxy mode --------------------------------------------------------------------------------------------------
 
+    def _trusted(self, address: str) -> bool:
+        ip = _ip(address)
+        return ip is not None and any(ip in network for network in self._settings.trusted_proxies)
+
     def proxy_user(self, peer: str | None, headers: Mapping[str, str]) -> str | None:
         """The user a trusted signing-in proxy names; None from any other address."""
-        ip = _ip(peer or "")
-        if ip is None or not any(ip in network for network in self._settings.trusted_proxies):
+        if not self._trusted(peer or ""):
             return None
         return headers.get(self._settings.auth_header.lower(), "").strip() or None
+
+    def visitor(self, peer: str | None, forwarded_for: list[str]) -> str:
+        """Whom failed sign-ins count for: the peer, or behind a proxy of MTDL_TRUSTED_PROXIES the visitor it names
+        (the last address in X-Forwarded-For that is not such a proxy itself; what comes before it, anyone could
+        have sent). Otherwise every visitor of a reverse proxy would wait for the failures of one."""
+        if not self._trusted(peer or ""):
+            return peer or ""
+        hops = [hop.strip() for value in forwarded_for for hop in value.split(",") if hop.strip()]
+        visitor = next((hop for hop in reversed(hops) if not self._trusted(hop)), None)
+        if visitor is None:
+            return peer or ""
+        ip = _ip(visitor)
+        return str(ip) if ip is not None else visitor[:100]
 
 
 # -- command line: forgotten password ----------------------------------------------------------------------------

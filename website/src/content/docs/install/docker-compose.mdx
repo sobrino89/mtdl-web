@@ -57,7 +57,8 @@ welcher Ordner fehlt. Details unter [Ordner und Rechte](../folders/).
 
 Mit `PUID` und `PGID` braucht der Start einen Moment root: Nur root darf einen Prozess auf einen anderen Benutzer
 umstellen und `/config` diesem Benutzer übergeben. Gleich danach gibt der Container die Rechte ab; die App und alle
-ihre Prozesse laufen nur noch als `PUID`:`PGID`, ohne weitere Gruppen und ohne Sonderrechte. Neue Dateien bekommen
+ihre Prozesse laufen nur noch als `PUID`:`PGID`, ohne weitere Gruppen und ohne Sonderrechte, ebenso der Healthcheck.
+`no-new-privileges` in der Vorlage sorgt dafür, dass kein Prozess sie zurückbekommt. Neue Dateien bekommen
 die Rechte aus `UMASK`. Download-Ordner und Bibliotheken ändert er nie, er prüft sie nur: Darf er dort nicht
 schreiben, zeigt die Oberfläche den passenden Befehl. Mehr unter [Ordner und Rechte](../folders/).
 
@@ -90,7 +91,8 @@ folgt der Einstellung.
 
 Das Image bringt einen Healthcheck mit: Jede Minute fragt Docker `/api/health` ab. Er schreibt nichts, damit
 schlafende Platten schlafen bleiben, und meldet `unhealthy`, wenn ein Zielordner nicht beschreibbar ist oder noch
-gar keine Filmliste geladen werden konnte. Die Oberfläche läuft dann weiter und zeigt, was fehlt.
+gar keine Filmliste geladen werden konnte. Die Oberfläche läuft dann weiter und zeigt, was fehlt. `/api/health`
+antwortet ohne Anmeldung, nennt aber nur die Art des Problems; Pfade und Fehlertexte stehen in der Oberfläche.
 
 ## Ressourcen
 

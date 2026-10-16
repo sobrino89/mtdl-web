@@ -1,3 +1,4 @@
+import asyncio
 import json
 import shutil
 import subprocess
@@ -8,7 +9,17 @@ import pytest
 
 from mtdl_web.downloads import DownloadError
 from mtdl_web.downloads.bandwidth import TokenBucket
-from mtdl_web.downloads.hls import MasterPlaylist, MediaPlaylist, choose, download_media, fetch_playlist, mux, parse
+from mtdl_web.downloads.hls import (
+    MAX_SEGMENTS,
+    PLAYLIST_LIMIT,
+    MasterPlaylist,
+    MediaPlaylist,
+    choose,
+    download_media,
+    fetch_playlist,
+    mux,
+    parse,
+)
 from mtdl_web.http import make_client
 
 # Real playlists of 12./13.10.2026 with the url they came from (test/fixtures/README.md).
@@ -105,6 +116,68 @@ async def test_download_writes_segments_and_a_local_playlist(tmp_path: Path) -> 
     async with httpx.AsyncClient(transport=httpx.MockTransport(server.handler)) as client:
         await download_media(client, orf, tmp_path, TokenBucket(), lambda *a: None)
     assert server.requests == [orf.segments[7].uri]
+
+
+@pytest.mark.anyio
+async def test_a_failed_segment_stops_the_others(tmp_path: Path) -> None:
+    """The first segment answers 404 at once, the others take a while: when download_media gives up, no segment
+    still loads in the background (it would hold bandwidth and write into the parts a retry appends to)."""
+    orf = media("orf-chunklist.m3u8", ORF)
+    requests: list[str] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(str(request.url))
+        if str(request.url) == orf.segments[0].uri:
+            return httpx.Response(404)
+        await asyncio.sleep(0.2)
+        return httpx.Response(200, content=b"segment")
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(DownloadError):
+            await download_media(client, orf, tmp_path, TokenBucket(), lambda *a: None)
+        asked = len(requests)
+        await asyncio.sleep(0.5)
+    # The first batch of four, and at most one more that took the place segment 0 freed; nothing afterwards.
+    assert asked <= 5 and len(requests) == asked
+    assert not list(tmp_path.glob("*.ts")) and not list(tmp_path.glob("*.part"))
+
+
+@pytest.mark.anyio
+async def test_limits_against_a_broken_source(tmp_path: Path) -> None:
+    async def endless(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=b"#EXTM3U\n" + b"#" * (PLAYLIST_LIMIT + 1))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(endless)) as client:
+        with pytest.raises(DownloadError) as caught:
+            await fetch_playlist(client, "https://cdn.example/huge.m3u8", TokenBucket())
+    assert caught.value.code == "format"
+
+    lines = "".join(f"#EXTINF:2,\n{i}.ts\n" for i in range(MAX_SEGMENTS + 1))
+    huge = parse(f"#EXTM3U\n#EXT-X-TARGETDURATION:2\n{lines}#EXT-X-ENDLIST\n", "https://cdn.example/a.m3u8")
+    assert isinstance(huge, MediaPlaylist)
+    with pytest.raises(DownloadError) as caught:
+        await download_media(httpx.AsyncClient(), huge, tmp_path, TokenBucket(), lambda *a: None)
+    assert caught.value.code == "format" and not list(tmp_path.iterdir())
+
+
+@pytest.mark.anyio
+async def test_urls_into_the_own_network_are_refused(tmp_path: Path) -> None:
+    """A manipulated playlist (or film list) must not make mtdl-web fetch from devices in the own network and put
+    their answers into the download folder: keys, segments and playlists alike, and without trying again."""
+    key = '#EXT-X-KEY:METHOD=AES-128,URI="http://192.168.0.1/cgi-bin/admin?action=reboot"\n'
+    for head, segment in (("", "http://10.0.0.5:9200/0.ts"), (key, "https://cdn.example/0.ts")):
+        text = f"#EXTM3U\n#EXT-X-TARGETDURATION:2\n{head}#EXTINF:2,\n{segment}\n#EXT-X-ENDLIST\n"
+        playlist = parse(text, "https://cdn.example/a.m3u8")
+        assert isinstance(playlist, MediaPlaylist)
+        async with make_client(public_only=True) as client:
+            with pytest.raises(DownloadError) as caught:
+                await download_media(client, playlist, tmp_path / "x", TokenBucket(), lambda *a: None)
+        assert (caught.value.code, caught.value.retryable) == ("not_public", False)
+    async with make_client(public_only=True) as client:
+        with pytest.raises(DownloadError) as caught:
+            await fetch_playlist(client, "http://169.254.169.254/latest/meta-data/", TokenBucket())
+    assert caught.value.code == "not_public"
+    assert not [p for p in (tmp_path / "x").iterdir() if p.is_file()]
 
 
 @pytest.mark.anyio

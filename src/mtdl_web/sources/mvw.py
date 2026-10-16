@@ -11,7 +11,7 @@ from typing import Any
 
 import httpx
 
-from mtdl_web.filmlist.parser import clean_url
+from mtdl_web.filmlist.parser import clean_url, website_url
 from mtdl_web.models import Film, SearchResult, film_id
 from mtdl_web.query import Query, parse
 from mtdl_web.sources import Scope, SourceError
@@ -36,7 +36,7 @@ def film_from_mvw(result: dict[str, Any]) -> Film:
         url_low=url("url_video_low"),
         url_hd=url("url_video_hd"),
         url_subtitle=url("url_subtitle"),
-        url_website=(result.get("url_website") or "").strip() or None,
+        url_website=website_url(result.get("url_website") or ""),
         geo=(),
     )
 

@@ -34,6 +34,7 @@ export function Root(): JSX.Element {
   if (auth.authenticated) return route.view === "start" ? <SetupGuide route={route} /> : <App />;
   if (auth.setup_required) return <SetupScreen auth={auth} />;
   if (auth.mode === "proxy") return <ProxyMissing />;
+  if (auth.mode === "none") return <NotLocal />;
   return <LoginScreen />;
 }
 
@@ -185,6 +186,17 @@ function LoginScreen(): JSX.Element {
 function ProxyMissing(): JSX.Element {
   return (
     <Card title={t("auth.proxy_title")} lead={t("auth.proxy_text")}>
+      <button class="button" onClick={() => void refreshAuth()}>
+        {t("auth.retry")}
+      </button>
+    </Card>
+  );
+}
+
+/** Mode none refuses names that are not local: a foreign page could point its own name at this address. */
+function NotLocal(): JSX.Element {
+  return (
+    <Card title={t("auth.not_local_title")} lead={t("auth.not_local_text", { host: location.host })}>
       <button class="button" onClick={() => void refreshAuth()}>
         {t("auth.retry")}
       </button>

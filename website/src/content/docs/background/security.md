@@ -15,7 +15,8 @@ Werk geschlossen und erklärt, was jede Öffnung bedeutet.
   und Einrichtungscode als SHA-256-Hash.
 - **Sitzungen** gelten 30 Tage ab der letzten Nutzung. Das Cookie ist `HttpOnly` und `SameSite=Lax`, über HTTPS auch
   `Secure`. Ein neues Passwort beendet alle anderen Sitzungen; **Überall sonst abmelden** ebenso.
-- **Falsche Versuche** bremsen: Nach mehreren muss man warten.
+- **Falsche Versuche** bremsen: Nach mehreren muss eine Adresse warten. Raten viele Adressen zugleich, kommt nach
+  jedem Fehlversuch eine Pause von bis zu 30 Sekunden für alle, aber keine Sperre, die dich selbst aussperrt.
 - **Andere Modi** (`local`, `proxy`, `none`) sind bewusste Entscheidungen mit Warnungen in Doku und Oberfläche, siehe
   [Anmeldung](../../install/access/).
 
@@ -34,6 +35,11 @@ zu schicken. mtdl-web nimmt Änderungen deshalb in jedem Modus nur von seinen ei
 Kennzeichnung, die Browser mitschicken (`Sec-Fetch-Site`), bei älteren Browsern `Origin` gegen die aufgerufene
 Adresse. Skripte senden diese Kopfzeilen nicht und sind nicht betroffen.
 
+Eine fremde Webseite kann auch ihren eigenen Namen auf die Adresse von mtdl-web zeigen lassen (DNS-Rebinding). Ihre
+Anfragen gelten dem Browser dann als eigene, kommen aber unter ihrem Namen an. In den Modi `password` und `proxy`
+fehlt ihr die Anmeldung, im Modus `local` gilt ihr Name nicht als lokal. Im Modus `none` antwortet mtdl-web deshalb
+nur unter einer IP-Adresse oder einem lokalen Namen.
+
 ## Oberfläche
 
 - Keine Inhalte von anderen Servern: Schriften, Skripte und Bilder kommen von mtdl-web selbst.
@@ -45,11 +51,20 @@ Adresse. Skripte senden diese Kopfzeilen nicht und sind nicht betroffen.
 
 Tokens für TMDB und Plex, Geheimnisse und Kopfzeilen von Webhooks zeigt die Oberfläche nach dem Speichern nie wieder
 an, und die API gibt sie nicht heraus; sie nennt nur, was gesetzt ist. Im Log erscheinen sie nicht, von einer
-Webhook-Adresse nur der Hostname, denn Adressen tragen oft selbst ein Token. Webhooks folgen keinen Weiterleitungen,
-damit Kopfzeilen nicht bei einem anderen Server landen.
+Webhook-Adresse nur der Hostname, denn Adressen tragen oft selbst ein Token. Ein API-Schlüssel, der nur lesen darf,
+sieht ebenso nur Schema und Host einer Webhook-Adresse und statt einer Vorlage `***`. Webhooks folgen keinen
+Weiterleitungen, damit Kopfzeilen nicht bei einem anderen Server landen.
 
 In der Datenbank liegen diese Tokens lesbar, denn mtdl-web braucht sie im Klartext. Behandle Sicherungen von
 `/config` deshalb wie ein Passwort.
+
+## Downloads
+
+Die Adressen von Sendungen, Playlists, Untertiteln und Filmlisten-Spiegeln stammen von anderen: aus der Filmliste,
+von MediathekViewWeb, von den Servern der Sender. mtdl-web lädt von ihnen nur aus dem Internet, nie aus dem eigenen
+Netz. Es prüft die Adresse, mit der die Verbindung tatsächlich besteht, nicht nur den Namen davor; so kann auch eine
+manipulierte Liste keine Geräte im eigenen Netz abfragen. Webhooks und Plex sind ausgenommen, sie zeigen gewollt
+dorthin.
 
 ## Skripte
 
@@ -59,9 +74,11 @@ Die API zeigt Skripte und ihren letzten Lauf, kann aber keine anlegen, ändern o
 ## Container
 
 - Mit `PUID`/`PGID` braucht nur der Start einen Moment root, um `/config` zu übergeben. Danach läuft kein Prozess
-  mehr als root, auch nicht der Init-Prozess `tini`: alles als `PUID`:`PGID`, ohne weitere Gruppen und ohne
-  Capabilities. Mit `user:` in der Compose-Datei startet der Container ganz ohne root, siehe
+  mehr als root, auch nicht der Init-Prozess `tini` oder der Healthcheck: alles als `PUID`:`PGID`, ohne weitere
+  Gruppen und ohne Capabilities. Mit `user:` in der Compose-Datei startet der Container ganz ohne root, siehe
   [Docker Compose](../../install/docker-compose/#ganz-ohne-root).
+- Die Vorlagen setzen `no-new-privileges`: Kein Prozess im Container kann sich über ein setuid-Programm wieder mehr
+  Rechte holen.
 - Download-Ordner und Bibliotheken ändert er nie in Besitz oder Rechten.
 - Alle Abhängigkeiten sind fest versioniert (Lockfiles, Basis-Images per Digest) und kommen beim Bau aus ihren
   offiziellen Quellen. Zur Laufzeit lädt mtdl-web nur Daten, nie Code.

@@ -8,7 +8,7 @@ from conftest import DIFF_EXTRACT_2019, DIFF_EXTRACT_2133, FULL_EXTRACT, load_fi
 
 from mtdl_web.config import Settings, available_cpus
 from mtdl_web.filmlist.parallel import ParallelFilmListReader, open_for_import
-from mtdl_web.filmlist.parser import FilmListError, FilmListReader
+from mtdl_web.filmlist.parser import MAX_VALUE, FilmListError, FilmListReader
 from mtdl_web.filmlist.prepared import Prepared
 from mtdl_web.filmlist.store import FilmStore
 
@@ -69,6 +69,27 @@ def test_truncated_list_is_an_error() -> None:
     raw = FULL_EXTRACT.read_text(encoding="utf-8")
     with pytest.raises(FilmListError):
         parallel(raw[: len(raw) // 2], piece_chars=5000)
+
+
+def test_an_entry_beyond_the_limit_is_an_error_in_both_readers() -> None:
+    """A manipulated list with one huge entry (a few KB compressed) must not fill the memory: the sequential reader
+    refuses it, the parallel one too, holding no more than a piece and the limit."""
+    raw = FULL_EXTRACT.read_text(encoding="utf-8")
+    # The sequential reader checks between its reads of 4 MiB: two of them beyond the limit always trip it.
+    huge = raw.replace('"X":["', '"X":["' + "a" * (MAX_VALUE + (8 << 20)), 1)
+    with pytest.raises(FilmListError):
+        list(FilmListReader(io.StringIO(huge)).prepared())
+    with pytest.raises(FilmListError, match="longer than"):
+        parallel(huge, workers=2)
+
+
+def test_the_limit_holds_for_any_piece_size() -> None:
+    raw = FULL_EXTRACT.read_text(encoding="utf-8")
+    huge = raw.replace('"X":["', '"X":["' + "a" * 50_000, 1)
+    for piece_chars in (1, 700, 20_000):
+        reader = ParallelFilmListReader(io.StringIO(huge), 2, piece_chars, max_entry_chars=10_000)
+        with pytest.raises(FilmListError, match="longer than 10000"):
+            list(reader.prepared())
 
 
 def test_malformed_entry_in_a_worker_is_an_error() -> None:

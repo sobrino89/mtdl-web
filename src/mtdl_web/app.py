@@ -6,9 +6,9 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import HTMLResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.datastructures import MutableHeaders
 from starlette.responses import Response
@@ -16,7 +16,7 @@ from starlette.routing import Route
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from mtdl_web import __version__
-from mtdl_web.api import access, health, v1
+from mtdl_web.api import access, health, require_access, signed_in, v1
 from mtdl_web.config import Settings
 from mtdl_web.mcp_server import PATH as MCP_PATH
 from mtdl_web.mcp_server import Endpoint, Mcp
@@ -25,6 +25,7 @@ from mtdl_web.runtime import Runtime
 log = logging.getLogger(__name__)
 
 UI_DIR = Path(__file__).parent / "ui"
+OPENAPI_URL = "/api/v1/openapi.json"
 
 # The UI loads no code from elsewhere; videos for the preview come straight from the broadcasters' CDNs: as a
 # file for the video element, or for HLS through hls.js, which fetches playlist and segments (connect-src) and plays
@@ -56,7 +57,8 @@ password that is the browser's session cookie, which is meant for the interface,
 `{"detail": {"code": "subscription_not_found"}}`, `{"detail": {"code": "library_in_use", "subscriptions": [3]}}`.
 Input that does not fit the schema answers `422` with FastAPI's list of validation errors in `detail`.
 A change a browser marks as coming from another site is refused with `403` and the code `cross_site`; scripts send
-no such headers.
+no such headers. Without sign-in (access mode `none`), requests without a key are answered only under an IP address
+or a local name, otherwise with `403` and the code `host_not_local`.
 
 Events reach other services as webhooks or hook scripts; assistants use the MCP server at `/mcp` (off by default).
 """
@@ -147,14 +149,20 @@ def create_app(
         lifespan=lifespan,
         docs_url=None,  # served below with Swagger UI from our own files, not from a CDN
         redoc_url=None,
-        openapi_url="/api/v1/openapi.json",
+        openapi_url=None,  # served below, behind the same access check as the API
     )
     app.add_middleware(SecurityHeaders)
 
+    @app.get(OPENAPI_URL, include_in_schema=False, dependencies=[Depends(require_access)])
+    def openapi_document() -> JSONResponse:
+        return JSONResponse(app.openapi())
+
     @app.get("/api/docs", include_in_schema=False)
-    def api_docs() -> HTMLResponse:
+    def api_docs(request: Request) -> Response:
+        if not signed_in(request):  # sign in first: Swagger UI would only say "Unauthorized"
+            return RedirectResponse("/", status_code=303)
         return get_swagger_ui_html(
-            openapi_url=app.openapi_url or "/api/v1/openapi.json",
+            openapi_url=OPENAPI_URL,
             title="mtdl-web API",
             swagger_js_url="/api-docs/swagger-ui-bundle.js",
             swagger_css_url="/api-docs/swagger-ui.css",

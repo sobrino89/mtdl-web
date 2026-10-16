@@ -68,6 +68,7 @@ test("failures explain what happened and what helps", () => {
   assert.equal(perm.command, 'docker exec -u 0 mtdl-web chown -R 99:100 "/downloads/Das Gipfeltreffen/Season 01"');
   const gone = failure(download({ error_code: "gone" }), info);
   assert.equal(gone.retryable, false);
+  assert.equal(failure(download({ error_code: "not_public" }), info).title, "Adresse im eigenen Netz");
   assert.equal(failure(download({ error_code: null }), info).code, "unknown");
   assert.equal(failure(download({ error_code: "something new" }), info).title, "Download fehlgeschlagen");
 });

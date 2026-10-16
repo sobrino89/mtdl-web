@@ -370,6 +370,30 @@ def test_templates_and_headers_through_the_api(tmp_path: Path) -> None:
         assert len(api.get("/api/v1/webhooks").json()) == 2
 
 
+def test_read_keys_see_no_tokens_in_webhooks(tmp_path: Path) -> None:
+    """Webhook urls and templates often carry a token: a key that may only read gets scheme and host."""
+    with running_app(tmp_path, MediaServer()) as api:
+        discord = "https://discord.com/api/webhooks/1/geheim"
+        hooks = [
+            {"url": discord, "events": ["download.completed"], "body_template": '{"token": "geheim2", "x": 1}'},
+            {"url": "https://user:geheim3@ntfy.example:8443/?t=geheim4", "events": ["download.completed"]},
+            {"url": "http://[fd00::5]:8123", "events": ["download.completed"]},
+        ]
+        for hook in hooks:
+            assert api.post("/api/v1/webhooks", json=hook).status_code == 201
+        read = api.post("/api/v1/api-keys", json={"name": "Grafana", "scope": "read"}).json()["key"]
+        write = api.post("/api/v1/api-keys", json={"name": "n8n", "scope": "write"}).json()["key"]
+        seen = api.get("/api/v1/webhooks", headers={"X-Api-Key": read})
+        assert "geheim" not in seen.text
+        assert [(h["url"], h["body_template"]) for h in seen.json()] == [
+            ("https://discord.com/***", "***"),
+            ("https://ntfy.example:8443/***", None),
+            ("http://[fd00::5]:8123/", None),
+        ]
+        for full in (api.get("/api/v1/webhooks"), api.get("/api/v1/webhooks", headers={"X-Api-Key": write})):
+            assert full.json()[0]["url"] == discord and "geheim2" in full.json()[0]["body_template"]
+
+
 def test_header_values_without_whitespace_at_the_ends_and_never_in_error_texts() -> None:
     def check(*headers: tuple[str, str]) -> object:
         return problem(Config("http://a.example/", ("download.completed",), headers=headers))

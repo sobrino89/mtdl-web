@@ -77,6 +77,25 @@ def test_srt_output() -> None:
     assert srt.count(" --> ") == 12
 
 
+@pytest.mark.parametrize(
+    "rates",
+    ['ttp:frameRate="0"', 'ttp:frameRate="abc"', 'ttp:frameRate="-5"', 'ttp:frameRate="nan"', 'ttp:tickRate="0"'],
+)
+def test_broken_rates_fall_back_to_the_defaults(rates: str) -> None:
+    """A zero or nonsense rate used to raise out of convert() and fail a complete download."""
+    data = (
+        f'<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" {rates}>'
+        '<body><div><p begin="30f" end="60t">x</p></div></body></tt>'
+    ).encode()
+    srt = convert(data)
+    assert srt is not None and "00:00:01,000 --> 00:00:02,000" in srt  # 30 frames and 60 ticks at the default 30
+
+
+def test_overflowing_times_give_none() -> None:
+    data = f'<tt xmlns="http://www.w3.org/ns/ttml"><body><p begin="{"9" * 400}s" end="1s">x</p></body></tt>'.encode()
+    assert convert(data) is None
+
+
 def test_unknown_or_broken_input_gives_none() -> None:
     assert convert((SUBTITLES / "ndr-not-subtitles.html").read_bytes()) is None
     assert convert(b"<?xml version='1.0'?><tt xmlns='http://www.w3.org/ns/ttml'><body><p begin=") is None

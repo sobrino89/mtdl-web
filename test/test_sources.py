@@ -10,13 +10,14 @@ import pytest
 from conftest import FULL_EXTRACT, MVW_GIPFELTREFFEN, mvw_results
 
 from mtdl_web import USER_AGENT
+from mtdl_web.api import FilmIn
 from mtdl_web.filmlist.parser import open_filmlist
 from mtdl_web.filmlist.store import FilmStore
 from mtdl_web.http import make_client
 from mtdl_web.models import Film
 from mtdl_web.sources import Source, SourceError
 from mtdl_web.sources.local import LocalSource
-from mtdl_web.sources.mvw import MvwSource
+from mtdl_web.sources.mvw import MvwSource, film_from_mvw
 
 
 class FakeMvw:
@@ -67,6 +68,14 @@ async def test_both_sources_return_the_same_films(store: FilmStore) -> None:
     assert request.headers["user-agent"] == USER_AGENT
     assert fake.bodies[0]["queries"] == [{"fields": ["topic", "title"], "query": "das gipfeltreffen"}]
     assert (fake.bodies[0]["sortBy"], fake.bodies[0]["sortOrder"]) == ("timestamp", "desc")
+
+
+def test_a_website_from_mediathekviewweb_is_a_web_link() -> None:
+    result = {**mvw_results()[0], "url_website": "javascript:alert(1)"}
+    assert film_from_mvw(result).url_website is None
+    # The interface sends such a film back to queue it: the same check on the way in.
+    sent = FilmIn(channel="ZDF", topic="t", title="x", url="https://cdn.example/a.mp4", url_website="javascript:x")
+    assert sent.to_film().url_website is None
 
 
 @pytest.mark.anyio

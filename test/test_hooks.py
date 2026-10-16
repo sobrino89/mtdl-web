@@ -102,6 +102,28 @@ async def test_failures_timeouts_and_broken_scripts(tmp_path: Path, runner: Hook
 
 
 @pytest.mark.anyio
+async def test_control_characters_do_not_stop_the_scripts(
+    tmp_path: Path, runner: HookRunner, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A NUL in a title (a broken film list) cannot go into the environment: every script still runs, the value on
+    one line, and stdin keeps the field as it is."""
+    folder = tmp_path / "hooks" / "download.completed.d"
+    script(folder, "10-a.sh", 'cat > stdin.json\nprintf "%s" "$MTDL_TITLE" > title.txt\n')
+    script(folder, "20-b.sh", "echo b\n")
+    body = payload(dataclasses.replace(COMPLETED, title="Titel\x00mit\r\nUmbruch"))
+    runs = [await runner.run(found, body) for found in runner.scripts("download.completed")]
+    assert [(r.exit_code, r.error) for r in runs] == [(0, None), (0, None)]
+    dl = tmp_path / "dl"
+    assert (dl / "title.txt").read_text() == "Titel mit Umbruch"
+    assert json.loads((dl / "stdin.json").read_text())["data"]["title"] == "Titel\x00mit\r\nUmbruch"
+
+    # Whatever else the system refuses becomes the run's error, not an exception that skips the next scripts.
+    monkeypatch.setattr(runner, "environment", lambda body: {"MTDL_X": "a\x00b"})
+    run = await runner.run(runner.scripts("download.completed")[0], body)
+    assert run.exit_code is None and (run.error or "").startswith("ValueError")
+
+
+@pytest.mark.anyio
 async def test_long_output_keeps_its_end(tmp_path: Path, runner: HookRunner) -> None:
     folder = tmp_path / "hooks" / "download.completed.d"
     script(folder, "chatty.sh", 'i=0\nwhile [ $i -lt 3000 ]; do echo "Zeile $i"; i=$((i+1)); done\n')

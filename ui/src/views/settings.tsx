@@ -838,6 +838,7 @@ function McpRow(props: { settings: AppSettings }): JSX.Element {
 
 function PasswordRow(props: { auth: AuthStatus }): JSX.Element {
   const { auth } = props;
+  const [code, setCode] = useState("");
   const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [repeat, setRepeat] = useState("");
@@ -862,7 +863,9 @@ function PasswordRow(props: { auth: AuthStatus }): JSX.Element {
     setBusy(true);
     setError(null);
     try {
-      setAuth(await api.changePassword(password, auth.password_set ? current : undefined));
+      // The first password (mode local, from the own network) needs the setup code like the first start.
+      setAuth(auth.password_set ? await api.changePassword(password, current) : await api.setup(code, password));
+      setCode("");
       setCurrent("");
       setPassword("");
       setRepeat("");
@@ -878,6 +881,23 @@ function PasswordRow(props: { auth: AuthStatus }): JSX.Element {
       {!auth.password_set && <span class="small warn-text">{t("set.password_none")}</span>}
       <form class="auth-form inline" onSubmit={(e) => void submit(e)}>
         <input type="text" name="username" autoComplete="username" value="mtdl-web" readOnly hidden />
+        {!auth.password_set && (
+          <>
+            <input
+              class="input mono"
+              value={code}
+              autoComplete="one-time-code"
+              autoCapitalize="characters"
+              spellcheck={false}
+              placeholder={t("auth.setup_code")}
+              aria-label={t("auth.setup_code")}
+              onInput={(e) => (setCode((e.target as HTMLInputElement).value), setError(null))}
+            />
+            <span class="small faint">
+              {t("auth.setup_code_where")} <code>docker logs mtdl-web</code>
+            </span>
+          </>
+        )}
         {auth.password_set && (
           <input
             type="password"
@@ -913,7 +933,11 @@ function PasswordRow(props: { auth: AuthStatus }): JSX.Element {
           </span>
         )}
         <div>
-          <button class="button primary" type="submit" disabled={busy || !password || !repeat || (auth.password_set && !current)}>
+          <button
+            class="button primary"
+            type="submit"
+            disabled={busy || !password || !repeat || (auth.password_set ? !current : !code.trim())}
+          >
             {t("set.password_save")}
           </button>
         </div>

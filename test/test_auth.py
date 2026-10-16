@@ -86,6 +86,11 @@ def test_where_a_request_comes_from() -> None:
         False,
         False,
     ]
+    # Router names: suffixes the root zone does not delegate, and fritz.box (its public zone is the maker's).
+    for name in ("nas.fritz.box:8080", "nas.home", "nas.localdomain", "nas.corp", "nas.intranet", "nas.private"):
+        assert local_host(name), name
+    for name in ("evilfritz.box", "fritz.box.example.com", "nas.box", "nas.homes"):
+        assert not local_host(name), name
 
 
 def test_the_throttle_counts_per_address_and_overall() -> None:
@@ -99,8 +104,31 @@ def test_the_throttle_counts_per_address_and_overall() -> None:
     assert throttle.wait("a") == 0
     for i in range(Throttle.GLOBAL):
         throttle.failed(f"x{i}")
-    assert throttle.wait("fresh") > 0  # many addresses guessing together: everyone waits
+    assert throttle.wait("fresh") == 1  # many addresses guessing together: everyone slows down
+    for i in range(1000):  # however many: a pause, never a lock (the owner would be locked out too)
+        throttle.failed(f"y{i}")
+    assert throttle.wait("fresh") == Throttle.PAUSE
+    now[0] += Throttle.PAUSE
+    assert throttle.wait("fresh") == 0
     throttle.succeeded("a")
+
+
+def test_failures_count_for_the_visitor_a_trusted_proxy_names(tmp_path: Path) -> None:
+    trusted = (ipaddress.ip_network("10.0.0.0/30"),)
+    with app(tmp_path, PROXY, auth="password", password="das richtige", trusted_proxies=trusted) as api:
+        access = api.app.state.runtime.access  # type: ignore[attr-defined]
+        assert access.visitor("10.0.0.2", ["6.6.6.6, 9.9.9.9"]) == "9.9.9.9"  # the visitor sent the first one
+        assert access.visitor("10.0.0.2", ["9.9.9.9", "10.0.0.1"]) == "9.9.9.9"  # through two trusted proxies
+        assert access.visitor("10.0.0.2", ["[2606:4700::1]:443"]) == "2606:4700::1"
+        assert access.visitor("10.0.0.2", []) == "10.0.0.2"
+        assert access.visitor("192.168.0.20", ["9.9.9.9"]) == "192.168.0.20"  # anyone else could send anything
+
+        def login(visitor: str) -> int:
+            headers = {"X-Forwarded-For": visitor}
+            return api.post("/api/v1/auth/login", json={"password": "falsch!!"}, headers=headers).status_code
+
+        assert [login("9.9.9.9") for _ in range(Throttle.LIMIT + 1)] == [403] * Throttle.LIMIT + [429]
+        assert login("8.8.8.8") == 403  # another visitor of the same proxy may still try
 
 
 def test_sessions_slide_and_end(tmp_path: Path) -> None:
@@ -128,7 +156,11 @@ def test_password_mode_setup_login_and_logout(tmp_path: Path, caplog: pytest.Log
         status = api.get("/api/v1/auth/status").json()
         assert (status["mode"], status["setup_required"], status["authenticated"]) == ("password", True, False)
         assert code_of(api.get("/api/v1/info").json()) == "setup_required"
-        assert api.get("/api/health").status_code in (200, 503) and api.get("/api/v1/openapi.json").is_success
+        assert api.get("/api/health").status_code in (200, 503)  # open: the container health check
+        # The API's description and its explorer only after sign-in, like the API itself.
+        assert code_of(api.get("/api/v1/openapi.json").json()) == "setup_required"
+        docs = api.get("/api/docs", follow_redirects=False)
+        assert (docs.status_code, docs.headers["location"]) == (303, "/")
         code = setup_code(caplog)
         assert "setup code" in caplog.text and code not in str(api.get("/api/v1/auth/status").json())
 
@@ -140,6 +172,8 @@ def test_password_mode_setup_login_and_logout(tmp_path: Path, caplog: pytest.Log
         assert done.status_code == 200 and done.json()["authenticated"] is True
         cookie = api.cookies.get(auth.SESSION_COOKIE)
         assert cookie and api.get("/api/v1/info").is_success
+        assert api.get("/api/v1/openapi.json").json()["info"]["title"] == "mtdl-web"
+        assert api.get("/api/docs").status_code == 200
         assert code_of(api.post("/api/v1/auth/setup", json={"code": code, "password": "noch einmal"}).json()) == (
             "already_set_up"
         )
@@ -293,7 +327,10 @@ def test_a_forgotten_password_through_the_environment_once(tmp_path: Path, caplo
 # -- modes local, proxy and none ----------------------------------------------------------------------------------
 
 
-def test_local_mode_opens_the_lan_and_tailscale_but_nothing_else(tmp_path: Path) -> None:
+def test_local_mode_opens_the_lan_and_tailscale_but_nothing_else(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.WARNING, logger="mtdl_web.runtime")
     with app(tmp_path, LAN, auth="local") as api:
         status = api.get("/api/v1/auth/status").json()
         assert (status["mode"], status["via"], status["authenticated"]) == ("local", "local", True)
@@ -302,15 +339,53 @@ def test_local_mode_opens_the_lan_and_tailscale_but_nothing_else(tmp_path: Path)
         assert code_of(api.get("/api/v1/info", headers=through_proxy).json()) == "setup_required"
         assert api.get("/api/v1/info", headers={"Host": "mtdl.example.org"}).status_code == 401
         assert api.get("/api/v1/info", headers={"X-Forwarded-Proto": "https"}).status_code == 401
-        # From the LAN the first password needs no setup code: whoever is local is in already.
-        assert api.post("/api/v1/auth/password", json={"password": "für unterwegs"}).status_code == 200
+        # The first password counts from outside: from the LAN too it needs the setup code from the log, or any guest
+        # in the network could claim it and lock the owner out.
+        first = api.post("/api/v1/auth/password", json={"current": "", "password": "für unterwegs"})
+        assert (first.status_code, code_of(first.json())) == (409, "setup_required")
+        guessed = api.post("/api/v1/auth/setup", json={"code": "AAAA-AAAA", "password": "für unterwegs"})
+        assert code_of(guessed.json()) == "setup_code_wrong"
+        done = api.post("/api/v1/auth/setup", json={"code": setup_code(caplog), "password": "für unterwegs"})
+        assert done.status_code == 200 and api.cookies.get(auth.SESSION_COOKIE)  # a session for outside, too
+        changed = api.post("/api/v1/auth/password", json={"current": "für unterwegs", "password": "für unterwegs!"})
+        assert changed.status_code == 200
         api.cookies.clear()
         assert code_of(api.get("/api/v1/info", headers=through_proxy).json()) == "login_required"
     with app(tmp_path, TAILSCALE, auth="local") as api:
         assert api.get("/api/v1/info", headers={"Host": "nas:8080"}).is_success
     with app(tmp_path, INTERNET, auth="local") as api:
         assert code_of(api.get("/api/v1/info").json()) == "login_required"
-        assert api.post("/api/v1/auth/login", json={"password": "für unterwegs"}).json()["via"] == "session"
+        assert api.post("/api/v1/auth/login", json={"password": "für unterwegs!"}).json()["via"] == "session"
+        assert api.get("/api/v1/info").is_success
+
+
+def test_local_mode_does_not_trust_the_containers_gateway(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Docker's userland proxy (ports published on IPv6), Docker Desktop and rootless Docker hand connections on
+    from the gateway of the container's network: a private address, also for a visitor from the internet, who can
+    set any Host header without a browser."""
+    route, route6 = tmp_path / "route", tmp_path / "ipv6_route"
+    route.write_text(  # as in a container of a Docker network: default route, then the network itself
+        "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT\n"
+        "eth0\t00000000\t0100640A\t0003\t0\t0\t0\t00000000\t0\t0\t0\n"
+        "eth0\t0000640A\t00000000\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\n"
+    )
+    zero = "0" * 32
+    route6.write_text(
+        f"{zero} 00 {zero} 00 {zero} ffffffff 00000001 00000000 00200200       lo\n"  # unreachable, no gateway
+        f"{zero} 00 {zero} 00 fd000000000000000000000000000001 00000400 00000001 00000000 00000003     eth0\n"
+    )
+    assert auth.default_gateways(route, route6) == {"10.100.0.1", "fd00::1"}
+    assert auth.default_gateways(tmp_path / "none", tmp_path / "none6") == set()
+
+    gateway = ("10.100.0.1", 51000)
+    assert outside(gateway[0], {"host": "nas:8080"}, lambda name: []) is None  # by its address alone it looks local
+    monkeypatch.setattr(auth, "default_gateways", lambda: {"10.100.0.1"})
+    with app(tmp_path, gateway, auth="local") as api:
+        assert code_of(api.get("/api/v1/info", headers={"Host": "nas:8080"}).json()) == "setup_required"
+        assert "through the container's gateway 10.100.0.1" in caplog.text
+    with app(tmp_path, LAN, auth="local") as api:
         assert api.get("/api/v1/info").is_success
 
 
@@ -334,6 +409,28 @@ def test_none_mode_warns_about_requests_from_outside(tmp_path: Path, caplog: pyt
         assert api.get("/api/v1/info").is_success
         assert api.get("/api/v1/auth/status").json()["outside"] == "peer"
         assert "MTDL_AUTH=none, but a request came from outside (peer)" in caplog.text
+
+
+def test_none_mode_answers_only_under_local_names(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """DNS rebinding: a foreign page points its own name at the instance, and the visitor's browser sends its
+    requests as same-origin under that name. Without sign-in, only local names get in."""
+    rebound = {"Host": "evil.example:8080", "Origin": "http://evil.example:8080", "Sec-Fetch-Site": "same-origin"}
+    with app(tmp_path, LAN, auth="none") as api:
+        refused = api.post("/api/v1/api-keys", json={"name": "x", "scope": "write"}, headers=rebound)
+        assert (refused.status_code, code_of(refused.json())) == (403, "host_not_local")
+        assert api.get("/api/v1/api-keys", headers={"Host": "evil.example:8080"}).status_code == 403  # reading too
+        assert api.get("/api/v1/info", headers={"Origin": "http://evil.example"}).status_code == 403
+        assert api.get("/api/v1/api-keys").json() == []
+        status = api.get("/api/v1/auth/status", headers={"Host": "evil.example:8080"}).json()
+        assert (status["authenticated"], status["via"], status["outside"]) == (False, None, None)
+        assert "refused a request for 'evil.example:8080'" in caplog.text
+
+        local = {"Host": "nas.fritz.box:8080", "Origin": "http://nas.fritz.box:8080", "Sec-Fetch-Site": "same-origin"}
+        created = api.post("/api/v1/api-keys", json={"name": "x", "scope": "write"}, headers=local)
+        assert created.status_code == 201
+        # A key does not depend on the name: browsers never send one by themselves.
+        keyed = {"Host": "evil.example:8080", "X-Api-Key": created.json()["key"]}
+        assert api.get("/api/v1/info", headers=keyed).is_success
 
 
 def test_the_settings_from_the_environment(tmp_path: Path) -> None:

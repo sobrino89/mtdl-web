@@ -93,7 +93,11 @@ def test_search_in_the_film_list(client: TestClient) -> None:
     assert newest["start"] == "2026-08-20T21:50:00Z"
     assert client.get(f"/api/v1/films/{newest['id']}").json() == newest
     assert client.get("/api/v1/films/123").status_code == 404
-    assert client.get("/api/v1/films/abc").status_code == 404
+    # Not an id, also when Python's int() would take it: other digits, too large for the database, too long.
+    for wrong in ("abc", "²", "١٢٣", str(1 << 63), "9" * 20, "9" * 5000):
+        assert client.get(f"/api/v1/films/{wrong}").status_code == 404, wrong
+        refused = client.post("/api/v1/downloads", json={"film_id": wrong})
+        assert (refused.status_code, refused.json()["detail"]["code"]) == (404, "film_not_found"), wrong
 
 
 def test_search_through_mediathekviewweb(client: TestClient, internet: Internet) -> None:
@@ -153,7 +157,7 @@ def test_unwritable_download_folder_degrades_health(tmp_path: Path, internet: In
         response = c.get("/api/health")
         assert response.status_code == 503
         assert response.json()["status"] == "degraded"
-        assert response.json()["problems"][0].startswith("downloads not writable")
+        assert response.json()["problems"] == ["downloads not writable"]  # no path, no error text
         assert c.post("/api/v1/checks/directories").json()["downloads"] is not None
 
 

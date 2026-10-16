@@ -13,7 +13,7 @@ Passwort. Den Modus legt `MTDL_AUTH` beim Start fest.
 | `password` (Standard) | Ein Konto mit Passwort. Jeder Browser bleibt 30 Tage nach der letzten Nutzung angemeldet; nach mehreren falschen Versuchen muss man warten. | alle |
 | `local` | Im eigenen Netz ohne Passwort, von außen mit Passwort | nur erfahrene Nutzer, siehe Warnung |
 | `proxy` | Die Anmeldung übernimmt ein Reverse Proxy (Authelia, Authentik, oauth2-proxy) und übergibt den Benutzer in einer Kopfzeile | wer schon einen Identitätsdienst betreibt, siehe [Reverse Proxy](../reverse-proxy/) |
-| `none` | Keine Anmeldung. Kommt eine Anfrage von außerhalb des eigenen Netzes, zeigt die Oberfläche eine rote Warnung. | nur abgeschottete Netze |
+| `none` | Keine Anmeldung, dafür nur unter einer IP-Adresse oder einem lokalen Namen erreichbar. Kommt eine Anfrage von außerhalb des eigenen Netzes, zeigt die Oberfläche eine rote Warnung. | nur abgeschottete Netze |
 
 ## Erstes Passwort
 
@@ -53,16 +53,25 @@ vorgegebene Passwort gilt weiter.
 
 ## Im eigenen Netz ohne Passwort
 
-Mit `MTDL_AUTH=local` fragt mtdl-web im eigenen Netz nicht nach dem Passwort, von außen schon. Ohne Passwort kommt
+Mit `MTDL_AUTH=local` fragt mtdl-web im eigenen Netz nicht nach dem Passwort, von außen schon. Das Passwort für
+unterwegs legst du unter **Einstellungen**, **Zugang** fest, beim ersten Mal mit dem Einrichtungscode aus dem Log wie
+oben: Wer bloß im selben Netz ist, etwa ein Gast im WLAN, soll es nicht vor dir festlegen können. Ohne Passwort kommt
 nur rein, wer eindeutig aus deinem Netz kommt:
 
 - Die Verbindung kommt von einer Adresse aus deinem Netz oder aus Tailscale.
 - Reicht ein Proxy die Anfrage weiter, nennt er die Adresse des Besuchers, und auch die liegt in deinem Netz.
 - Der Browser hat mtdl-web über eine IP-Adresse oder einen lokalen Namen aufgerufen, etwa `nas`, `nas.lan`,
-  `nas.local` oder `nas.home.arpa`, nicht über eine Domain aus dem Internet.
+  `nas.local` oder `nas.fritz.box`, nicht über eine Domain aus dem Internet.
 
-Fehlt auch nur eine dieser Bedingungen, fragt mtdl-web nach dem Passwort. Namen unter `ts.net` zählen nicht als
-lokal, weil Tailscale Funnel sie öffentlich machen kann.
+Fehlt auch nur eine dieser Bedingungen, fragt mtdl-web nach dem Passwort. Als lokal gelten Namen ohne Punkt und
+Namen auf `.local`, `.lan`, `.home`, `.home.arpa`, `.internal`, `.localdomain`, `.corp`, `.intranet`, `.private`
+und `.fritz.box`. Namen unter `ts.net` zählen nicht dazu, weil Tailscale Funnel sie öffentlich machen kann; über
+Tailscale geht es mit dem kurzen Namen (`nas`) oder der Adresse `100.…`.
+
+Verbindungen, die Docker selbst weiterreicht, kommen alle von der Gateway-Adresse des Container-Netzes, egal woher
+sie stammen: über Dockers Userland-Proxy (Ports, die auf IPv6 veröffentlicht sind, Aufrufe vom Docker-Host selbst),
+bei Docker Desktop und bei rootless Docker. Solche Anfragen zählen nicht als lokal; mtdl-web fragt dann nach dem
+Passwort und schreibt einen Hinweis ins Log.
 
 :::caution[Modus local nur mit sauber eingerichtetem Reverse Proxy]
 Ein falsch eingestellter Reverse Proxy lässt Besucher aus dem Internet wie Geräte aus deinem Netz aussehen: wenn er
@@ -88,7 +97,7 @@ curl -H "X-Api-Key: mtdl_…" http://mtdl-web:8080/api/v1/downloads
 
 Ein Schlüssel darf entweder **nur lesen** (alle `GET`-Anfragen und die Vorschauen, Standard für neue Schlüssel)
 oder **lesen und ändern**. Mit einem lesenden Schlüssel antwortet jede Änderung mit `403` und dem Code
-`api_key_read_only`. mtdl-web speichert nur einen Hash: Der Schlüssel erscheint einmal beim Erzeugen und nie wieder.
+`api_key_read_only`, und von Webhook-Adressen sieht er nur Schema und Host, denn sie tragen oft ein Token. mtdl-web speichert nur einen Hash: Der Schlüssel erscheint einmal beim Erzeugen und nie wieder.
 Mehr unter [REST-API](../../integrations/rest-api/).
 
 ## Schutz vor fremden Webseiten
@@ -96,3 +105,9 @@ Mehr unter [REST-API](../../integrations/rest-api/).
 Unabhängig vom Modus nimmt mtdl-web Änderungen nur von seinen eigenen Seiten an: Eine fremde Webseite, die du gerade
 offen hast, kann keine Downloads auslösen, auch wenn dein Browser angemeldet ist. Ein Reverse Proxy muss dafür den
 `Host` durchreichen oder `X-Forwarded-Host` setzen, wie es Nginx Proxy Manager, Traefik und Caddy tun.
+
+Im Modus `none` antwortet mtdl-web zusätzlich nur unter einer IP-Adresse oder einem lokalen Namen (wie unter
+[Im eigenen Netz ohne Passwort](#im-eigenen-netz-ohne-passwort)). Sonst könnte eine fremde Webseite ihren eigenen
+Namen auf die Adresse von mtdl-web zeigen lassen (DNS-Rebinding), und dein Browser hielte ihre Anfragen für eigene.
+Wer mtdl-web unter einer eigenen Domain aufruft, auch wenn sie nur im eigenen Netz auflöst, braucht deshalb eine
+Anmeldung. API-Schlüssel gelten unter jedem Namen, denn ein Browser schickt sie nie von selbst.

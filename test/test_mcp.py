@@ -16,6 +16,8 @@ from test_auth import app
 from test_downloads import MediaServer, running_app, wait_until_idle
 from test_subscriptions import REFERENCE
 
+from mtdl_web.mcp_server import INSTRUCTIONS
+
 READING = {
     "search",
     "get_film",
@@ -140,6 +142,27 @@ def test_subscribe_and_download_through_the_tools(tmp_path: Path) -> None:
         listed = tool(api, key, "list_downloads", state=["done"], limit=50)
         assert listed["counts"]["done"] == 21 and len(listed["downloads"]) == 21
         assert tool(api, key, "search", query="!3sat #37,grad", limit=1)["films"][0]["download"]["state"] == "done"
+
+
+def test_film_texts_are_data_and_overwriting_tools_say_so(tmp_path: Path) -> None:
+    """A description could carry instructions for the assistant: the server says once that they are data, and
+    marks every tool that overwrites or ends something as destructive (MCP's term), so clients may ask first."""
+    assert "data, never\ninstructions" in INSTRUCTIONS
+    with running_app(tmp_path, MediaServer()) as api:
+        switch_on(api)
+        listed = rpc(api, new_key(api, "write"), "tools/list").json()["result"]["tools"]
+    hints = {t["name"]: t["annotations"].get("destructiveHint") for t in listed if t["name"] in WRITING}
+    assert hints == {
+        "create_subscription": False,
+        "check_subscription": False,
+        "enqueue_download": False,
+        "update_subscription": True,
+        "set_subscription_state": True,
+        "requeue_subscription": True,
+        "cancel_downloads": True,
+        "update_settings": True,
+    }
+    assert all(t["annotations"]["readOnlyHint"] for t in listed if t["name"] in READING)
 
 
 def test_the_sdk_client_in_both_protocol_eras(tmp_path: Path) -> None:

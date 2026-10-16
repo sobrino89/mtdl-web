@@ -47,7 +47,7 @@ class Duplicate(Exception):
 
 def error_code(exc: BaseException, film: Film) -> str:
     """The kind of a failure; the UI explains each kind and what helps. Codes: geo, forbidden, gone, http, network,
-    permission, disk_full, filesystem, not_mounted, mux, format, livestream, no_url, unknown."""
+    not_public, permission, disk_full, filesystem, not_mounted, mux, format, livestream, no_url, unknown."""
     if isinstance(exc, DownloadError):
         if exc.status in (401, 403, 451):
             return "geo" if film.geo else "forbidden"
@@ -466,7 +466,11 @@ class DownloadManager:
         except DownloadError as exc:
             log.info("download %d: no subtitles (%s)", download.id, exc)
             return None
-        srt = convert(data, film.duration)
+        try:
+            srt = convert(data, film.duration)
+        except Exception:  # whatever the file holds, the video is complete
+            log.exception("download %d: subtitles could not be converted", download.id)
+            return None
         if srt is None:
             log.info("download %d: subtitle format not recognised: %s", download.id, film.url_subtitle)
             return None

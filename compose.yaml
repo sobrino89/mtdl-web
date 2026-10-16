@@ -6,6 +6,8 @@ services:
     image: ghcr.io/sobrino89/mtdl-web:latest  # latest: neueste Version; 0.1 bliebe bei 0.1.x
     container_name: mtdl-web
     # user: "1000:1000"                       # statt PUID/PGID: ganz ohne root (config-Ordner muss ihm gehören)
+    security_opt:
+      - no-new-privileges:true                # kein Prozess im Container kann sich mehr Rechte holen
     environment:
       PUID: "1000"                            # Benutzer, dem die Dateien gehören sollen (id -u)
       PGID: "1000"                            # seine Gruppe (id -g)

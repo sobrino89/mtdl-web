@@ -473,7 +473,7 @@ export interface AuthStatus {
   password_set: boolean;
   password_from_env: boolean;
   user: string | null; // mode proxy
-  outside: "peer" | "forwarded" | "proxy" | "host" | "origin" | null; // mode none: a request from outside
+  outside: "peer" | "forwarded" | "proxy" | null; // mode none: a request from outside
   first_run: boolean; // the guide of the first start is still to come (views/setup.tsx)
 }
 
@@ -558,8 +558,7 @@ export const api = {
   setup: (code: string, password: string) => request<AuthStatus>("POST", "/auth/setup", { code, password }),
   login: (password: string) => request<AuthStatus>("POST", "/auth/login", { password }),
   logout: () => request<void>("POST", "/auth/logout"),
-  changePassword: (password: string, current?: string) =>
-    request<AuthStatus>("POST", "/auth/password", { password, current: current ?? null }),
+  changePassword: (password: string, current: string) => request<AuthStatus>("POST", "/auth/password", { password, current }),
   endOtherSessions: () => request<{ ended: number }>("POST", "/auth/sessions/end-others"),
   apiKeys: () => request<ApiKey[]>("GET", "/api-keys"),
   createApiKey: (name: string, scope: KeyScope) => request<ApiKey & { key: string }>("POST", "/api-keys", { name, scope }),

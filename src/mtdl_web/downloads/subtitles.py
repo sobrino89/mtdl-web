@@ -8,6 +8,7 @@ Anything else (an HTML page at NDR, error pages) yields None; the film is still 
 """
 
 import html
+import math
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -79,10 +80,19 @@ def _ttml_text(p: ET.Element) -> str:
     return "\n".join(line for line in lines if line)
 
 
+def _rate(value: str | None, default: float) -> float:
+    """A frame or tick rate from the file; a missing, broken or non-positive one gives way to the default."""
+    try:
+        rate = float(value) if value else default
+    except ValueError:
+        return default
+    return rate if math.isfinite(rate) and rate > 0 else default
+
+
 def parse_ttml(data: bytes) -> list[Cue]:
     root = ET.fromstring(data)
-    frame_rate = float(root.get(f"{TTP}frameRate") or 30)
-    tick_rate = float(root.get(f"{TTP}tickRate") or frame_rate)
+    frame_rate = _rate(root.get(f"{TTP}frameRate"), 30.0)
+    tick_rate = _rate(root.get(f"{TTP}tickRate"), frame_rate)
     cues = []
     for p in root.iter():
         if _local(p.tag) != "p":
@@ -160,7 +170,7 @@ def convert(data: bytes, duration: int | None = None) -> str | None:
             cues = parse_webvtt(data.decode("utf-8-sig", errors="replace"))
         else:
             return None
-    except ET.ParseError:
+        cues = remove_time_code_offset(cues, duration)
+        return to_srt(cues) if cues else None
+    except (ET.ParseError, ValueError, ArithmeticError):  # a broken file is no subtitle, not a failed download
         return None
-    cues = remove_time_code_offset(cues, duration)
-    return to_srt(cues) if cues else None

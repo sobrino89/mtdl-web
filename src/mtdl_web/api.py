@@ -25,7 +25,7 @@ from mtdl_web.config import AuthMode
 from mtdl_web.downloads import DownloadError
 from mtdl_web.downloads.manager import Duplicate, Live
 from mtdl_web.downloads.queue import Download, State
-from mtdl_web.filmlist.parser import clean_url
+from mtdl_web.filmlist.parser import clean_url, website_url
 from mtdl_web.filmlist.store import ImportResult
 from mtdl_web.libraries import Kind, Library, LibraryDraft, LibraryInUse
 from mtdl_web.library import (
@@ -55,7 +55,7 @@ from mtdl_web.subscriptions import (
     condition_to_json,
     naming_to_json,
 )
-from mtdl_web.webhooks import MAX_TEMPLATE, EventName, Webhook
+from mtdl_web.webhooks import MAX_TEMPLATE, EventName, Webhook, masked_url
 from mtdl_web.webhooks import Config as WebhookConfig
 from mtdl_web.webhooks import problem as webhook_problem
 
@@ -85,6 +85,14 @@ def _peer(request: Request) -> str | None:
 
 def _outside(request: Request) -> str | None:
     return auth.outside(_peer(request), request.headers, request.headers.getlist)
+
+
+def _foreign_name(request: Request, reason: str) -> str:
+    """The name behind reason ``host`` or ``origin``, for the log."""
+    if reason == "origin":
+        return request.headers.get("origin", "")
+    forwarded = [h.strip() for value in request.headers.getlist("x-forwarded-host") for h in value.split(",")]
+    return next((n for n in [request.headers.get("host", ""), *forwarded] if not auth.local_host(n)), "")
 
 
 def _same_site(request: Request) -> None:
@@ -128,12 +136,18 @@ def _who(rt: Runtime, request: Request, response: Response | None = None) -> aut
     """How the request is allowed in, None if it is not (API keys aside)."""
     access = rt.access
     if access.mode == "none":
-        if (reason := _outside(request)) is not None:
+        reason = _outside(request)
+        if reason in ("host", "origin"):
+            # A name that is not local: any web page can point its own name at this address (DNS rebinding) and
+            # would then count as same-origin in the visitor's browser.
+            access.note_refused(_foreign_name(request, reason))
+            return None
+        if reason is not None:
             access.note_outside(reason)
         return "none"
     if access.mode == "proxy":
         return "proxy" if access.proxy_user(_peer(request), request.headers) else None
-    if access.mode == "local" and _outside(request) is None:
+    if access.mode == "local" and _outside(request) is None and not access.through_gateway(_peer(request)):
         return "local"
     token = request.cookies.get(auth.SESSION_COOKIE, "")
     found = access.session(token)
@@ -165,9 +179,23 @@ def require_access(
             raise HTTPException(401, detail={"code": "api_key_invalid"})
         if found.scope == "read" and request.method in UNSAFE and request.scope.get("endpoint") not in READING:
             raise HTTPException(403, detail={"code": "api_key_read_only"})
+        request.state.key_scope = found.scope
         return
     if _who(rt, request, response) is None:
+        if rt.access.mode == "none":
+            raise HTTPException(403, detail={"code": "host_not_local"})
         raise HTTPException(401, detail={"code": "setup_required" if rt.access.needs_setup() else "login_required"})
+
+
+def signed_in(request: Request) -> bool:
+    """Whether a browser gets in, for pages outside /api/v1 (the API docs)."""
+    return _who(runtime(request), request) is not None
+
+
+def _key_scope(request: Request) -> auth.KeyScope | None:
+    """The scope of the API key the request came with; None without one (the interface)."""
+    scope: auth.KeyScope | None = getattr(request.state, "key_scope", None)
+    return scope
 
 
 health = APIRouter(tags=["system"])
@@ -183,8 +211,8 @@ class AuthStatusOut(BaseModel):
     password_set: bool
     password_from_env: bool  # MTDL_PASSWORD(_FILE): the UI cannot change it
     user: str | None  # mode proxy: who the proxy signed in
-    # Mode none: a request looked like it came from outside within the last day (reason: peer, forwarded, proxy,
-    # host, origin); the UI warns.
+    # Mode none: a request looked like it came from outside within the last day (reason: peer, forwarded, proxy);
+    # the UI warns. Under a name that is not local, mode none refuses: authenticated is false.
     outside: str | None
     first_run: bool  # the guide of the first start is still to come: the password is its first step
 
@@ -223,13 +251,13 @@ class LoginIn(BaseModel):
 
 
 class PasswordIn(BaseModel):
-    current: str | None = Field(default=None, max_length=auth.MAX_PASSWORD)  # needed once a password exists
+    current: str = Field(max_length=auth.MAX_PASSWORD)
     password: str = Field(max_length=auth.MAX_PASSWORD)
 
 
 def _throttled(rt: Runtime, request: Request) -> str:
     """The address failed attempts count for; 429 while it has to wait."""
-    address = _peer(request) or ""
+    address = rt.access.visitor(_peer(request), request.headers.getlist("x-forwarded-for"))
     if wait := rt.access.throttle.wait(address):
         raise HTTPException(429, detail={"code": "too_many_attempts", "retry_after": wait})
     return address
@@ -293,7 +321,8 @@ def post_logout(request: Request, response: Response, rt: RuntimeDep) -> None:
 
 @access.post("/password", response_model=AuthStatusOut, summary="Change the password")
 def post_password(body: PasswordIn, request: Request, response: Response, rt: RuntimeDep) -> AuthStatusOut:
-    """Change the password (or set the first one from a local request); other sessions end."""
+    """Change the password; other sessions end. The first one comes from /auth/setup with the code from the log,
+    also in mode local: being in the own network is not enough to claim the password that counts from outside."""
     _same_site(request)
     _password_mode(rt)
     via = _who(rt, request)
@@ -301,11 +330,12 @@ def post_password(body: PasswordIn, request: Request, response: Response, rt: Ru
         raise HTTPException(401, detail={"code": "login_required"})
     if rt.access.password_from_env:
         raise HTTPException(409, detail={"code": "password_from_env"})
-    if rt.access.has_password():
-        address = _throttled(rt, request)
-        if not rt.access.check_password(body.current or ""):
-            rt.access.throttle.failed(address)
-            raise HTTPException(403, detail={"code": "password_wrong"})
+    if not rt.access.has_password():
+        raise HTTPException(409, detail={"code": "setup_required"})
+    address = _throttled(rt, request)
+    if not rt.access.check_password(body.current):
+        rt.access.throttle.failed(address)
+        raise HTTPException(403, detail={"code": "password_wrong"})
     _new_password(body.password)
     rt.access.set_password(body.password)
     token = request.cookies.get(auth.SESSION_COOKIE, "")
@@ -438,10 +468,12 @@ class InfoOut(BaseModel):
 @health.get("/api/health", response_model=HealthOut, summary="Health check")
 def get_health(rt: RuntimeDep, response: Response) -> HealthOut:
     """For the container health check: cheap, writes nothing (a write test would keep array disks awake).
-    503 when degraded, so Docker marks the container unhealthy; the UI still works and shows the problems."""
-    problems = [f"{name} not writable: {problem}" for name, problem in rt.writable.items() if problem]
+    503 when degraded, so Docker marks the container unhealthy; the UI still works and shows the problems.
+    Open without sign-in, so only what is wrong: paths, library names and error texts are in /api/v1/status."""
+    broken = ("library" if name.startswith("library ") else name for name, problem in rt.writable.items() if problem)
+    problems = [f"{name} not writable" for name in dict.fromkeys(broken)]
     if rt.films.count() == 0 and rt.scheduler.status.last_error:
-        problems.append(f"no film list: {rt.scheduler.status.last_error}")
+        problems.append("no film list")
     if problems:
         response.status_code = 503
     return HealthOut(status="degraded" if problems else "ok", version=__version__, problems=problems)
@@ -586,9 +618,17 @@ async def get_search(
     return SearchOut(source=chosen.name, total=result.total, films=films)
 
 
+def _known_film(rt: Runtime, film_id: str) -> Film | None:
+    """The film of an id from a url or a body. Ids are ASCII digits below 2^63; anything else (other digits like
+    "²", numbers too long for the database) is no film."""
+    if not (film_id.isascii() and film_id.isdecimal() and len(film_id) <= 19) or int(film_id) >= 1 << 63:
+        return None
+    return rt.films.get(int(film_id))
+
+
 @v1.get("/films/{film_id}", response_model=FilmOut, summary="Get a film", tags=["search"])
 def get_film(rt: RuntimeDep, film_id: str) -> FilmOut:
-    film = rt.films.get(int(film_id)) if film_id.isdigit() else None
+    film = _known_film(rt, film_id)
     if film is None:
         raise HTTPException(404, detail={"code": "film_not_found"})
     return FilmOut.of(film)
@@ -670,7 +710,7 @@ class FilmIn(BaseModel):
             url_low=clean_url(self.url_low or ""),
             url_hd=clean_url(self.url_hd or ""),
             url_subtitle=clean_url(self.url_subtitle or ""),
-            url_website=self.url_website,
+            url_website=website_url(self.url_website or ""),
             geo=tuple(self.geo),
         )
 
@@ -719,7 +759,7 @@ class DownloadOut(BaseModel):
     speed: float | None  # byte/s while running
     phase: str | None
     error: str | None
-    error_code: str | None  # geo, forbidden, gone, http, network, permission, disk_full, filesystem, mux, ...
+    error_code: str | None  # geo, forbidden, gone, http, network, not_public, permission, disk_full, filesystem, ...
     attempts: int
     retry_at: dt.datetime | None
     position: int  # queue order, lower starts first
@@ -820,7 +860,7 @@ class _Target:
 def _film_of(rt: Runtime, body: "DownloadIn") -> Film:
     if body.film is not None:
         return body.film.to_film()
-    if body.film_id and body.film_id.isdigit() and (found := rt.films.get(int(body.film_id))) is not None:
+    if body.film_id and (found := _known_film(rt, body.film_id)) is not None:
         return found
     raise HTTPException(404, detail={"code": "film_not_found"})
 
@@ -1898,10 +1938,16 @@ class WebhookOut(BaseModel):
             last_sent_at=when(hook.last_sent_at),
         )
 
+    def masked(self) -> "WebhookOut":
+        return self.model_copy(update={"url": masked_url(self.url), "body_template": self.body_template and "***"})
+
 
 @v1.get("/webhooks", response_model=list[WebhookOut], summary="List webhooks", tags=["webhooks"])
-async def get_webhooks(rt: RuntimeDep) -> list[WebhookOut]:
-    return [WebhookOut.of(h) for h in rt.webhooks.store.entries()]
+async def get_webhooks(request: Request, rt: RuntimeDep) -> list[WebhookOut]:
+    """A read-only API key gets only scheme and host of each url, and `***` for a body template: both often carry
+    a token."""
+    hooks = [WebhookOut.of(h) for h in rt.webhooks.store.entries()]
+    return [h.masked() for h in hooks] if _key_scope(request) == "read" else hooks
 
 
 @v1.post("/webhooks", response_model=WebhookOut, status_code=201, summary="Create a webhook", tags=["webhooks"])

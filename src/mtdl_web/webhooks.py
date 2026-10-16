@@ -294,6 +294,19 @@ def redact(text: str, config: Config) -> str:
     return text
 
 
+def masked_url(url: str) -> str:
+    """Scheme and host of a webhook url; path, query and credentials often carry a token (Discord, Gotify, ntfy)."""
+    parts = urlsplit(url)
+    host = parts.hostname or ""
+    if ":" in host:  # IPv6
+        host = f"[{host}]"
+    with contextlib.suppress(ValueError):
+        if parts.port is not None:
+            host += f":{parts.port}"
+    bare = parts.path in ("", "/") and not parts.query and not parts.fragment and parts.username is None
+    return f"{parts.scheme}://{host}{'/' if bare else '/***'}"
+
+
 def signature(secret: str, body: bytes) -> str:
     return "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
 

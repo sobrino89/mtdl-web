@@ -107,6 +107,22 @@ def test_subtitle_repairs(extract_films: list[Film]) -> None:
     assert protocol_relative.url_subtitle == "https://www.sr-mediathek.de/sr_player/ut.php?file=162122.xml"
 
 
+def test_website_links_are_http_only() -> None:
+    """The interface shows the website as a link, so only http(s) passes. What the real list holds stays (checked on
+    all 718,934 values of 12.10.2026): full urls, one bare host, and three tivi.de pages without a scheme."""
+    zdf = "https://www.zdf.de/dokumentation/terra-x/index.html"
+    assert parser.website_url(f" {zdf} ") == zdf
+    assert parser.website_url("https://www.dw.com") == "https://www.dw.com"
+    tivi = "www.tivi.de/fernsehen/lassie/start/index.html"
+    assert parser.website_url(tivi) == "https://" + tivi
+    for bad in ("javascript:alert(1)", "JavaScript://www.zdf.de/%0aalert(1)", "data:text/html,x", "//evil.example/x"):
+        assert parser.website_url(bad) is None, bad
+    assert parser.website_url('https://www.zdf.de"onmouseover="x') is None
+    row = load_rows(FULL_EXTRACT)[0]
+    row[parser.WEBSITE] = "javascript:alert(1)"
+    assert parser.to_film(row).url_website is None
+
+
 def test_kika_subtitle_from_rtmp_column(extract_films: list[Film]) -> None:
     rows = [r for r in load_rows(FULL_EXTRACT) if r[URL_RTMP]]
     assert rows

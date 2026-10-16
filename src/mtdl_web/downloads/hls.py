@@ -20,11 +20,16 @@ import httpx
 
 from mtdl_web.downloads import DownloadError
 from mtdl_web.downloads.bandwidth import TokenBucket
-from mtdl_web.downloads.transfer import fetch, fetch_bytes
+from mtdl_web.downloads.transfer import fetch, fetch_bytes, refused
+from mtdl_web.http import NotPublic
 
 Quality = Literal["hd", "normal", "low"]
 _ATTRIBUTE = re.compile(r'([A-Z0-9-]+)=("[^"]*"|[^,]*)')
 SEGMENT_CONCURRENCY = 4
+# Limits against a broken or manipulated source: real playlists have a few KB, and a three-hour broadcast in
+# two-second segments has 5,400 of them.
+PLAYLIST_LIMIT = 8 << 20
+MAX_SEGMENTS = 50_000
 
 
 def attributes(text: str) -> dict[str, str]:
@@ -185,18 +190,23 @@ def choose(master: MasterPlaylist, quality: Quality) -> tuple[Variant, AudioRend
 
 async def fetch_playlist(client: httpx.AsyncClient, url: str, bucket: TokenBucket) -> tuple[str, str]:
     """Text and final url (relative uris resolve against it; ORF redirects to another host)."""
-    async with client.stream("GET", url) as response:
-        if response.status_code != 200:
-            raise DownloadError(
-                f"HTTP {response.status_code} for {url}",
-                retryable=response.status_code >= 500,
-                status=response.status_code,
-            )
-        data = bytearray()
-        async for chunk in response.aiter_bytes():
-            await bucket.take(len(chunk))
-            data += chunk
-        return data.decode("utf-8", errors="replace"), str(response.url)
+    try:
+        async with client.stream("GET", url) as response:
+            if response.status_code != 200:
+                raise DownloadError(
+                    f"HTTP {response.status_code} for {url}",
+                    retryable=response.status_code >= 500,
+                    status=response.status_code,
+                )
+            data = bytearray()
+            async for chunk in response.aiter_bytes():
+                await bucket.take(len(chunk))
+                data += chunk
+                if len(data) > PLAYLIST_LIMIT:
+                    raise DownloadError(f"{url}: playlist larger than {PLAYLIST_LIMIT} bytes", code="format")
+            return data.decode("utf-8", errors="replace"), str(response.url)
+    except NotPublic as exc:
+        raise refused(exc) from exc
 
 
 def _extension(uri: str, default: str) -> str:
@@ -224,6 +234,8 @@ async def download_media(
         raise DownloadError("HLS playlist without segments", code="format")
     if any(s.key and s.key.method != "AES-128" for s in playlist.segments):
         raise DownloadError("HLS encryption other than AES-128 is not supported", code="format")
+    if len(playlist.segments) > MAX_SEGMENTS:
+        raise DownloadError(f"HLS playlist with {len(playlist.segments)} segments", code="format")
     directory.mkdir(parents=True, exist_ok=True)
     total = len(playlist.segments)
     done = sum(
@@ -278,7 +290,16 @@ async def download_media(
         progress(done, total, received)
 
     progress(done, total, received)
-    await asyncio.gather(*(segment_task(i, s) for i, s in enumerate(playlist.segments)))
+    tasks = [asyncio.create_task(segment_task(i, s)) for i, s in enumerate(playlist.segments)]
+    try:
+        await asyncio.gather(*tasks)
+    except BaseException:
+        # gather passes the first error on but leaves the other segments loading: stop them before the download
+        # counts as failed, or they keep using the bandwidth and write into parts that a retry appends to.
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        raise
 
     lines = [
         "#EXTM3U",

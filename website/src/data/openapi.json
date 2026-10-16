@@ -3,7 +3,7 @@
   "info": {
     "title": "mtdl-web",
     "summary": "Search, download and subscribe to the German public broadcasters' media libraries.",
-    "description": "Everything mtdl-web's own interface does goes through this API, so scripts and other services can do it too.\n\n**Base path** `/api/v1`, JSON in and out. Film ids travel as strings: JavaScript numbers lose precision beyond 2^53.\n\n**Authentication.** Send an API key in the header `X-Api-Key`; keys are created in the settings under *Access*. A\nread key may call every `GET` and the previews (`POST` routes that change nothing), a write key everything. A read\nkey asking for a change gets `403` with the code `api_key_read_only`. Without a key the access mode decides; with a\npassword that is the browser's session cookie, which is meant for the interface, not for scripts.\n\n**Errors** carry an object in `detail` with a machine-readable `code`, sometimes with more fields:\n`{\"detail\": {\"code\": \"subscription_not_found\"}}`, `{\"detail\": {\"code\": \"library_in_use\", \"subscriptions\": [3]}}`.\nInput that does not fit the schema answers `422` with FastAPI's list of validation errors in `detail`.\nA change a browser marks as coming from another site is refused with `403` and the code `cross_site`; scripts send\nno such headers.\n\nEvents reach other services as webhooks or hook scripts; assistants use the MCP server at `/mcp` (off by default).\n",
+    "description": "Everything mtdl-web's own interface does goes through this API, so scripts and other services can do it too.\n\n**Base path** `/api/v1`, JSON in and out. Film ids travel as strings: JavaScript numbers lose precision beyond 2^53.\n\n**Authentication.** Send an API key in the header `X-Api-Key`; keys are created in the settings under *Access*. A\nread key may call every `GET` and the previews (`POST` routes that change nothing), a write key everything. A read\nkey asking for a change gets `403` with the code `api_key_read_only`. Without a key the access mode decides; with a\npassword that is the browser's session cookie, which is meant for the interface, not for scripts.\n\n**Errors** carry an object in `detail` with a machine-readable `code`, sometimes with more fields:\n`{\"detail\": {\"code\": \"subscription_not_found\"}}`, `{\"detail\": {\"code\": \"library_in_use\", \"subscriptions\": [3]}}`.\nInput that does not fit the schema answers `422` with FastAPI's list of validation errors in `detail`.\nA change a browser marks as coming from another site is refused with `403` and the code `cross_site`; scripts send\nno such headers. Without sign-in (access mode `none`), requests without a key are answered only under an IP address\nor a local name, otherwise with `403` and the code `host_not_local`.\n\nEvents reach other services as webhooks or hook scripts; assistants use the MCP server at `/mcp` (off by default).\n",
     "license": {
       "name": "GPL-3.0-or-later",
       "identifier": "GPL-3.0-or-later"
@@ -23,7 +23,7 @@
           "system"
         ],
         "summary": "Health check",
-        "description": "For the container health check: cheap, writes nothing (a write test would keep array disks awake).\n503 when degraded, so Docker marks the container unhealthy; the UI still works and shows the problems.",
+        "description": "For the container health check: cheap, writes nothing (a write test would keep array disks awake).\n503 when degraded, so Docker marks the container unhealthy; the UI still works and shows the problems.\nOpen without sign-in, so only what is wrong: paths, library names and error texts are in /api/v1/status.",
         "operationId": "get_health",
         "responses": {
           "200": {
@@ -164,7 +164,7 @@
           "access"
         ],
         "summary": "Change the password",
-        "description": "Change the password (or set the first one from a local request); other sessions end.",
+        "description": "Change the password; other sessions end. The first one comes from /auth/setup with the code from the log,\nalso in mode local: being in the own network is not enough to claim the password that counts from outside.",
         "operationId": "post_password",
         "requestBody": {
           "content": {
@@ -2430,6 +2430,7 @@
           "webhooks"
         ],
         "summary": "List webhooks",
+        "description": "A read-only API key gets only scheme and host of each url, and `***` for a body template: both often carry\na token.",
         "operationId": "get_webhooks",
         "responses": {
           "200": {
@@ -4878,15 +4879,8 @@
       "PasswordIn": {
         "properties": {
           "current": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 256
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "maxLength": 256,
             "title": "Current"
           },
           "password": {
@@ -4897,6 +4891,7 @@
         },
         "type": "object",
         "required": [
+          "current",
           "password"
         ],
         "title": "PasswordIn"

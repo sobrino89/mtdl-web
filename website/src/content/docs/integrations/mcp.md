@@ -20,6 +20,10 @@ unter [MCP-Werkzeuge](../mcp-tools/).
 :::note[Ein Assistent handelt ohne Rückfrage]
 Er tut alles, was sein Schlüssel darf. Gib ihm im Zweifel einen Schlüssel, der nur lesen darf, und lege Abos selbst
 an. Löschen kann keines der Werkzeuge: weder Dateien noch Abos noch Bibliotheken.
+
+Titel und Beschreibungen schreiben die Sender, und darin könnte auch eine Anweisung an Assistenten stehen. mtdl-web
+sagt dem Assistenten deshalb, dass es Daten sind, und kennzeichnet Werkzeuge, die etwas überschreiben oder abbrechen
+(Einstellungen, Abos ändern, Downloads abbrechen), so dass Clients wie Claude vorher nachfragen können.
 :::
 
 ## Claude Code

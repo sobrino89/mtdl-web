@@ -28,6 +28,9 @@ Umgebungsvariablen:
 | `MTDL_PATH`, `MTDL_LIBRARY_ID` | Pfad relativ zur Bibliothek `MTDL_LIBRARY_ID`, ohne Bibliothek zum Download-Ordner |
 | `MTDL_TITLE`, `MTDL_TOPIC`, `MTDL_CHANNEL`, `MTDL_SIZE`, `MTDL_ERROR` … | jedes Feld des Ereignisses, Name in Großbuchstaben |
 
+In den Variablen steht jeder Wert in einer Zeile: Zeilenumbrüche und andere Steuerzeichen werden zu Leerzeichen. Das
+JSON auf stdin enthält die Felder unverändert.
+
 ## Beispiel
 
 Video und Untertitel zusätzlich als MKV ablegen:

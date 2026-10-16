@@ -8,7 +8,8 @@ auch: suchen, Downloads einreihen, Abos anlegen und prüfen, Einstellungen ände
 
 - **Basis:** `http://<server>:8080/api/v1`, JSON hinein und heraus.
 - **Referenz:** auf dieser Seite unter [API-Referenz](/mtdl-web/api/) und in jeder Instanz unter `/api/docs`
-  (Swagger UI, zum Ausprobieren), die Beschreibung als OpenAPI unter `/api/v1/openapi.json`.
+  (Swagger UI, zum Ausprobieren), die Beschreibung als OpenAPI unter `/api/v1/openapi.json`. Beide gibt es wie die
+  API selbst nur angemeldet oder mit Schlüssel.
 - **Version:** Der Pfad trägt die Version. Felder kommen hinzu, ohne dass `v1` endet; was wegfällt oder sich ändert,
   kommt in eine neue Version.
 
@@ -80,7 +81,7 @@ Eingaben, die nicht zum Schema passen, beantwortet die API mit `422` und der Lis
 |---|---|
 | `400` | Anfrage passt nicht, etwa eine Suche in Beschreibungen ohne Index |
 | `401` | kein oder ein ungültiger Schlüssel (`api_key_invalid`, `login_required`) |
-| `403` | Schlüssel darf nur lesen (`api_key_read_only`) oder Anfrage von einer fremden Seite (`cross_site`) |
+| `403` | Schlüssel darf nur lesen (`api_key_read_only`), Anfrage von einer fremden Seite (`cross_site`) oder im Modus `none` unter einem Namen, der nicht lokal ist (`host_not_local`) |
 | `404` | nicht gefunden (`film_not_found`, `download_not_found`, `subscription_not_found` …) |
 | `409` | passt nicht zum Zustand, etwa ein Download, der schon fertig ist |
 | `422` | ungültige Eingabe, mit Angaben zum Feld |
@@ -89,7 +90,9 @@ Eingaben, die nicht zum Schema passen, beantwortet die API mit `422` und der Lis
 ## Fremde Webseiten
 
 Ein Browser kennzeichnet Anfragen, die eine andere Webseite auslöst. Solche Änderungen lehnt mtdl-web mit `403` und
-dem Code `cross_site` ab. Skripte senden diese Kennzeichen nicht und sind nicht betroffen.
+dem Code `cross_site` ab. Skripte senden diese Kennzeichen nicht und sind nicht betroffen. Im Modus `none` antwortet
+die API ohne Schlüssel außerdem nur unter einer IP-Adresse oder einem lokalen Namen, sonst mit `403` und
+`host_not_local` (siehe [Anmeldung](../../install/access/#schutz-vor-fremden-webseiten)).
 
 ## Ereignisse
 

@@ -65,6 +65,7 @@ class Runtime:
     films: FilmStore
     bus: EventBus
     http: httpx.AsyncClient
+    media: httpx.AsyncClient  # only public addresses: for urls from the film list, playlists and mirrors
     updater: FilmlistUpdater
     scheduler: FilmlistScheduler
     bucket: TokenBucket
@@ -93,7 +94,8 @@ class Runtime:
         films = FilmStore(settings.film_db, index_description=settings.index_description)
         bus = EventBus()
         http = make_client(transport)
-        fetcher = ListFetcher(http, settings.list_dir, server_directory=SERVER_DIRECTORY)
+        media = make_client(transport, public_only=True)
+        fetcher = ListFetcher(media, settings.list_dir, server_directory=SERVER_DIRECTORY)
         updater = FilmlistUpdater(films, fetcher, bus, workers=settings.workers)
         minute = int(state.installation_value("filmlist_minute", lambda: random.randrange(60)))
         bucket = TokenBucket(limit_state(state.settings(), dt.datetime.now(settings.timezone)).rate)
@@ -103,7 +105,7 @@ class Runtime:
         downloads = DownloadManager(
             DownloadQueue(state),
             state.settings,
-            http,
+            media,
             bucket,
             settings.download_dir,
             bus,
@@ -146,6 +148,7 @@ class Runtime:
             films,
             bus,
             http,
+            media,
             updater,
             scheduler,
             bucket,
@@ -264,6 +267,7 @@ class Runtime:
         await self.hooks.close()
         await self.plex_refresher.close()
         await self.http.aclose()
+        await self.media.aclose()
         # An import still running in its thread keeps the film index; SQLite rolls the open transaction back on the
         # next start, so the process may simply end.
         if not self.films.importing:

@@ -150,6 +150,22 @@ async def test_mp4_with_subtitles(setup: Setup) -> None:
 
 
 @pytest.mark.anyio
+async def test_subtitles_that_cannot_be_converted_leave_the_download_done(
+    setup: Setup, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def broken(data: bytes, duration: int | None = None) -> str | None:
+        raise RuntimeError("whatever the subtitle file holds")
+
+    monkeypatch.setattr("mtdl_web.downloads.manager.convert", broken)
+    film = mvw("Das Beste kommt noch! (58)")
+    download = await setup.manager.enqueue(film, path_for(film))
+    await until(lambda: setup.queue.get(download.id).state in ("done", "failed"))  # type: ignore[union-attr]
+    assert setup.queue.get(download.id).state == "done"  # type: ignore[union-attr]
+    assert not list(setup.folder.rglob("*.srt"))
+    assert [e.name for e in setup.events] == ["download.queued", "download.started", "download.completed"]
+
+
+@pytest.mark.anyio
 async def test_duplicates_across_channels(setup: Setup) -> None:
     ard = mvw("Das ab- und wieder zugesagte Gipfeltreffen", "ARD")
     ndr = mvw("Das ab- und wieder zugesagte Gipfeltreffen", "NDR")  # same broadcast, 120 and 129 s

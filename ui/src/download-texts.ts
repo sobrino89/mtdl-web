@@ -10,6 +10,7 @@ const CODES = [
   "gone",
   "http",
   "network",
+  "not_public",
   "permission",
   "disk_full",
   "filesystem",
