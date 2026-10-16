@@ -3,11 +3,15 @@
 - ``password`` (default): one account. Until a password exists, the UI asks for one together with a one-time setup
   code that only the container log shows: whoever merely reaches the address cannot claim the instance first.
 - ``local``: requests from the own network need no password, everything that looks like it comes from elsewhere
-  does (``outside``). For experienced users: a reverse proxy that hides the visitor's address and rewrites the
+  does (``outside``), and so does the container's gateway, which hides who is behind it. The first password needs
+  the setup code here too. For experienced users: a reverse proxy that hides the visitor's address and rewrites the
   host makes every visitor look local. Safe without a proxy, or through a VPN (Tailscale addresses count as local).
 - ``proxy``: a reverse proxy with its own sign-in (Authelia, Authentik, oauth2-proxy) passes the user in a header,
   which only MTDL_TRUSTED_PROXIES may set.
-- ``none``: no sign-in; the UI warns as soon as a request looks like it comes from outside.
+- ``none``: no sign-in, but only under an address or a local name (a foreign page could point its own name at the
+  instance: DNS rebinding); the UI warns as soon as a request looks like it comes from outside.
+
+Failed sign-ins count per address; behind a proxy of MTDL_TRUSTED_PROXIES (in every mode) per visitor it names.
 
 API keys (scripts, other services, assistants over MCP) work in every mode, header ``X-Api-Key``. A key either
 reads (``read``: GET and the previews) or may change things too (``write``). Stored are a scrypt hash of the

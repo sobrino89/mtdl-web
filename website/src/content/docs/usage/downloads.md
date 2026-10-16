@@ -34,7 +34,7 @@ lokal zusammen.
 |---|---|
 | Video | MP4; HLS-Sendungen setzt ffmpeg ohne Neukodierung zu MP4 zusammen |
 | Qualität | HD, Hoch oder Klein; fehlt die gewünschte, lädt mtdl-web die nächstniedrigere, sonst die nächsthöhere |
-| Untertitel | als `.de.srt` neben dem Video, wenn der Sender welche anbietet (abschaltbar) |
+| Untertitel | als `.de.srt` neben dem Video, wenn der Sender welche anbietet (abschaltbar); lassen sie sich nicht lesen, wird der Download ohne sie fertig |
 
 Die Voreinstellungen stehen unter **Einstellungen**, **Qualität**; Abos können eigene haben.
 
@@ -57,6 +57,7 @@ zum Kopieren:
 | Zielordner nicht beschreibbar | Rechte passen nicht, mit dem passenden Befehl; siehe [Ordner und Rechte](../../install/folders/). |
 | Kein Platz mehr | Das Ziellaufwerk ist voll; nach dem Aufräumen geht es weiter, wo es war. |
 | Zusammensetzen fehlgeschlagen | ffmpeg konnte die HLS-Teile nicht verbinden. |
+| Adresse im eigenen Netz | Die Filmliste oder eine Playlist zeigt auf ein Gerät im eigenen Netz statt auf einen Server im Internet; von dort lädt mtdl-web nicht, siehe [Sicherheit](../../background/security/#downloads). |
 
 **Erneut versuchen** stellt einen Download wieder ein. Ein nicht beschreibbarer Zielordner ist kein Fehler im
 engeren Sinn: Downloads dorthin warten, bis der Ordner wieder geht.

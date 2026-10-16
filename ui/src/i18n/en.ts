@@ -924,7 +924,7 @@ export const en: Catalog = {
   "set.auth_mode_desc.password": "Whoever opens mtdl-web signs in with the password; every browser stays signed in for 30 days after its last use.",
   "set.auth_mode_desc.local": "No sign-in in the own network and through Tailscale, a password from outside.",
   "set.auth_mode_desc.proxy": "The reverse proxy signs people in (Authelia or Authentik, say). Signed in: {user}.",
-  "set.auth_mode_desc.none": "Anyone who reaches the address can use mtdl-web.",
+  "set.auth_mode_desc.none": "Anyone who reaches the address can use mtdl-web. It answers only under its IP address or a local name, so that no foreign web page can control it through your browser.",
   "set.auth_mode_warn.local": "For experienced users only: a reverse proxy that does not pass on the visitor's address makes every visitor look local. Better reach it through a VPN such as Tailscale.",
   "set.auth_mode_warn.none": "Only sensible in a closed network; never publish it through a reverse proxy.",
   "set.password": "Password",

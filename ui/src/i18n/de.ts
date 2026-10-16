@@ -926,7 +926,7 @@ export const de = {
   "set.auth_mode_desc.password": "Wer mtdl-web aufruft, meldet sich mit dem Passwort an; jeder Browser bleibt 30 Tage nach der letzten Nutzung angemeldet.",
   "set.auth_mode_desc.local": "Im eigenen Netz und über Tailscale ohne Anmeldung, von außen mit Passwort.",
   "set.auth_mode_desc.proxy": "Die Anmeldung übernimmt der Reverse Proxy (etwa Authelia oder Authentik). Angemeldet: {user}.",
-  "set.auth_mode_desc.none": "Jeder, der die Adresse erreicht, kann mtdl-web bedienen.",
+  "set.auth_mode_desc.none": "Jeder, der die Adresse erreicht, kann mtdl-web bedienen. Es antwortet nur unter seiner IP-Adresse oder einem lokalen Namen, damit keine fremde Webseite es über deinen Browser steuert.",
   "set.auth_mode_warn.local": "Nur für erfahrene Nutzer: Ein Reverse Proxy, der die Adresse des Besuchers nicht weitergibt, lässt jeden Besucher lokal aussehen. Besser über ein VPN wie Tailscale erreichen.",
   "set.auth_mode_warn.none": "Nur in einem abgeschotteten Netz sinnvoll; nie über einen Reverse Proxy freigeben.",
   "set.password": "Passwort",
