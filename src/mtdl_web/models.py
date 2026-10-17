@@ -13,7 +13,6 @@ def film_id(channel: str, topic: str, title: str, url: str) -> int:
     """Stable 63-bit id of a film list entry.
 
     (channel, topic, title, main url) is unique in the real film list (checked on 719,925 entries, 12.10.2026).
-    MediathekViewWeb returns the same four values unchanged, so both sources yield the same id for the same entry.
     Never change this function: ids are stored.
     """
     data = "\x1f".join((channel, topic, title, url)).encode()

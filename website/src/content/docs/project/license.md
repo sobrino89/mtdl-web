@@ -17,7 +17,7 @@ Dokumentation ist mit [Starlight](https://starlight.astro.build) gebaut.
 ## Dank
 
 **MediathekView.** Die Daten stammen aus der Filmliste des [MediathekView](https://mediathekview.de)-Projekts, das
-sie seit vielen Jahren pflegt und frei verteilt, und optional von
+sie seit vielen Jahren pflegt und frei verteilt. Die Suchsyntax folgt
 [MediathekViewWeb](https://github.com/mediathekview/mediathekviewweb). mtdl-web ist kein Projekt des
 MediathekView-Teams und nicht mit ihm verbunden. Wer Senderlogos einschaltet, bekommt die Grafiken des
 MediathekView-Programms, die der Server einmal von dort lädt; mtdl-web selbst liefert keine Logos mit, sie sind

@@ -21,7 +21,6 @@ import {
   type Scheme,
   type SecretState,
   type Settings as AppSettings,
-  type Source,
   type SystemInfo,
   type TakeoverReport,
   type Webhook,
@@ -1259,20 +1258,7 @@ function SourceSection(props: { settings: AppSettings }): JSX.Element {
         </div>
       )}
       <Row label={t("set.source")}>
-        <div role="radiogroup" class="cards stacked">
-          {(["filmlist", "mediathekviewweb"] as Source[]).map((s) => {
-            const on = settings.source === s;
-            return (
-              <button key={s} role="radio" aria-checked={on} class={`choice radio${on ? " on" : ""}`} onClick={() => void save({ source: s })}>
-                <span class="radio-dot" />
-                <span class="scheme-text">
-                  <strong>{t(`set.src.${s}` as Key)}</strong>
-                  <span class="small muted-text">{t(`set.src_desc.${s}` as Key)}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <span class="muted-text">{t("set.source_text")}</span>
       </Row>
       <Row label={t("set.update")}>
         <span class="muted-text">{t("set.update_text", { minute: fl?.next_run ? `:${F.time(fl.next_run, tz).slice(3)}` : "–" })}</span>

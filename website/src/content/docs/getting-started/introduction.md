@@ -20,10 +20,9 @@ ist mtdl-web zum großen Teil mit KI; wer dahintersteht und wie das abläuft, st
 
 ## Funktionen
 
-**Suche.** Über die Filmliste des MediathekView-Projekts (rund 720.000 Einträge, lokaler Volltextindex) oder
-wahlweise über die Such-API von MediathekViewWeb. Filter für Sender, Thema, Titel, Dauer, Zeitraum, HD und
-Untertitel, Gruppierung nach Thema, Vorschau im Browser. Die Suchsyntax von MediathekViewWeb funktioniert auch hier
-(`!ard #tatort >80`). Mehr unter [Suche](../../usage/search/).
+**Suche.** Über die Filmliste des MediathekView-Projekts (rund 720.000 Einträge, lokaler Volltextindex). Filter
+für Sender, Thema, Titel, Dauer, Zeitraum, HD und Untertitel, Gruppierung nach Thema, Vorschau im Browser. Die
+Suchsyntax von MediathekViewWeb funktioniert auch hier (`!ard #tatort >80`). Mehr unter [Suche](../../usage/search/).
 
 **Abos.** Ein Abo lädt neue Folgen einer Sendung von selbst. Seine Regeln sind eine flache Liste von Bedingungen
 (Thema, Titel, Beschreibung, Sender, Datum, Dauer), die alle zutreffen müssen; Textfelder wahlweise als regulärer
@@ -50,9 +49,9 @@ geladen wird.
   ersten Import belegt die Filmliste samt Index rund ein GB im Cache-Ordner.
 - **Keine fremden Inhalte zur Laufzeit.** Die Oberfläche lädt keine Schriften, Skripte oder Bilder von anderen
   Servern; nur die Vorschau im Browser spielt das Video direkt vom Sender. Der Server holt die Filmliste und die
-  Videos, alles Weitere nur, wenn du es einrichtest (TMDB, Plex, MediathekViewWeb, Senderlogos).
-- **Höflich zu den Quellen.** Die Filmliste kommt stündlich als kleine Änderungsliste, mit Bedingungs-Anfragen und
-  eigenem `User-Agent`; siehe [Datenquellen](../../background/data-sources/).
+  Videos, alles Weitere nur, wenn du es einrichtest (TMDB, Plex, Senderlogos).
+- **Höflich zu den Quellen.** Die Filmliste kommt stündlich als kleine Änderungsliste und einmal am Tag vollständig,
+  mit Bedingungs-Anfragen und eigenem `User-Agent`; siehe [Datenquellen](../../background/data-sources/).
 - **Sicher ab Werk.** Anmeldung mit Passwort ist Standard, ein Einrichtungscode aus dem Log schützt den ersten
   Aufruf, API-Schlüssel dürfen nur lesen oder auch ändern. Siehe [Sicherheit](../../background/security/).
 - **Erklärt statt rätselt.** Jede Abo-Regel nennt ihren Grund, jeder Fehler seine Lösung, jeder Ordner wird beim

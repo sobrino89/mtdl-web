@@ -69,9 +69,3 @@ abspielen, weil der Sender das Abspielen auf fremden Seiten nicht erlaubt; gelad
 
 Ist eine Sendung schon geladen oder eingereiht, auch bei einem anderen Sender, fragt mtdl-web nach; **Trotzdem
 laden** lädt sie ein zweites Mal.
-
-## Datenquelle
-
-Standard ist die lokale Filmliste. In den Einstellungen unter **Datenquelle** lässt sich stattdessen die Such-API von
-MediathekViewWeb wählen: keine lokale Liste, dafür eine Anfrage an diesen Dienst bei jeder Suche. Mehr unter
-[Datenquellen](../../background/data-sources/).

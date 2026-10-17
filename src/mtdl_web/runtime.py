@@ -30,7 +30,6 @@ from mtdl_web.schedule import LimitState, limit_state
 from mtdl_web.scheduler import FilmlistScheduler
 from mtdl_web.sources import Source
 from mtdl_web.sources.local import LocalSource
-from mtdl_web.sources.mvw import MvwSource
 from mtdl_web.state import AppSettings, StateStore
 from mtdl_web.subscriptions import SubscriptionService, SubscriptionStore
 from mtdl_web.webhooks import WebhookSender, WebhookStore
@@ -118,7 +117,7 @@ class Runtime:
         subscriptions = SubscriptionService(
             SubscriptionStore(state),
             downloads,
-            lambda name: holder[0].source(name),
+            lambda: holder[0].source(),
             state.settings,
             settings.download_dir,
             bus,
@@ -208,10 +207,7 @@ class Runtime:
                 except Exception:
                     log.exception("folder check failed")
 
-    def source(self, name: str | None = None) -> Source:
-        chosen = name or self.state.settings().source
-        if chosen == "mediathekviewweb":
-            return MvwSource(self.http)
+    def source(self) -> Source:
         return LocalSource(self.films)
 
     def start(self) -> None:

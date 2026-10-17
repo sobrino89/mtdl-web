@@ -447,7 +447,7 @@ def test_preview_save_and_load_into_the_library(tmp_path: Path) -> None:
     media.delay = 0.05  # slow enough to look at the staging folder while the file loads
     with library_app(tmp_path, media) as api:
         runtime = runtime_of(api)
-        runtime.subscriptions._sources = lambda name: Stub(films("Die Anstalt"))
+        runtime.subscriptions._source = lambda: Stub(films("Die Anstalt"))
         shows = tmp_path / "shows"
         season = shows / "Die Anstalt {tmdb-73860}" / "Season 13"
         season.mkdir(parents=True)
@@ -500,7 +500,7 @@ def test_plex_reads_the_folder_again_only_when_asked(tmp_path: Path) -> None:
         return httpx.Response(200)
 
     with library_app(tmp_path, servers={"plex.local": plex}) as api:
-        runtime_of(api).subscriptions._sources = lambda name: Stub(films("Die Anstalt"))
+        runtime_of(api).subscriptions._source = lambda: Stub(films("Die Anstalt"))
         assert api.patch("/api/v1/settings", json={"plex_url": "http://plex.local:32400"}).status_code == 200
         (library,) = api.get("/api/v1/libraries").json()
         assert api.put(f"/api/v1/libraries/{library['id']}", json={**library, "plex_path": "/data/shows"}).is_success
@@ -539,7 +539,7 @@ def test_an_episode_tmdb_lists_later_loads_after_the_next_refresh(tmp_path: Path
     season["episodes"] = [e for e in listed if e["episode_number"] != 8]  # TMDB lists S13E08 two days later
     with library_app(tmp_path, servers={"api.themoviedb.org": server.handler}) as api:
         runtime = runtime_of(api)
-        runtime.subscriptions._sources = lambda name: Stub(films("Die Anstalt"))
+        runtime.subscriptions._source = lambda: Stub(films("Die Anstalt"))
         newest = only("Jetzt erst rechts")
         sub = api.post("/api/v1/subscriptions", json=newest).json()
         preview = api.post("/api/v1/subscriptions/preview", json=newest).json()

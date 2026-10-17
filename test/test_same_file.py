@@ -71,7 +71,7 @@ def test_a_subscription_loads_the_file_once_and_knows_it_later(tmp_path: Path) -
     with running_app(tmp_path, MediaServer()) as api:
         runtime = runtime_of(api)
         draft = {"name": "Die Anstalt", "query": "die anstalt", "conditions": [TOPIC]}
-        runtime.subscriptions._sources = lambda name: Stub(ANSTALT)
+        runtime.subscriptions._source = lambda: Stub(ANSTALT)
         items = api.post("/api/v1/subscriptions/preview", json=draft).json()["items"]
         status = {(i["film"]["channel"], i["film"]["title"][-11:]): i["status"] for i in items}
         assert status == {
@@ -83,7 +83,7 @@ def test_a_subscription_loads_the_file_once_and_knows_it_later(tmp_path: Path) -
 
         # The ZDF copy was loaded before; later only the 3sat one turns up: nothing to load.
         runtime.downloads.queue.add_done(ZDF_E08, episode_key=episode_key(ZDF_E08), finished_at=0)
-        runtime.subscriptions._sources = lambda name: Stub([SAT_E08])
+        runtime.subscriptions._source = lambda: Stub([SAT_E08])
         later = api.post("/api/v1/subscriptions/preview", json=draft).json()["items"]
         assert [i["status"] for i in later] == ["exists"]
         assert api.get("/api/v1/search", params={"q": "zzz"}).status_code == 200  # the app stays usable

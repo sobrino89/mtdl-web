@@ -85,7 +85,7 @@ Eingaben, die nicht zum Schema passen, beantwortet die API mit `422` und der Lis
 | `404` | nicht gefunden (`film_not_found`, `download_not_found`, `subscription_not_found` …) |
 | `409` | passt nicht zum Zustand, etwa ein Download, der schon fertig ist |
 | `422` | ungültige Eingabe, mit Angaben zum Feld |
-| `502` | die Datenquelle antwortet nicht |
+| `502` | ein anderer Dienst antwortet nicht, etwa TMDB |
 
 ## Fremde Webseiten
 

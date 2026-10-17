@@ -386,26 +386,6 @@
             }
           },
           {
-            "name": "source",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "enum": [
-                    "filmlist",
-                    "mediathekviewweb"
-                  ],
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Source"
-            }
-          },
-          {
             "name": "status",
             "in": "query",
             "required": false,
@@ -3054,15 +3034,6 @@
             "title": "Channel Logos",
             "default": false
           },
-          "source": {
-            "type": "string",
-            "enum": [
-              "filmlist",
-              "mediathekviewweb"
-            ],
-            "title": "Source",
-            "default": "filmlist"
-          },
           "naming_scheme": {
             "type": "string",
             "enum": [
@@ -3354,25 +3325,8 @@
       "DownloadIn": {
         "properties": {
           "film_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Film Id"
-          },
-          "film": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/FilmIn"
-              },
-              {
-                "type": "null"
-              }
-            ]
           },
           "quality": {
             "anyOf": [
@@ -3418,6 +3372,9 @@
           }
         },
         "type": "object",
+        "required": [
+          "film_id"
+        ],
         "title": "DownloadIn"
       },
       "DownloadListOut": {
@@ -3843,7 +3800,7 @@
           "title"
         ],
         "title": "FilmIn",
-        "description": "A film from a search result, for sources other than the local film list (MediathekViewWeb)."
+        "description": "A film as the naming preview takes it: example films that need not be in the film list."
       },
       "FilmOut": {
         "properties": {
@@ -5241,10 +5198,6 @@
       },
       "SearchOut": {
         "properties": {
-          "source": {
-            "type": "string",
-            "title": "Source"
-          },
           "total": {
             "type": "integer",
             "title": "Total"
@@ -5259,7 +5212,6 @@
         },
         "type": "object",
         "required": [
-          "source",
           "total",
           "films"
         ],
@@ -5539,21 +5491,6 @@
             "title": "Include Description",
             "default": false
           },
-          "source": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "filmlist",
-                  "mediathekviewweb"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source"
-          },
           "conditions": {
             "items": {
               "$ref": "#/components/schemas/ConditionIO"
@@ -5658,21 +5595,6 @@
             "type": "boolean",
             "title": "Include Description",
             "default": false
-          },
-          "source": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "filmlist",
-                  "mediathekviewweb"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source"
           },
           "conditions": {
             "items": {
@@ -5838,21 +5760,6 @@
             "type": "boolean",
             "title": "Include Description",
             "default": false
-          },
-          "source": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "filmlist",
-                  "mediathekviewweb"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Source"
           },
           "conditions": {
             "items": {

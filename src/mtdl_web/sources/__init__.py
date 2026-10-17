@@ -1,4 +1,5 @@
-"""Film sources behind one interface: the local film list (default) and MediathekViewWeb (optional)."""
+"""Film sources behind one interface. Today there is one, the local film list; the interface stays so that another
+(an official MediathekViewWeb API, say) could join without touching search and subscriptions."""
 
 import datetime as dt
 from typing import Protocol

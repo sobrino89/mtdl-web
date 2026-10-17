@@ -2,7 +2,6 @@
 
 export type Scope = "topic_title" | "title" | "topic" | "all";
 export type Quality = "hd" | "normal" | "low";
-export type Source = "filmlist" | "mediathekviewweb";
 export type SpeedUnit = "Mbit/s" | "MB/s";
 export type DownloadState = "queued" | "running" | "done" | "failed" | "cancelled";
 
@@ -34,7 +33,6 @@ export interface Film {
 }
 
 export interface SearchResult {
-  source: Source;
   total: number;
   films: Film[];
 }
@@ -118,7 +116,6 @@ export interface Settings {
   subtitles: boolean;
   normalize_filenames: boolean;
   channel_logos: boolean;
-  source: Source;
   naming_scheme: Scheme;
   naming_template: string | null;
   plex_url: string | null; // for the rescan of libraries that ask for it; the token is a secret
@@ -225,8 +222,7 @@ export interface DownloadTarget {
 }
 
 export interface DownloadBody {
-  film_id?: string;
-  film?: Omit<Film, "id" | "status">;
+  film_id: string;
   quality?: Quality;
   naming?: Naming;
   force?: boolean;
@@ -257,7 +253,6 @@ export interface SubscriptionDraft {
   name: string;
   query: string;
   include_description?: boolean;
-  source?: Source | null;
   conditions: Condition[];
   naming: Naming;
   quality?: Quality | null;
@@ -565,7 +560,7 @@ export const api = {
   deleteApiKey: (id: number) => request<void>("DELETE", `/api-keys/${id}`),
   status: () => request<Status>("GET", "/status"),
   info: () => request<Info>("GET", "/info"),
-  search: (params: { q: string; scope?: Scope; source?: Source; limit?: number; status?: boolean }) =>
+  search: (params: { q: string; scope?: Scope; limit?: number; status?: boolean }) =>
     request<SearchResult>("GET", "/search", undefined, params),
   film: (id: string) => request<Film>("GET", `/films/${id}`),
   updateFilmlist: () => request<{ status: string }>("POST", "/filmlist/update"),

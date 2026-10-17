@@ -86,7 +86,6 @@ Regel.
 |---|---|
 | Qualität | HD bevorzugt, Hoch oder Klein; Standard wie in den Einstellungen |
 | Untertitel | als `.de.srt` neben die Datei, wenn vorhanden |
-| Datenquelle | Filmliste oder MediathekViewWeb, Standard wie in den Einstellungen |
 | Auch in Beschreibungen suchen | die Suche des Abos findet auch Wörter aus der Beschreibung |
 | Gültig bis | letzter Tag, an dem das Abo sucht, etwa bis eine Staffel endet; danach pausiert es oder löscht sich (Dateien und Verlauf bleiben) |
 | Sonderfassungen | siehe oben |

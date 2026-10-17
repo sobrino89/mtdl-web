@@ -8,15 +8,12 @@ from conftest import FULL_EXTRACT
 from fastapi.testclient import TestClient
 from test_app import Internet, settings_for
 from test_downloads import MediaServer, running_app
-from test_sources import FakeMvw
 
 from mtdl_web.app import create_app
 from mtdl_web.filmlist.parser import open_filmlist
 from mtdl_web.filmlist.store import FilmStore, match_expression
-from mtdl_web.http import make_client
 from mtdl_web.models import Film
 from mtdl_web.query import Query, parse
-from mtdl_web.sources.mvw import MvwSource
 from mtdl_web.text import index_text, search_text
 
 
@@ -116,26 +113,6 @@ def test_descriptions_need_their_index(tmp_path: Path) -> None:
         store.search("*sträter")
 
 
-@pytest.mark.anyio
-async def test_mediathekviewweb_gets_the_query_split_like_its_own_client() -> None:
-    fake = FakeMvw()
-    async with make_client(httpx.MockTransport(fake.handler)) as client:
-        mvw = MvwSource(client)
-        await mvw.search("!ard !wdr #tatort,krimi Mord >80 <120,5")
-        await mvw.search("#tatort mord", scope="topic_title")
-        await mvw.search("mord", include_description=True)
-    first, second, third = fake.bodies
-    assert first["queries"] == [
-        {"fields": ["channel"], "query": "ard"},
-        {"fields": ["channel"], "query": "wdr"},
-        {"fields": ["topic"], "query": "tatort krimi"},
-        {"fields": ["title"], "query": "mord"},  # a topic selector leaves free words to the title
-    ]
-    assert (first["duration_min"], first["duration_max"]) == (4800, 7230)
-    assert second["queries"][-1] == {"fields": ["title"], "query": "mord"} and "duration_min" not in second
-    assert third["queries"] == [{"fields": ["topic", "title", "description"], "query": "mord"}]
-
-
 def test_the_api_and_subscriptions_understand_the_syntax(tmp_path: Path, extract_films: list[Film]) -> None:
     text = "!mdr #das,gipfeltreffen >20"
     expected = _oracle(extract_films, text)
@@ -165,7 +142,4 @@ def test_subscriptions_check_their_query_before_anything_is_saved(tmp_path: Path
         preview = api.post("/api/v1/subscriptions/preview", json=draft)
         assert (preview.status_code, preview.json()["detail"]["code"]) == (400, "description_search_unavailable")
         assert api.post("/api/v1/subscriptions", json={**draft, "skip_existing": True}).status_code == 400
-        internet.mvw.response = httpx.Response(500)  # the other source fails while "only future episodes" asks it
-        failing = {**draft, "query": "#tatort", "source": "mediathekviewweb", "skip_existing": True}
-        assert api.post("/api/v1/subscriptions", json=failing).status_code == 502
         assert api.get("/api/v1/subscriptions").json() == []  # nothing half saved

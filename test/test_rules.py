@@ -5,7 +5,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from conftest import FULL_EXTRACT, mvw_results
+from conftest import FULL_EXTRACT, film_from_mvw, mvw_results
 
 from mtdl_web.filmlist.parser import open_filmlist
 from mtdl_web.filmlist.store import FilmStore
@@ -14,7 +14,6 @@ from mtdl_web.rules.engine import RuleSet
 from mtdl_web.rules.model import Condition, Field, Operator, RuleError
 from mtdl_web.rules.templates import has_episode_number, only_new
 from mtdl_web.sources.local import LocalSource
-from mtdl_web.sources.mvw import film_from_mvw
 
 # Reference case: search "das gipfeltreffen" gives 35 hits, these two rules leave episodes 39 to 58.
 TOPIC_IS = Condition(Field.TOPIC, Operator.IS, "Das Gipfeltreffen")

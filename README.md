@@ -21,8 +21,7 @@ vom Handy.
 ## Funktionen
 
 - **Suche** über die Filmliste des MediathekView-Projekts (rund 720.000 Einträge, lokal indexiert, Treffer in
-  Millisekunden) oder wahlweise über MediathekViewWeb, mit Filtern, Vorschau im Browser und der Suchsyntax von
-  MediathekViewWeb (`!ard #tatort >80`).
+  Millisekunden), mit Filtern, Vorschau im Browser und der Suchsyntax von MediathekViewWeb (`!ard #tatort >80`).
 - **Abos** mit einfachen, sichtbaren Regeln. Die Vorschau zeigt vor dem Speichern, welche Folgen geladen werden und
   welche Regel die übrigen ausschließt.
 - **Downloads** als MP4 und HLS mit Wiederaufnahme, Untertiteln als SRT, einem gemeinsamen Bandbreitenlimit (auch
@@ -86,7 +85,7 @@ docker run --rm mtdl-web:test
 
 ## Dank
 
-Die Daten stammen aus der Filmliste des [MediathekView](https://mediathekview.de)-Projekts und optional von
+Die Daten stammen aus der Filmliste des [MediathekView](https://mediathekview.de)-Projekts, die Suchsyntax folgt
 [MediathekViewWeb](https://github.com/mediathekview/mediathekviewweb). mtdl-web ist kein Projekt des
 MediathekView-Teams und nicht mit ihm verbunden. Die Sendungen gehören den Sendern und ihren Urhebern.
 

@@ -10,7 +10,7 @@ from pathlib import Path, PurePosixPath
 
 import httpx
 import pytest
-from conftest import FULL_EXTRACT, load_films, mvw_results
+from conftest import FULL_EXTRACT, film_from_mvw, load_films, mvw_results
 from fastapi.testclient import TestClient
 from test_app import Internet, settings_for
 
@@ -23,7 +23,6 @@ from mtdl_web.downloads.queue import DownloadQueue, film_to_json
 from mtdl_web.events import Event, EventBus
 from mtdl_web.models import Film
 from mtdl_web.naming import Naming, target_path
-from mtdl_web.sources.mvw import film_from_mvw
 from mtdl_web.state import MIGRATIONS, StateStore
 
 HLS = Path(__file__).parent / "fixtures" / "hls"
@@ -297,7 +296,7 @@ def running_app(
     extra = servers or {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
-        if request.url.host in ("res.mediathekview.de", "liste.mediathekview.de", "mediathekviewweb.de"):
+        if request.url.host in ("res.mediathekview.de", "liste.mediathekview.de"):
             return internet.handler(request)
         if request.url.host in extra:
             return extra[request.url.host](request)
@@ -346,16 +345,6 @@ def test_download_through_the_api(api: TestClient) -> None:
     assert api.delete(f"/api/v1/downloads/{created['id']}").status_code == 204
 
 
-def test_download_a_mediathekviewweb_result(api: TestClient) -> None:
-    hit = api.get("/api/v1/search", params={"q": "das gipfeltreffen", "source": "mediathekviewweb", "limit": 3}).json()
-    film = {k: v for k, v in hit["films"][2].items() if k != "id"}
-    response = api.post("/api/v1/downloads", json={"film": film})
-    assert response.status_code == 201, response.text
-    assert response.json()["film"]["id"] == hit["films"][2]["id"]  # same id as the film list would give
-    bad = api.post("/api/v1/downloads", json={"film_id": "1", "naming": {"scheme": "template", "template": "{genre}"}})
-    assert bad.status_code == 404
-
-
 @pytest.mark.anyio
 async def test_gone_is_not_retried(setup: Setup) -> None:
     film = mvw("Eulen vor die Säue (57)")
@@ -367,7 +356,7 @@ async def test_gone_is_not_retried(setup: Setup) -> None:
 
 
 def test_error_codes() -> None:
-    film = mvw("Eulen vor die Säue (57)")  # MediathekViewWeb results carry no geo restriction
+    film = mvw("Eulen vor die Säue (57)")  # the recorded answer carries no geo restriction
     assert error_code(PermissionError(errno.EACCES, "Permission denied"), film) == "permission"
     assert error_code(OSError(errno.ENOSPC, "No space left on device"), film) == "disk_full"
     assert error_code(OSError(errno.EROFS, "Read-only file system"), film) == "filesystem"

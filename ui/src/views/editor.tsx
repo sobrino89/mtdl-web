@@ -19,7 +19,6 @@ import {
   type Scheme,
   type Series,
   type SeriesCandidate,
-  type Source,
   type Subscription,
   type SubscriptionDraft,
 } from "../api";
@@ -61,7 +60,6 @@ interface Draft {
   name: string;
   query: string;
   include_description: boolean;
-  source: Source | null;
   rules: Rule[];
   naming: Naming;
   quality: Quality | null;
@@ -121,7 +119,6 @@ function draftFrom(sub: Subscription): Draft {
     name: sub.name,
     query: sub.query,
     include_description: sub.include_description ?? false,
-    source: sub.source ?? null,
     rules: sub.conditions.map((c) => keyed(c)),
     naming: {
       scheme: sub.naming.scheme,
@@ -248,7 +245,6 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
         name: start.name,
         query: q,
         include_description: false,
-        source: null,
         rules: start.conditions.map((c) => keyed(c, true)),
         naming: {
           scheme: start.scheme,
@@ -289,7 +285,6 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
     ? {
         query: draft.query,
         include_description: draft.include_description,
-        source: draft.source,
         conditions: sendable.rules.map(toCondition),
         naming: draft.naming,
       }
@@ -521,7 +516,6 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
     name: draft.name.trim(),
     query: draft.query,
     include_description: draft.include_description,
-    source: draft.source,
     conditions: draft.rules.filter((r) => complete(r) && !(errors.get(r.key)?.value === valueText(r))).map(toCondition),
     naming: draft.naming,
     quality: draft.quality,
@@ -1333,7 +1327,6 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
   );
 
   const qualityName = settings ? t(`q.${settings.quality}` as Key) : "";
-  const sourceName = settings ? (settings.source === "mediathekviewweb" ? t("ed.source_mvw") : t("ed.source_filmlist")) : "";
   const next = status?.filmlist.next_run;
   const optionsTab = (
     <div class="editor-pane-body form">
@@ -1379,21 +1372,8 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
           <option value="include">{t("ed.special_opt.include")}</option>
         </select>
       </div>
-      <div class="field">
-        <label class="field-label" for="ed-source">
-          {t("ed.source")}
-        </label>
-        <select
-          id="ed-source"
-          class="input narrow-input"
-          value={draft.source ?? ""}
-          onChange={(e) => update({ source: ((e.target as HTMLSelectElement).value || null) as Source | null })}
-        >
-          <option value="">{t("ed.source_default", { source: sourceName })}</option>
-          <option value="filmlist">{t("ed.source_filmlist")}</option>
-          <option value="mediathekviewweb">{t("ed.source_mvw")}</option>
-        </select>
-        {info?.description_search && (
+      {info?.description_search && (
+        <div class="field">
           <label class="check-label plain">
             <input
               type="checkbox"
@@ -1402,8 +1382,8 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
             />
             {t("ed.description")}
           </label>
-        )}
-      </div>
+        </div>
+      )}
       <div class="field">
         <label class="field-label" for="ed-valid">
           {t("ed.valid_until")}
@@ -1517,7 +1497,6 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
     [
       draft.quality ? t(`q.${draft.quality}` as Key) : t("ed.as_default", { value: qualityName }),
       (draft.subtitles ?? settings?.subtitles ?? true) ? t("ed.subtitles_on") : t("ed.subtitles_off"),
-      draft.source ? (draft.source === "mediathekviewweb" ? t("ed.source_mvw") : t("ed.source_filmlist")) : t("ed.as_default", { value: sourceName }),
       ...(draft.include_description ? [t("ed.description_on")] : []),
       ...(draft.valid_until ? [t("ed.valid_summary", { date: F.date(`${draft.valid_until}T12:00:00Z`, timeZone) })] : []),
     ].join(" · "),

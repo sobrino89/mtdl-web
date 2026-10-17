@@ -10,7 +10,6 @@ The tools are a client of the REST API inside the process: the same validation, 
 with that key, no second logic. They only trim the answers to what an assistant needs (no stream addresses).
 """
 
-import collections
 import contextlib
 import datetime as dt
 import json
@@ -37,7 +36,6 @@ log = logging.getLogger(__name__)
 
 PATH = "/mcp"
 SHORT = 300  # characters of a description in lists; get_film has all of it
-SEEN = 1000  # films from MediathekViewWeb searches kept for get_film and enqueue_download
 
 INSTRUCTIONS = """\
 mtdl-web searches the media libraries (Mediatheken) of the German public broadcasters (ARD, ZDF, arte, 3sat and
@@ -238,7 +236,6 @@ class SubscriptionChanges(BaseModel):
     name: str | None = None
     query: str | None = None
     include_description: bool | None = None
-    source: Literal["filmlist", "mediathekviewweb"] | None = None
     conditions: list[ConditionIO] | None = Field(default=None, description="Replaces all conditions.")
     naming: NamingIn | None = None
     quality: Literal["hd", "normal", "low"] | None = Field(default=None, description="null: as in the settings.")
@@ -279,8 +276,6 @@ class Mcp:
 
     def __init__(self, app: ASGIApp) -> None:
         self.rest = Rest(app)
-        # Films from MediathekViewWeb exist only in its answers; enqueue_download needs them whole.
-        self._seen: collections.OrderedDict[str, dict[str, Any]] = collections.OrderedDict()
         self.read = self._server(write=False)
         self.write = self._server(write=True)
 
@@ -297,13 +292,6 @@ class Mcp:
         params = {"state": ["running", "queued"], "subscription": subscription_id, "order": "queue", "limit": 100}
         found = await self.rest(ctx, "GET", "/downloads", params=params)
         return {"pending": [_download(d) for d in found["items"]]}
-
-    def _remember(self, films: list[dict[str, Any]]) -> None:
-        for film in films:
-            self._seen[film["id"]] = film
-            self._seen.move_to_end(film["id"])
-        while len(self._seen) > SEEN:
-            self._seen.popitem(last=False)
 
     def _server(self, *, write: bool) -> MCPServer:
         rest = self.rest
@@ -325,14 +313,12 @@ class Mcp:
         ) -> dict[str, Any]:
             params = {"q": query, "description": include_description, "status": True, "limit": limit, "offset": offset}
             found = await rest(ctx, "GET", "/search", params=params)
-            if found["source"] != "filmlist":
-                self._remember(found["films"])
             return {"total": found["total"], "films": [_film(f) for f in found["films"]]}
 
         @server.tool(annotations=READS)
         async def get_film(ctx: Context, film_id: FilmId) -> dict[str, Any]:
             """One film with its whole description, the broadcaster's page and the size."""
-            film = self._seen.get(film_id) or await rest(ctx, "GET", f"/films/{film_id}")
+            film = await rest(ctx, "GET", f"/films/{film_id}")
             return _film(film, full=True)
 
         @server.tool(annotations=READS)
@@ -441,7 +427,7 @@ subscription or draft for a new one; nothing is saved.
         @server.tool(annotations=READS)
         async def get_settings(ctx: Context) -> dict[str, Any]:
             """The settings: bandwidth_limit in byte/s (bandwidth_enabled switches it), the limit schedule,
-            parallel_downloads, quality, subtitles, naming of single downloads, the search source and more."""
+            parallel_downloads, quality, subtitles, naming of single downloads and more."""
             settings: dict[str, Any] = await rest(ctx, "GET", "/settings")
             return settings
 
@@ -559,9 +545,7 @@ conditions replace all conditions). To pause or resume, set_subscription_state i
         ) -> dict[str, Any]:
             """Queue one film (an id from search) into the download folder, named after the settings. Quality and
             subtitles default to the settings."""
-            film = self._seen.get(film_id)
-            body: dict[str, Any] = {"quality": quality, "subtitles": subtitles, "force": force}
-            body |= {"film": film} if film else {"film_id": film_id}
+            body = {"film_id": film_id, "quality": quality, "subtitles": subtitles, "force": force}
             return _download(await rest(ctx, "POST", "/downloads", body=body))
 
         return self._http(server)

@@ -1,4 +1,4 @@
-// Search: one query against the active source, filters, sorting and grouping in the browser,
+// Search: one query against the film list, filters, sorting and grouping in the browser,
 // details beside the list (wide screens) or above it, downloads and subscriptions from every hit.
 import { Component, type JSX } from "preact";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
@@ -471,11 +471,8 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
 
   const setFilter = (patch: Record<string, string | number | boolean | null>) => setQuery(patch);
 
-  /** How a film travels to the API: by id from the local film list, else as itself (MediathekViewWeb). */
-  const bodyOf = (film: Film): DownloadBody => {
-    const { id: _id, status: _status, ...plain } = film;
-    return result?.source === "filmlist" ? { film_id: film.id } : { film: plain };
-  };
+  /** How a film travels to the API: by its id in the film list. */
+  const bodyOf = (film: Film): DownloadBody => ({ film_id: film.id });
 
   const enqueue = async (list: Film[], quality: Quality | undefined, force = false, naming?: Naming): Promise<number> => {
     if (!list.length || !result) return 0;

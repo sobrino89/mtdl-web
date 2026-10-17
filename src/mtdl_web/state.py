@@ -151,6 +151,11 @@ MIGRATIONS = (
 )
 
 
+# Settings of older versions, left out when the stored document is read: "source" chose MediathekViewWeb as the
+# search source until 0.1.0.dev36.
+RETIRED_SETTINGS = frozenset({"source"})
+
+
 class AppSettings(BaseModel):
     """Settings the user changes at runtime. New fields need a default: stored documents may lack them."""
 
@@ -176,8 +181,6 @@ class AppSettings(BaseModel):
     normalize_filenames: bool = True
     # Channel logos from the MediathekView project, fetched and cached by the server (logos.py); off by default.
     channel_logos: bool = False
-    # Search source: the local film list, or MediathekViewWeb's public API.
-    source: Literal["filmlist", "mediathekviewweb"] = "filmlist"
     # Naming of single downloads (subscriptions have their own). season_episode takes "(S02/E03)" from the
     # title, else the number "(39)" as season 1, else falls back to the date: the Plex/Jellyfin layout.
     naming_scheme: Literal["episode_number", "season_episode", "date", "template"] = "season_episode"
@@ -245,7 +248,8 @@ class StateStore:
         )
 
     def settings(self) -> AppSettings:
-        return AppSettings.model_validate(self._get("app") or {})
+        stored = self._get("app") or {}
+        return AppSettings.model_validate({k: v for k, v in stored.items() if k not in RETIRED_SETTINGS})
 
     def update_settings(self, changes: dict[str, Any]) -> AppSettings:
         """Validate and store a partial update; unknown keys and invalid values raise ``ValidationError``."""

@@ -10,7 +10,6 @@ import pytest
 from conftest import FIXTURES
 from fastapi.testclient import TestClient
 from test_filmlist_update import FakeServer
-from test_sources import FakeMvw
 
 from mtdl_web import __version__
 from mtdl_web.app import create_app
@@ -27,7 +26,6 @@ class Internet:
 
         self.filmlist.put("Filmliste-akt.xz", FULL_EXTRACT, '"akt"')
         self.filmlist.put("Filmliste-diff.xz", DIFF_EXTRACT_2019, '"diff"')
-        self.mvw = FakeMvw()
 
     def handler(self, request: httpx.Request) -> httpx.Response:
         if request.url.host == "res.mediathekview.de":  # the server directory, real files of 13.10.2026
@@ -35,8 +33,6 @@ class Internet:
             return httpx.Response(200, content=(FIXTURES / f"res-mediathekview-{name}-2026-10-13.xml").read_bytes())
         if request.url.host == "liste.mediathekview.de":
             return self.filmlist.handler(request)
-        if request.url.host == "mediathekviewweb.de":
-            return self.mvw.handler(request)
         raise AssertionError(f"unexpected request to {request.url}")
 
 
@@ -86,7 +82,7 @@ def test_imports_the_film_list_at_start(client: TestClient) -> None:
 
 def test_search_in_the_film_list(client: TestClient) -> None:
     body = client.get("/api/v1/search", params={"q": "das gipfeltreffen", "limit": 100}).json()
-    assert (body["source"], body["total"], len(body["films"])) == ("filmlist", 35, 35)
+    assert (body["total"], len(body["films"])) == (35, 35)
     newest = body["films"][0]
     assert newest["title"] == "Das Beste kommt noch! (58)"
     assert isinstance(newest["id"], str) and int(newest["id"]) >= 2**53  # beyond JavaScript's safe integers
@@ -98,12 +94,6 @@ def test_search_in_the_film_list(client: TestClient) -> None:
         assert client.get(f"/api/v1/films/{wrong}").status_code == 404, wrong
         refused = client.post("/api/v1/downloads", json={"film_id": wrong})
         assert (refused.status_code, refused.json()["detail"]["code"]) == (404, "film_not_found"), wrong
-
-
-def test_search_through_mediathekviewweb(client: TestClient, internet: Internet) -> None:
-    body = client.get("/api/v1/search", params={"q": "das gipfeltreffen", "source": "mediathekviewweb"}).json()
-    assert (body["source"], body["total"]) == ("mediathekviewweb", 35)
-    assert internet.mvw.bodies[0]["queries"][0]["query"] == "das gipfeltreffen"
 
 
 def test_description_search_follows_the_setting(tmp_path: Path, internet: Internet, client: TestClient) -> None:

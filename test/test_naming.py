@@ -4,11 +4,10 @@ import functools
 from pathlib import PurePosixPath
 
 import pytest
-from conftest import FULL_EXTRACT, load_films, mvw_results
+from conftest import FULL_EXTRACT, film_from_mvw, load_films, mvw_results
 
 from mtdl_web.models import Film
 from mtdl_web.naming import Episode, Naming, clean, episode, target_path, unknown_placeholders
-from mtdl_web.sources.mvw import film_from_mvw
 
 # Titles are real (film list of 12.10.2026); docs/filmliste-format.md counts how often each kind of character occurs.
 

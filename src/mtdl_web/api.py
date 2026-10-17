@@ -404,7 +404,6 @@ class FilmOut(BaseModel):
 
 
 class SearchOut(BaseModel):
-    source: str
     total: int
     films: list[FilmOut]
 
@@ -596,7 +595,6 @@ async def get_search(
     q: str = "",
     scope: Scope = "topic_title",
     description: bool = False,
-    source: Literal["filmlist", "mediathekviewweb"] | None = None,
     status: bool = False,
     limit: Annotated[int, Query(ge=1, le=2000)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
@@ -604,7 +602,7 @@ async def get_search(
     """``q`` understands the MediathekViewWeb syntax: ``!sender``, ``#thema``, ``+titel``, ``*beschreibung``,
     ``>minuten``, ``<minuten``, commas join words that must all occur. ``scope`` all (or ``description``) also searches
     descriptions; ``status`` adds what mtdl-web knows per hit."""
-    chosen = rt.source(source)
+    chosen = rt.source()
     if (description or scope == "all" or parse_query(q).descriptions) and not chosen.description_search:
         raise HTTPException(400, detail={"code": "description_search_unavailable"})
     try:
@@ -615,7 +613,7 @@ async def get_search(
     if status:
         for out, film_state in zip(films, film_status(rt, result.films), strict=True):
             out.status = film_state
-    return SearchOut(source=chosen.name, total=result.total, films=films)
+    return SearchOut(total=result.total, films=films)
 
 
 def _known_film(rt: Runtime, film_id: str) -> Film | None:
@@ -679,7 +677,7 @@ class NamingIn(BaseModel):
 
 
 class FilmIn(BaseModel):
-    """A film from a search result, for sources other than the local film list (MediathekViewWeb)."""
+    """A film as the naming preview takes it: example films that need not be in the film list."""
 
     channel: str
     topic: str
@@ -736,8 +734,7 @@ def post_naming_preview(rt: RuntimeDep, body: NamingPreviewIn) -> dict[str, list
 
 
 class DownloadIn(BaseModel):
-    film_id: str | None = None  # from the local film list
-    film: FilmIn | None = None  # or the film itself (MediathekViewWeb results)
+    film_id: str  # from the film list
     quality: Literal["hd", "normal", "low"] | None = None
     subtitles: bool | None = None
     naming: NamingIn | None = None
@@ -858,9 +855,7 @@ class _Target:
 
 
 def _film_of(rt: Runtime, body: "DownloadIn") -> Film:
-    if body.film is not None:
-        return body.film.to_film()
-    if body.film_id and (found := _known_film(rt, body.film_id)) is not None:
+    if (found := _known_film(rt, body.film_id)) is not None:
         return found
     raise HTTPException(404, detail={"code": "film_not_found"})
 
@@ -983,7 +978,6 @@ class SubscriptionIn(BaseModel):
     name: str = ""
     query: str
     include_description: bool = False
-    source: Literal["filmlist", "mediathekviewweb"] | None = None
     conditions: list[ConditionIO] = []
     naming: NamingIn = NamingIn()
     quality: Literal["hd", "normal", "low"] | None = None
@@ -1013,7 +1007,6 @@ class SubscriptionIn(BaseModel):
             conditions=tuple(conditions),
             naming=self.naming.to_naming(),
             include_description=self.include_description,
-            source=self.source,
             quality=self.quality,
             subtitles=self.subtitles,
             state=self.state,
@@ -1052,7 +1045,6 @@ class SubscriptionOut(SubscriptionIn):
             name=sub.name,
             query=sub.query,
             include_description=sub.include_description,
-            source=sub.source,  # type: ignore[arg-type]
             conditions=[ConditionIO(**condition_to_json(c)) for c in sub.conditions],
             naming=NamingIn(**naming),
             quality=sub.quality,  # type: ignore[arg-type]
@@ -1128,9 +1120,9 @@ async def get_subscriptions(rt: RuntimeDep) -> list[SubscriptionOut]:
 
 
 def _searchable(rt: Runtime, draft: SubscriptionDraft) -> None:
-    """Descriptions (option or ``*`` selector) need the description index of the chosen source."""
+    """Descriptions (option or ``*`` selector) need the description index."""
     wanted = draft.include_description or parse_query(draft.query).descriptions
-    if wanted and not rt.source(draft.source).description_search:
+    if wanted and not rt.source().description_search:
         raise HTTPException(400, detail={"code": "description_search_unavailable"})
 
 

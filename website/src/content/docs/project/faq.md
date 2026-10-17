@@ -46,7 +46,7 @@ Nein. mtdl-web nutzt dieselbe Filmliste, lädt selbst und übernimmt auf Wunsch 
 ## Wie viel Platz braucht mtdl-web?
 
 Rund 1 GB für Filmliste und Suchindex im Cache-Ordner, dazu die Downloads. Ohne Beschreibungen im Index
-(`MTDL_INDEX_DESCRIPTION=false`) sind es gut 100 MB weniger. Mit MediathekViewWeb als Datenquelle entfällt der Cache.
+(`MTDL_INDEX_DESCRIPTION=false`) sind es gut 100 MB weniger.
 
 ## Läuft mtdl-web auf einem Raspberry Pi?
 

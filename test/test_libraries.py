@@ -2,23 +2,30 @@
 are kept through the API, and a film goes into a movie library under its TMDB name. Real data: the Mediathek entries
 and TMDB answers of test_library.py, "Nikita" from the film list of 13.10.2026 (3sat) and TMDB of the same day."""
 
+import datetime as dt
+import io
 import json
 import sqlite3
 import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
 from conftest import FIXTURES
+from fastapi.testclient import TestClient
 from test_downloads import MediaServer, running_app, wait_until_idle
 from test_library import ANSTALT_DRAFT, TOKEN, FakeTmdb, films, library_app
+from test_subscriptions import runtime_of
 
 from mtdl_web.db import migrate
 from mtdl_web.downloads.queue import DownloadQueue, film_to_json
+from mtdl_web.filmlist.parser import COLUMNS, FilmListReader
 from mtdl_web.libraries import DEFAULT_MOVIE_TEMPLATE, Library, LibraryInUse, LibraryStore
 from mtdl_web.library import DEFAULT_TEMPLATE, STAGING
+from mtdl_web.models import film_id
 from mtdl_web.state import MIGRATIONS, StateStore
 from mtdl_web.subscriptions import SubscriptionStore
 
@@ -177,12 +184,19 @@ def test_libraries_through_the_api(tmp_path: Path) -> None:
         assert [lib["name"] for lib in api.get("/api/v1/libraries").json()] == ["TV-Serien", "Kinderserien"]
 
 
-def nikita() -> dict[str, Any]:
-    """The film list entry as a search result of MediathekViewWeb sends it (the local list here has no films)."""
+def nikita(api: TestClient) -> str:
+    """Puts the film into the app's film list, as a diff of one entry (the test list has no movies); its id."""
     (film,) = json.loads((FIXTURES / "films-filme-2026-10-13.json").read_text(encoding="utf-8"))["Nikita"]
-    film["start"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(film.pop("timestamp")))
-    del film["id"]
-    return dict(film)
+    when = dt.datetime.fromtimestamp(film["timestamp"], ZoneInfo("Europe/Berlin"))
+    hours, rest = divmod(film["duration"], 3600)
+    row = [film["channel"], film["topic"], film["title"], when.strftime("%d.%m.%Y"), when.strftime("%H:%M:%S")]
+    row += [f"{hours:02d}:{rest // 60:02d}:{rest % 60:02d}", str(film["size"] // 2**20), film.get("description", "")]
+    row += [film["url"], film.get("url_website") or "", film.get("url_subtitle") or "", "", film.get("url_low") or ""]
+    row += ["", film.get("url_hd") or "", "", str(film["timestamp"]), "", "-".join(film["geo"]), "false"]
+    header = ["13.10.2026, 12:00", "13.10.2026, 10:00", "3", "MSearch [Vers.: 3.1.294]", "0" * 32]
+    text = f'{{"Filmliste":{json.dumps(header)},"Filmliste":{json.dumps(list(COLUMNS))},"X":{json.dumps(row)}}}'
+    runtime_of(api).films.import_diff(FilmListReader(io.StringIO(text)))
+    return str(film_id(film["channel"], film["topic"], film["title"], film["url"]))
 
 
 def test_a_film_goes_into_the_movie_library_under_its_tmdb_name(tmp_path: Path) -> None:
@@ -222,7 +236,7 @@ def test_a_film_goes_into_the_movie_library_under_its_tmdb_name(tmp_path: Path) 
             [],
         )
         naming = {"target": "library", "library_id": library["id"], "tmdb_id": 9322}
-        target = api.post("/api/v1/downloads/target", json={"film": nikita(), "naming": naming}).json()
+        target = api.post("/api/v1/downloads/target", json={"film_id": nikita(api), "naming": naming}).json()
         file = movies / "Nikita (1990) {tmdb-9322}" / "Nikita (1990).mp4"
         assert target == {
             "library_id": library["id"],
@@ -232,16 +246,16 @@ def test_a_film_goes_into_the_movie_library_under_its_tmdb_name(tmp_path: Path) 
             "videos": [],
         }
         series_library = api.get("/api/v1/libraries").json()[0]
-        into_series = {"film": nikita(), "naming": {**naming, "library_id": series_library["id"]}}
+        into_series = {"film_id": nikita(api), "naming": {**naming, "library_id": series_library["id"]}}
         assert api.post("/api/v1/downloads", json=into_series).json()["detail"]["code"] == "library_single_download"
         assert (
-            api.post("/api/v1/downloads", json={"film": nikita(), "naming": {**naming, "tmdb_id": None}}).json()[
+            api.post("/api/v1/downloads", json={"film_id": nikita(api), "naming": {**naming, "tmdb_id": None}}).json()[
                 "detail"
             ]["code"]
             == "movie_missing"
         )
 
-        created = api.post("/api/v1/downloads", json={"film": nikita(), "naming": naming})
+        created = api.post("/api/v1/downloads", json={"film_id": nikita(api), "naming": naming})
         assert created.status_code == 201
         download = created.json()
         assert (download["library_id"], download["path"], download["file"]) == (
@@ -272,7 +286,7 @@ def test_a_film_goes_into_the_movie_library_under_its_tmdb_name(tmp_path: Path) 
         refresh = next(r for r in calls if r.url.path.endswith("/refresh"))
         assert refresh.url.path == "/library/sections/2/refresh"
         assert refresh.url.params["path"] == "/data/movies/Nikita (1990) {tmdb-9322}"
-        again = api.post("/api/v1/downloads/target", json={"film": nikita(), "naming": naming}).json()
+        again = api.post("/api/v1/downloads/target", json={"film_id": nikita(api), "naming": naming}).json()
         assert again["exists"] is True
         later = api.get("/api/v1/metadata/movies/9322", params={"library_id": library["id"]}).json()
         assert later["folders"] == ["Nikita (1990) {tmdb-9322}"]
@@ -289,6 +303,6 @@ def test_a_movie_folder_of_filebot_takes_the_film(tmp_path: Path) -> None:
         body = {"name": "Filme", "kind": "movies", "path": str(movies), "template": DEFAULT_MOVIE_TEMPLATE}
         library = api.post("/api/v1/libraries", json=body).json()
         naming = {"target": "library", "library_id": library["id"], "tmdb_id": 9322}
-        target = api.post("/api/v1/downloads/target", json={"film": nikita(), "naming": naming}).json()
+        target = api.post("/api/v1/downloads/target", json={"film_id": nikita(api), "naming": naming}).json()
         assert target["path"] == "Nikita (1990) [tmdbid-9322]/Nikita (1990).mp4"
         assert (target["exists"], target["videos"]) == (False, ["Nikita (1990).mkv"])  # the UI warns, a second copy

@@ -60,8 +60,8 @@ In der Datenbank liegen diese Tokens lesbar, denn mtdl-web braucht sie im Klarte
 
 ## Downloads
 
-Die Adressen von Sendungen, Playlists, Untertiteln und Filmlisten-Spiegeln stammen von anderen: aus der Filmliste,
-von MediathekViewWeb, von den Servern der Sender. mtdl-web lädt von ihnen nur aus dem Internet, nie aus dem eigenen
+Die Adressen von Sendungen, Playlists, Untertiteln und Filmlisten-Spiegeln stammen von anderen: aus der Filmliste
+und von den Servern der Sender. mtdl-web lädt von ihnen nur aus dem Internet, nie aus dem eigenen
 Netz. Es prüft die Adresse, mit der die Verbindung tatsächlich besteht, nicht nur den Namen davor; so kann auch eine
 manipulierte Liste keine Geräte im eigenen Netz abfragen. Webhooks und Plex sind ausgenommen, sie zeigen gewollt
 dorthin.

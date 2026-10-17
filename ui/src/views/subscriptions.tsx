@@ -17,7 +17,6 @@ export function draftOf(sub: Subscription): SubscriptionDraft {
     name: sub.name,
     query: sub.query,
     include_description: sub.include_description,
-    source: sub.source,
     conditions: sub.conditions,
     naming: sub.naming,
     quality: sub.quality,

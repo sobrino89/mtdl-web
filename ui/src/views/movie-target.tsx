@@ -17,7 +17,7 @@ function apiText(e: unknown): string {
 export function MovieTarget(props: {
   title: string;
   filmKey: string; // the film's id: a new film starts a new search
-  body: DownloadBody; // the film as the API takes it (film_id or the film itself)
+  body: DownloadBody; // the film as the API takes it (its id)
   libraries: Library[]; // the movie libraries, at least one
   onLoad: (naming: Naming) => void;
   onClose: () => void;

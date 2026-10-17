@@ -14,7 +14,7 @@ import json
 import logging
 import time
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, Literal
@@ -95,7 +95,6 @@ class Subscription:
     name: str
     query: str
     include_description: bool
-    source: str | None  # None: the source from the settings
     conditions: tuple[Condition, ...]
     naming: Naming
     quality: str | None  # None: from the settings
@@ -113,22 +112,19 @@ class Subscription:
 
 
 _COLUMNS = (
-    "id, name, query, include_description, source, conditions, naming, quality, subtitles, state, created_at,"
+    "id, name, query, include_description, conditions, naming, quality, subtitles, state, created_at,"
     " updated_at, last_check, last_error, last_queued, valid_until, on_expiry, special_versions"
 )
 
 
 def _row(row: tuple[Any, ...]) -> Subscription:
-    sid, name, query, desc, source, conditions, naming, quality, subtitles, state, created, updated, lc, le, lq = row[
-        :15
-    ]
-    valid_until, on_expiry, special_versions = row[15:]
+    sid, name, query, desc, conditions, naming, quality, subtitles, state, created, updated, lc, le, lq = row[:14]
+    valid_until, on_expiry, special_versions = row[14:]
     return Subscription(
         id=sid,
         name=name,
         query=query,
         include_description=bool(desc),
-        source=source,
         conditions=tuple(condition_from_json(c) for c in json.loads(conditions)),
         naming=Naming(**json.loads(naming)),
         quality=quality,
@@ -152,7 +148,6 @@ class SubscriptionDraft:
     conditions: tuple[Condition, ...]
     naming: Naming = field(default_factory=Naming)
     include_description: bool = False
-    source: str | None = None
     quality: str | None = None
     subtitles: bool | None = None
     state: SubState = "active"
@@ -175,7 +170,6 @@ class SubscriptionStore:
             draft.name,
             draft.query,
             int(draft.include_description),
-            draft.source,
             json.dumps([condition_to_json(c) for c in draft.conditions], ensure_ascii=False),
             json.dumps(naming_to_json(draft.naming), ensure_ascii=False),
             draft.quality,
@@ -189,9 +183,9 @@ class SubscriptionStore:
     def add(self, draft: SubscriptionDraft) -> Subscription:
         now = int(time.time())
         _, subscription_id = self._db.run(
-            "INSERT INTO subscription (name, query, include_description, source, conditions, naming, quality,"
+            "INSERT INTO subscription (name, query, include_description, conditions, naming, quality,"
             " subtitles, state, valid_until, on_expiry, special_versions, created_at, updated_at)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (*self._values(draft), now, now),
         )
         result = self.get(int(subscription_id or 0))
@@ -200,7 +194,7 @@ class SubscriptionStore:
 
     def update(self, subscription_id: int, draft: SubscriptionDraft) -> Subscription | None:
         changed, _ = self._db.run(
-            "UPDATE subscription SET name = ?, query = ?, include_description = ?, source = ?, conditions = ?,"
+            "UPDATE subscription SET name = ?, query = ?, include_description = ?, conditions = ?,"
             " naming = ?, quality = ?, subtitles = ?, state = ?, valid_until = ?, on_expiry = ?, special_versions = ?,"
             " updated_at = ?"
             " WHERE id = ?",
@@ -325,7 +319,7 @@ class SubscriptionService:
         self,
         store: SubscriptionStore,
         downloads: DownloadManager,
-        sources: Any,  # callable(name or None) -> Source
+        source: Callable[[], Source],  # the local film list
         settings: Any,  # callable() -> AppSettings
         download_dir: Path,
         bus: EventBus,
@@ -335,7 +329,7 @@ class SubscriptionService:
     ) -> None:
         self.store = store
         self._downloads = downloads
-        self._sources = sources
+        self._source = source
         self._settings = settings
         self._dir = download_dir
         self._tz = timezone
@@ -353,8 +347,9 @@ class SubscriptionService:
 
     async def preview(self, draft: SubscriptionDraft, skipped: frozenset[str] = frozenset()) -> Preview:
         """``skipped``: episode keys the subscription leaves alone (saved with "only future episodes")."""
-        source: Source = self._sources(draft.source)
-        found = await source.search(draft.query, include_description=draft.include_description, limit=SEARCH_LIMIT)
+        found = await self._source().search(
+            draft.query, include_description=draft.include_description, limit=SEARCH_LIMIT
+        )
         films = sorted(found.films, key=lambda f: (f.timestamp or 0, f.id))  # oldest first: queued in order
         rules = RuleSet(draft.conditions, timezone=self._tz)
         settings: AppSettings = self._settings()
@@ -586,7 +581,6 @@ def draft_of(subscription: Subscription) -> SubscriptionDraft:
         conditions=subscription.conditions,
         naming=subscription.naming,
         include_description=subscription.include_description,
-        source=subscription.source,
         quality=subscription.quality,
         subtitles=subscription.subtitles,
         state=subscription.state,

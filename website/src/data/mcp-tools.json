@@ -224,22 +224,6 @@
                 "title": "Include Description",
                 "type": "boolean"
               },
-              "source": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "filmlist",
-                      "mediathekviewweb"
-                    ],
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Source"
-              },
               "conditions": {
                 "default": [],
                 "items": {
@@ -459,7 +443,7 @@
     {
       "name": "get_settings",
       "write": false,
-      "description": "The settings: bandwidth_limit in byte/s (bandwidth_enabled switches it), the limit schedule,\nparallel_downloads, quality, subtitles, naming of single downloads, the search source and more.",
+      "description": "The settings: bandwidth_limit in byte/s (bandwidth_enabled switches it), the limit schedule,\nparallel_downloads, quality, subtitles, naming of single downloads and more.",
       "input_schema": {
         "properties": {},
         "title": "get_settingsArguments",
@@ -649,22 +633,6 @@
                 "default": false,
                 "title": "Include Description",
                 "type": "boolean"
-              },
-              "source": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "filmlist",
-                      "mediathekviewweb"
-                    ],
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Source"
               },
               "conditions": {
                 "default": [],
@@ -988,22 +956,6 @@
                 ],
                 "default": null,
                 "title": "Include Description"
-              },
-              "source": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "filmlist",
-                      "mediathekviewweb"
-                    ],
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Source"
               },
               "conditions": {
                 "anyOf": [
