@@ -1,10 +1,17 @@
-"""Polite download of the film list: full or diff by the Java client's rule, conditional requests, backoff.
+"""Polite download of the film list: the full list once a day, otherwise the diff; conditional requests, backoff.
 
-Where the list lives says the project's server directory (``res.mediathekview.de/akt.xml`` and ``diff.xml``, the
-way the Java client asks; forum.mediathekview.de, topic 3508, 17.06.2020): read once a day, the server with the
-best ``Prio`` wins, and the official address stays the fallback. The team asked for no experiments with other
-URLs and announced rate limiting; mtdl-web asks once an hour at a minute fixed per installation, revalidates with
-ETag and Last-Modified, and backs off on errors, honouring Retry-After.
+How the server works (MServer, ``Crawler.java``; forum.mediathekview.de, posts 4042, 11367 and 38221): from about
+05:00 to 23:00 German time it writes a new list every hour, as a full list (~77 MB) and as a diff (~0.2 MB). The
+diff holds everything that is new or changed since the day's first list (the "org" list) and never removes
+anything; expired broadcasts only go with a full list. So a client needs one full list per day, after the day's
+base exists, and diffs in between. The desktop client marks that point as 07:00 UTC (``canUseDiffList``) and loads
+every 12 hours; mtdl-web asks every hour, like the project's Kodi add-on, which also loads the full list once a day
+and diffs otherwise, at night too.
+
+Where the list lives says the project's server directory (``res.mediathekview.de/akt.xml`` and ``diff.xml``;
+forum topic 3508, 17.06.2020): read once a day, the server with the best ``Prio`` wins, and the official address
+stays the fallback. The team asked for no experiments with other URLs and announced rate limiting; mtdl-web asks at
+a minute fixed per installation, revalidates, and backs off on errors, honouring Retry-After.
 """
 
 import datetime as dt
@@ -19,7 +26,7 @@ from xml.etree import ElementTree
 
 import httpx
 
-from mtdl_web.filmlist.store import ImportResult, Kind
+from mtdl_web.filmlist.store import Kind
 
 log = logging.getLogger(__name__)
 
@@ -42,13 +49,24 @@ def servers(xml: bytes) -> list[str]:
     return [url for _, url in sorted(entries)]
 
 
-def choose_kind(last: ImportResult | None, now: dt.datetime) -> Kind:
-    """Rule of the Java client (``FilmListMetaData.canUseDiffList``): the server computes its diffs against a
-    daily base list, so a diff only applies to a local list created after today's 07:00 UTC."""
-    if last is None:
-        return "full"
-    base = dt.datetime.combine(now.astimezone(dt.UTC).date(), dt.time(7), dt.UTC)
-    return "diff" if last.created > base else "full"
+DAY_STARTS = dt.time(7)  # UTC: by then the day's base list exists (the desktop client's mark)
+
+
+def plan(last_full: dt.datetime | None, now: dt.datetime) -> tuple[Kind, dt.datetime | None]:
+    """What to fetch, and for a full list the time it must be newer than (else the server answers 304).
+
+    ``last_full``: when the newest full list was imported. Once a day, from 07:00 UTC, the full list is due: the
+    request asks only for a list published after 07:00, so the next hours bring nothing until the server has one,
+    and then it comes exactly once. Between full lists, also at night, the diff: night diffs already refer to the
+    next day's base, but they add what is new; the day's full list fills the rest. A list older than the last
+    07:00 (the first start, a machine that was off) is replaced at once."""
+    day = now.astimezone(dt.UTC)
+    start = dt.datetime.combine(day.date(), DAY_STARTS, dt.UTC)
+    if start > day:
+        start -= dt.timedelta(days=1)
+    if last_full is not None and last_full >= start:
+        return "diff", None
+    return "full", start
 
 
 class FetchError(Exception):
@@ -110,15 +128,26 @@ class ListFetcher:
         self._known[kind] = (time.monotonic(), url)
         return url
 
-    async def fetch(self, kind: Kind, progress: Callable[[int, int | None], None] | None = None) -> Fetched:
-        """``progress`` hears the bytes so far and the expected size (Content-Length, if the server names it)."""
+    async def fetch(
+        self,
+        kind: Kind,
+        progress: Callable[[int, int | None], None] | None = None,
+        *,
+        newer_than: dt.datetime | None = None,
+    ) -> Fetched:
+        """``progress`` hears the bytes so far and the expected size (Content-Length, if the server names it).
+        ``newer_than``: only a list published after this time (the day's full list, ``plan``); until the server has
+        one it answers 304. Otherwise the copy we have is revalidated with ETag and Last-Modified. Behind the name
+        are two servers whose ETags differ for the same file, so the full list asks by time alone."""
         name = FILES[kind]
         url = await self.url(kind)
         target = self._dir / name
         part = self._dir / f"{name}.part"
         validators_file = self._dir / f"{name}.http.json"
         headers = {}
-        if target.exists() and validators_file.exists():
+        if target.exists() and newer_than is not None:
+            headers["If-Modified-Since"] = email.utils.format_datetime(newer_than.astimezone(dt.UTC), usegmt=True)
+        elif target.exists() and validators_file.exists():
             validators = json.loads(validators_file.read_text())
             if validators.get("etag"):
                 headers["If-None-Match"] = validators["etag"]

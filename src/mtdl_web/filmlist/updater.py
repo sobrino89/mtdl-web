@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Literal
 
 from mtdl_web.events import EventBus, FilmlistUpdated
-from mtdl_web.filmlist.fetch import Backoff, FetchError, ListFetcher, choose_kind
+from mtdl_web.filmlist.fetch import Backoff, FetchError, ListFetcher, plan
 from mtdl_web.filmlist.parallel import open_for_import
 from mtdl_web.filmlist.store import FilmStore, ImportResult, Kind
 
@@ -54,16 +54,16 @@ class FilmlistUpdater:
             now = self._clock()
             if not self.backoff.ready(now):
                 return None
-            kind = choose_kind(self._store.last_import(), now)
+            kind, newer_than = plan(self._store.last_full_at(), now)
             try:
-                return await self._update(kind, now)
+                return await self._update(kind, now, newer_than)
             finally:
                 self.progress = None
 
-    async def _update(self, kind: Kind, now: dt.datetime) -> ImportResult | None:
+    async def _update(self, kind: Kind, now: dt.datetime, newer_than: dt.datetime | None) -> ImportResult | None:
         self.progress = Progress("download")
         try:
-            fetched = await self._fetcher.fetch(kind, self._downloaded)
+            fetched = await self._fetcher.fetch(kind, self._downloaded, newer_than=newer_than)
         except FetchError as exc:
             self.backoff.failed(now, exc.retry_after)
             raise

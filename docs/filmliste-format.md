@@ -12,14 +12,23 @@ auf diesen Stand. Testdaten daraus: `test/fixtures/README.md`.
 - Hinter dem Namen stehen zwei Server (`88.99.10.178`, `.179`, 13.10.2026). Dieselbe Datei hatte dort zeitweise
   verschiedene `Last-Modified` und ETags (21:55:02 gegen 21:55:19, gleiche Größe): Ein bedingter Request trifft nur
   beim selben Server. Folge nur Bandbreite, kein Doppelimport, weil mtdl-web die Listen-ID prüft.
+- Der Server (Crawler MServer, `Crawler.java`) schreibt von etwa 5 bis 23 Uhr (deutsche Zeit) stündlich eine neue
+  Liste, jeweils als Vollliste und als Diff derselben Erzeugung. Die Diff enthält alle Einträge, die nicht in der
+  „Org-Liste“ stehen, laut Code „typ. erste Liste am Tag“; sie wächst also über den Tag und beginnt nach der
+  Nachtpause neu. Gelöschte Sendungen enthält sie nie (Forum, Beiträge 4042 vom 05.10.2017 und 38221 vom
+  11.01.2025; empirisch: alle 1.720 Diff-Einträge stehen feldgleich in der Vollliste derselben Erzeugung).
 - Regel des Java-Clients (MediathekView, `FilmListMetaData.canUseDiffList()`, `ListeFilme.updateFromFilmList()`,
-  `Konstanten.ALTER_FILMLISTE_SEKUNDEN_FUER_AUTOUPDATE`):
-  - Diff nur, wenn die lokale Liste **nach heute 07:00 UTC** erzeugt wurde, sonst Vollliste. Die Diff enthält die
-    Einträge, die seit der Tages-Vollliste hinzukamen (empirisch: alle 1.720 Diff-Einträge stehen feldgleich in der
-    Vollliste derselben Erzeugung).
+  `AutomaticFilmlistUpdate`):
+  - Diff nur, wenn die lokale Liste **nach heute 07:00 UTC** erzeugt wurde, sonst Vollliste (früher 9 Uhr Ortszeit,
+    „Uhrzeit ab der die Diffliste alle Änderungen abdeckt“, MLib `Const.TIME_MAX_AGE_FOR_DIFF`).
   - Einsortieren: lokale Einträge mit gleicher Identität (Sender, Thema, URL, Website) entfernen, Diff-Einträge
     hinzufügen, Metadaten der Diff übernehmen. Gelöschte Sendungen verschwinden erst mit der nächsten Vollliste.
-  - Automatische Aktualisierung ab 3 Stunden Alter.
+  - Lädt beim Start ab 3 Stunden Alter, danach alle 12 Stunden; für diesen Takt ist die Regel gebaut.
+- mtdl-web fragt stündlich und macht es wie die Kodi-Erweiterung des Projekts (`updater.py`): die Vollliste einmal
+  am Tag, sonst die Diff, auch nachts (`filmlist/fetch.py`, `plan`). Die Vollliste wird ab 07:00 UTC mit
+  `If-Modified-Since: <heute 07:00 UTC>` angefragt: Bis der Server eine danach veröffentlichte Liste hat, antwortet
+  er 304, danach kommt sie genau einmal. Die 07:00-Regel stündlich angewandt hätte zwischen Mitternacht und 07:00
+  UTC jede neue Vollliste geladen (in den Tagen bis 0.1.0.dev36: fünf bis sechs je Nacht).
 
 ## Aufbau
 

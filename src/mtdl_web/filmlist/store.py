@@ -198,7 +198,8 @@ def _folded_words(text: str) -> list[str]:
 
 
 class FilmStore:
-    def __init__(self, path: Path | str, *, index_description: bool) -> None:
+    def __init__(self, path: Path | str, *, index_description: bool, clock: Callable[[], float] = time.time) -> None:
+        self._clock = clock  # when an import happened (list_import.imported_at)
         self._con = connect(path)
         self._con.execute("PRAGMA cache_size = -65536")  # 64 MB; the default 2 MB makes a full import crawl
         # A full import is one transaction, so the WAL grows to the size of the database; without a limit it keeps
@@ -347,7 +348,7 @@ class FilmStore:
         self._con.execute(
             "INSERT INTO list_import (kind, list_id, created, imported_at, added, changed, removed, total)"
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (kind, result.list_id, int(result.created.timestamp()), int(time.time()), added, changed, removed, total),
+            (kind, result.list_id, int(result.created.timestamp()), int(self._clock()), added, changed, removed, total),
         )
         return result
 
@@ -387,6 +388,11 @@ class FilmStore:
         """A full list counts as imported only by a full import; a diff also by the full list it came with."""
         sql = "SELECT 1 FROM list_import WHERE list_id = ? AND (kind = 'full' OR ? = 'diff') LIMIT 1"
         return self._read.one(sql, (list_id, kind)) is not None
+
+    def last_full_at(self) -> dt.datetime | None:
+        """When the newest full list was imported: the next one is due once a day (fetch.plan)."""
+        row = self._read.one("SELECT imported_at FROM list_import WHERE kind = 'full' ORDER BY id DESC LIMIT 1")
+        return None if row is None else dt.datetime.fromtimestamp(row[0], dt.UTC)
 
     def last_import(self, kind: Kind | None = None) -> ImportResult | None:
         sql = "SELECT kind, list_id, created, added, changed, removed, total FROM list_import"
