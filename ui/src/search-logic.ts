@@ -333,9 +333,21 @@ export function isFuture(film: Film, now: number): boolean {
   return !!film.start && Date.parse(film.start) > now;
 }
 
-/** The URL a browser preview plays: the normal quality, else whatever exists. */
-export function previewUrl(film: Film): string | null {
-  return film.url ?? film.url_low ?? film.url_hd;
+/** The URL of one quality, if the film list has it. */
+export function urlOf(film: Film, quality: Quality): string | null {
+  return (quality === "hd" ? film.url_hd : quality === "normal" ? film.url : film.url_low) || null;
+}
+
+const FALLBACK: Record<Quality, readonly Quality[]> = {
+  hd: ["hd", "normal", "low"],
+  normal: ["normal", "low", "hd"],
+  low: ["low", "normal", "hd"],
+};
+
+/** The quality a download gets when ``wanted`` is asked for, the same way the server picks it: that one, else the next
+ * lower, else the next higher one. The browser preview starts with it too. */
+export function pickQuality(film: Film, wanted: Quality): Quality | null {
+  return FALLBACK[wanted].find((q) => urlOf(film, q) !== null) ?? null;
 }
 
 export function isHls(url: string): boolean {

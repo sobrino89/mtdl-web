@@ -269,6 +269,7 @@ export const en: Catalog = {
   "det.preview_hls":
     "This HLS broadcast cannot be played here: the broadcaster does not allow playing it on other sites. Watch it on the broadcaster's page or download it.",
   "det.preview_none": "No preview available.",
+  "det.preview_quality": "Preview quality",
   "det.qualities": "Qualities",
   "det.quality_download": "Download in this quality",
   "det.subtitles": "Subtitles",

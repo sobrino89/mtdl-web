@@ -16,9 +16,11 @@ import {
   marks,
   nextSort,
   parseFilters,
+  pickQuality,
   qualities,
   sortFilms,
   topicCount,
+  urlOf,
 } from "../src/search-logic";
 
 const result = JSON.parse(readFileSync("test/fixtures/search-das-gipfeltreffen.json", "utf8")) as SearchResult;
@@ -142,4 +144,21 @@ test("marks and qualities of a hit", () => {
   const q = qualities(newest);
   assert.deepEqual(q.map((x) => [x.quality, x.available]), [["hd", true], ["normal", true], ["low", true]]);
   assert.equal(q[1]?.size, 267386880);
+});
+
+test("download button and preview take the preferred quality like the server picks it", () => {
+  const all = films[0] as Film;
+  assert.equal(pickQuality(all, "hd"), "hd");
+  assert.equal(pickQuality(all, "normal"), "normal");
+  assert.equal(pickQuality(all, "low"), "low");
+  assert.equal(urlOf(all, "low"), all.url_low);
+  // The one hit of the fixture without HD (jq: 1 of 35): HD preferred, the next lower one plays.
+  const noHd = films[11] as Film;
+  assert.equal(noHd.url_hd, null);
+  assert.equal(pickQuality(noHd, "hd"), "normal");
+  // Nothing lower: the next higher one.
+  const onlyHd: Film = { ...all, url: null, url_low: null };
+  assert.equal(pickQuality(onlyHd, "low"), "hd");
+  assert.equal(pickQuality(onlyHd, "normal"), "hd");
+  assert.equal(pickQuality({ ...onlyHd, url_hd: null }, "hd"), null);
 });

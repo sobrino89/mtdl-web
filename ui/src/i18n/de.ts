@@ -269,6 +269,7 @@ export const de = {
   "det.preview_hls":
     "Diese HLS-Sendung lässt sich hier nicht abspielen: Der Sender erlaubt das Abspielen auf anderen Seiten nicht. Auf der Senderseite ansehen oder herunterladen.",
   "det.preview_none": "Keine Vorschau verfügbar.",
+  "det.preview_quality": "Qualität der Vorschau",
   "det.qualities": "Qualitäten",
   "det.quality_download": "In dieser Qualität laden",
   "det.subtitles": "Untertitel",

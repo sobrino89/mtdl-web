@@ -137,6 +137,9 @@
 .preview-start { position: absolute; inset: 0; border: 0; background: oklch(0.2 0.01 70 / .42); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: oklch(0.98 0 0); }
 .preview-play { width: 52px; height: 52px; border-radius: 50%; background: oklch(0.98 0 0 / .95); display: flex; align-items: center; justify-content: center; color: oklch(0.2 0.01 70); }
 .preview-play svg { margin-left: 3px; }
+.preview-quality { margin: 8px 18px 0; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--fg-2); }
+.preview-quality span { flex: 1; }
+.preview-quality select.input { height: 28px; }
 .preview-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; text-align: center; background: oklch(0.2 0.01 70 / .62); color: oklch(0.98 0 0); font-size: 12.5px; line-height: 1.5; }
 .detail-status { margin: 12px 18px 0; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r-m); background: var(--bg); font-size: 12.5px; color: var(--fg-2); }
 .detail-status svg { flex: none; }

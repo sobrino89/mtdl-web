@@ -54,9 +54,11 @@ Detail. Bei sehr vielen Treffern lädt die Liste die neuesten und bietet **Weite
 
 ## Details
 
-Ein Klick auf einen Treffer öffnet die Details: Beschreibung, Qualitäten mit Größe, Untertitel, Geo-Sperre und
-die Seite des Senders. Die **Vorschau** spielt die Sendung im Browser. Manche HLS-Sendungen lassen sich dort nicht
-abspielen, weil der Sender das Abspielen auf fremden Seiten nicht erlaubt; geladen werden können sie trotzdem.
+Ein Klick auf einen Treffer öffnet die Details: Beschreibung, Qualitäten (eine Größe nennt die Filmliste nur für
+„Hoch“), Untertitel, Geo-Sperre und die Seite des Senders. Die **Vorschau** spielt die Sendung im Browser, direkt vom
+Sender und ohne Bandbreitenlimit, in der bevorzugten Qualität aus **Einstellungen**, **Qualität**. Darunter lässt
+sich eine andere wählen; die Wiedergabe läuft an derselben Stelle weiter. Manche HLS-Sendungen lassen sich im Browser
+nicht abspielen, weil der Sender das Abspielen auf fremden Seiten nicht erlaubt; geladen werden können sie trotzdem.
 
 ## Herunterladen und abonnieren
 

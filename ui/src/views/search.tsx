@@ -348,7 +348,8 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
   const [failure, setFailure] = useState<string | null>(null);
   const [pop, setPop] = useState<Pop>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
-  const [selQuality, setSelQuality] = useState<Quality>("hd");
+  const [selQuality, setSelQuality] = useState<Quality | null>(null); // null: the preferred one from the settings
+  const bulkQuality = selQuality ?? settings?.quality ?? "hd";
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -981,7 +982,7 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
                 <span class="grow" />
                 <select
                   class="input"
-                  value={selQuality}
+                  value={bulkQuality}
                   aria-label={t("q.label")}
                   onChange={(e) => setSelQuality((e.target as HTMLSelectElement).value as Quality)}
                 >
@@ -992,7 +993,7 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
                 <button
                   class="button primary"
                   onClick={() => {
-                    void enqueue(selectedFilms, selQuality);
+                    void enqueue(selectedFilms, bulkQuality);
                     setSelected(new Set());
                   }}
                 >
@@ -1132,6 +1133,7 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
             setPlaying={setPlaying}
             timeZone={timeZone}
             subtitles={settings?.subtitles ?? true}
+            quality={settings?.quality ?? "hd"}
             live={detail.status?.download_id != null ? live.get(detail.status.download_id) : undefined}
             onClose={() => setQuery({ id: "", ziel: "" })}
             onDownload={(q) => void enqueue([detail], q)}
@@ -1165,6 +1167,8 @@ function Detail(props: {
   setPlaying: (on: boolean) => void;
   timeZone: string | undefined;
   subtitles: boolean;
+  /** The preferred quality from the settings: the download button and the preview start with it. */
+  quality: Quality;
   live: number | undefined;
   future: boolean;
   onClose: () => void;
@@ -1189,12 +1193,15 @@ function Detail(props: {
   else if (st.kind === "failed") statusText = t("det.st_failed");
   if (st.sub) statusText = statusText ? statusText + t("det.st_sub_suffix", { name: st.sub }) : t("det.st_sub", { name: st.sub });
   const icon = st.kind === "done" || st.kind === "dup" ? I.check : st.kind === "queued" ? I.clock : st.kind === "failed" ? I.warn : st.sub ? I.abos : I.download;
-  const preview = S.previewUrl(film);
   const geoText = S.geoLabel(film);
   const marks = [film.url_hd ? "HD" : null, film.url_subtitle ? t("col.ut") : null, geoText ? `Geo ${geoText}` : null].filter(
     (x): x is string => !!x,
   );
-  const bestQuality: Quality = film.url_hd ? "hd" : film.url ? "normal" : "low";
+  const preferred = S.pickQuality(film, props.quality) ?? props.quality;
+  // The preview plays the preferred quality unless another one was picked for this film.
+  const [picked, setPicked] = useState<{ film: string; quality: Quality } | null>(null);
+  const previewQuality = picked?.film === film.id ? picked.quality : preferred;
+  const available = S.qualities(film).filter((q) => q.available);
   const website = film.url_website;
   return (
     <aside aria-label={t("det.label")} class={`detail${props.side ? " side" : ""}${props.mobile ? " mobile" : ""}`}>
@@ -1217,12 +1224,29 @@ function Detail(props: {
         ))}
       </div>
       <Preview
-        url={preview}
+        key={film.id}
+        url={S.urlOf(film, previewQuality)}
         playing={props.playing}
         setPlaying={props.setPlaying}
         duration={film.duration}
         future={props.future ? t("det.future", { date: F.dateTime(film.start, timeZone) }) : null}
       />
+      {available.length > 1 && !props.future && (
+        <label class="preview-quality">
+          <span>{t("det.preview_quality")}</span>
+          <select
+            class="input"
+            value={previewQuality}
+            onChange={(e) => setPicked({ film: film.id, quality: (e.target as HTMLSelectElement).value as Quality })}
+          >
+            {available.map((q) => (
+              <option key={q.quality} value={q.quality}>
+                {t(QUALITY_KEYS[q.quality])}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {statusText && (
         <div class="detail-status">
           <Icon d={icon} size={14} stroke={2} class={st.kind === "done" ? "ok-text" : st.kind === "failed" ? "err-text" : ""} />
@@ -1306,9 +1330,9 @@ function Detail(props: {
         ))}
       <div class="grow detail-spacer" />
       <div class="detail-actions">
-        <button class="button primary grow" onClick={() => props.onDownload(bestQuality)}>
+        <button class="button primary grow" onClick={() => props.onDownload(preferred)}>
           <Icon d={I.download} size={15} stroke={1.9} />
-          {t("det.download_quality", { quality: t(QUALITY_KEYS[bestQuality]) })}
+          {t("det.download_quality", { quality: t(QUALITY_KEYS[preferred]) })}
         </button>
         <button class="button" onClick={props.onSubscribe}>
           {t("search.subscribe")}
@@ -1328,6 +1352,7 @@ function Preview(props: {
   const { url } = props;
   const nativeHls = useMemo(() => document.createElement("video").canPlayType("application/vnd.apple.mpegurl") !== "", []);
   const [hlsFailed, setHlsFailed] = useState(false);
+  const position = useRef(0); // seconds played: another quality goes on from there
   useEffect(() => setHlsFailed(false), [url]);
   if (props.future) return <div class="preview stripes-bg"><div class="preview-note">{props.future}</div></div>;
   if (!url) return <div class="preview stripes-bg"><div class="preview-note">{t("det.preview_none")}</div></div>;
@@ -1335,13 +1360,27 @@ function Preview(props: {
     if (S.isHls(url) && !nativeHls) {
       return (
         <div class="preview dark">
-          {hlsFailed ? <div class="preview-note">{t("det.preview_hls")}</div> : <HlsVideo url={url} onFail={() => setHlsFailed(true)} />}
+          {hlsFailed ? (
+            <div class="preview-note">{t("det.preview_hls")}</div>
+          ) : (
+            <HlsVideo url={url} position={position} onFail={() => setHlsFailed(true)} />
+          )}
         </div>
       );
     }
     return (
       <div class="preview dark">
-        <video src={url} controls autoPlay playsInline preload="metadata" />
+        <video
+          src={url}
+          controls
+          autoPlay
+          playsInline
+          preload="metadata"
+          onTimeUpdate={(e) => notePosition(position, e.currentTarget)}
+          onLoadedMetadata={(e) => {
+            if (position.current > 0) e.currentTarget.currentTime = position.current;
+          }}
+        />
       </div>
     );
   }
@@ -1359,10 +1398,11 @@ function Preview(props: {
 
 /** HLS where the browser cannot play it itself (Chrome, Firefox): hls.js, loaded only for this. It fetches playlist
  * and segments straight from the broadcaster, which has to allow that (CORS); ORF and SRF do. */
-function HlsVideo(props: { url: string; onFail: () => void }): JSX.Element {
+function HlsVideo(props: { url: string; position: { current: number }; onFail: () => void }): JSX.Element {
   const video = useRef<HTMLVideoElement>(null);
   const onFail = useRef(props.onFail);
   onFail.current = props.onFail;
+  const { position } = props;
   useEffect(() => {
     let player: { destroy(): void } | null = null;
     let gone = false;
@@ -1371,7 +1411,8 @@ function HlsVideo(props: { url: string; onFail: () => void }): JSX.Element {
         const element = video.current;
         if (gone || !element) return;
         if (!Hls.isSupported()) return onFail.current();
-        const hls = new Hls({ enableWorker: false }); // a worker would need a blob: script in the CSP
+        // A worker would need a blob: script in the CSP. -1 is hls.js's own start: the beginning, or live.
+        const hls = new Hls({ enableWorker: false, startPosition: position.current > 0 ? position.current : -1 });
         player = hls;
         hls.on(Hls.Events.ERROR, (_event, data) => data.fatal && onFail.current());
         hls.loadSource(props.url);
@@ -1383,8 +1424,14 @@ function HlsVideo(props: { url: string; onFail: () => void }): JSX.Element {
       gone = true;
       player?.destroy();
     };
-  }, [props.url]);
-  return <video ref={video} controls autoPlay playsInline />;
+  }, [props.url, position]);
+  return <video ref={video} controls autoPlay playsInline onTimeUpdate={(e) => notePosition(position, e.currentTarget)} />;
+}
+
+/** Notes where playback is. A new source resets the element to 0 before it loads (readyState 0): that does not count,
+ * so another quality goes on where the last one was. */
+function notePosition(position: { current: number }, video: HTMLVideoElement): void {
+  if (video.readyState > 0) position.current = video.currentTime;
 }
 
 function TitlePop(props: { value: string; onInput: (value: string) => void }): JSX.Element {
