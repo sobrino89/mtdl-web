@@ -304,8 +304,13 @@ def running_app(
 
     app = create_app(settings_for(tmp_path, **overrides), transport=httpx.MockTransport(handler))
     with TestClient(app) as client:
+        subscriptions = app.state.runtime.subscriptions
         deadline = time.monotonic() + 30
-        while client.get("/api/v1/filmlist").json()["films"] != 220:
+        # Also past the subscription check the import starts: under load it would otherwise race a test's own checks.
+        while True:
+            status = client.get("/api/v1/filmlist").json()
+            if status["films"] == 220 and not status["running"] and not subscriptions.checking:
+                break
             assert time.monotonic() < deadline
             time.sleep(0.05)
         yield client

@@ -341,9 +341,13 @@ class SubscriptionService:
         bus.subscribe(self._on_event)
 
     def _on_event(self, event: Event) -> None:
-        idle = self._pending is None or self._pending.done()
-        if isinstance(event, FilmlistUpdated) and (event.added or event.changed) and idle:
+        if isinstance(event, FilmlistUpdated) and (event.added or event.changed) and not self.checking:
             self._pending = asyncio.create_task(self.check_all(), name="subscription-check")
+
+    @property
+    def checking(self) -> bool:
+        """The check after a film list update is still to come or running."""
+        return self._pending is not None and not self._pending.done()
 
     async def preview(self, draft: SubscriptionDraft, skipped: frozenset[str] = frozenset()) -> Preview:
         """``skipped``: episode keys the subscription leaves alone (saved with "only future episodes")."""

@@ -132,11 +132,8 @@ def test_film_list_updates_trigger_checks(api: TestClient) -> None:  # noqa: F81
     event = FilmlistUpdated(kind="diff", list_id="x", created=last.created, added=3, changed=0, removed=0, total=3)
 
     async def publish_and_wait() -> None:
-        # The check after the app's own first import may still run; a new event meanwhile starts none.
-        while runtime.subscriptions._pending is not None and not runtime.subscriptions._pending.done():
-            await asyncio.sleep(0.01)
         await runtime.bus.publish(event)
-        while runtime.subscriptions._pending is not None and not runtime.subscriptions._pending.done():
+        while runtime.subscriptions.checking:
             await asyncio.sleep(0.01)
 
     call(api, publish_and_wait)
