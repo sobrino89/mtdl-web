@@ -1,6 +1,6 @@
 """mtdl-web: search, download and subscribe to the German public broadcasters' media libraries."""
 
-__version__ = "0.1.0.dev37"
+__version__ = "0.1.0.dev38"
 
 PROJECT_URL = "https://github.com/sobrino89/mtdl-web"
 
