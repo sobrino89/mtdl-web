@@ -708,7 +708,7 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
     );
   };
 
-  const toggle = (k: "hd" | "ut" | "kuenftig", on: boolean, label: string) => (
+  const toggle = (k: "hd" | "ut" | "deutsch" | "ohnesonder" | "kuenftig", on: boolean, label: string) => (
     <button class={`chip toggle${on ? " on" : ""}`} aria-pressed={on} onClick={() => setFilter({ [k]: on ? "" : "1" })}>
       {on && <Icon d={I.check} size={13} stroke={2.2} />}
       {label}
@@ -823,6 +823,8 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
         <span class="chip-sep" />
         {toggle("hd", f.hd, t("search.hd"))}
         {toggle("ut", f.ut, t("search.ut"))}
+        {toggle("deutsch", f.deutsch, t("search.deutsch"))}
+        {toggle("ohnesonder", f.ohnesonder, t("search.ohnesonder"))}
         {toggle("kuenftig", f.kuenftig, t("search.kuenftig"))}
         {S.hasFilters(f) && (
           <button class="chip-reset" onClick={() => setFilter(S.NO_FILTERS)}>
@@ -893,6 +895,8 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
       if (kind === "titel") return t("search.titel_on", { text: value });
       if (kind === "dauer") return t("search.dauer");
       if (kind === "zeit") return zeitChip[value as S.Period];
+      if (kind === "deutsch") return t("search.deutsch");
+      if (kind === "ohnesonder") return t("search.ohnesonder");
       return kind === "hd" ? t("search.hd") : t("search.ut");
     };
     const unfiltered = S.applyFilters(films, S.parseFilters({ q: f.q, kuenftig: f.kuenftig ? "1" : "" }), now).length;

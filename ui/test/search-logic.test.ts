@@ -146,6 +146,20 @@ test("marks and qualities of a hit", () => {
   assert.equal(q[1]?.size, 267386880);
 });
 
+test("German only and without special versions go by what the server marks", () => {
+  // The fixture predates both fields (0.1.0.dev40); the marks are the server's answers for such titles.
+  const [a, b, c] = films as [Film, Film, Film];
+  const marked = [{ ...a, other_language: "Originalversion" }, { ...b, special_version: "Audiodeskription" }, c];
+  const shown = (query: Record<string, string>) =>
+    applyFilters(marked, parseFilters({ q: "das gipfeltreffen", ...query }), NOW).map((film) => film.id);
+  assert.deepEqual(shown({}), [a.id, b.id, c.id]);
+  assert.deepEqual(shown({ deutsch: "1" }), [b.id, c.id]);
+  assert.deepEqual(shown({ ohnesonder: "1" }), [a.id, c.id]);
+  assert.deepEqual(shown({ deutsch: "1", ohnesonder: "1" }), [c.id]);
+  const chips = activeFilters(parseFilters({ deutsch: "1", ohnesonder: "1" }));
+  assert.deepEqual(chips.map((chip) => [chip.kind, chip.patch]), [["deutsch", { deutsch: "" }], ["ohnesonder", { ohnesonder: "" }]]);
+});
+
 test("download button and preview take the preferred quality like the server picks it", () => {
   const all = films[0] as Film;
   assert.equal(pickQuality(all, "hd"), "hd");

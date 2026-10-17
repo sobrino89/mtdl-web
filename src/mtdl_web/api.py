@@ -27,6 +27,7 @@ from mtdl_web.downloads.manager import Duplicate, Live
 from mtdl_web.downloads.queue import Download, State
 from mtdl_web.filmlist.parser import clean_url, website_url
 from mtdl_web.filmlist.store import ImportResult
+from mtdl_web.language import other_language
 from mtdl_web.libraries import Kind, Library, LibraryDraft, LibraryInUse
 from mtdl_web.library import (
     VIDEO_EXTENSIONS,
@@ -381,6 +382,8 @@ class FilmOut(BaseModel):
     url_subtitle: str | None
     url_website: str | None
     geo: list[str]
+    special_version: str | None = None  # the marker of a special version ("Audiodeskription"), as subscriptions see it
+    other_language: str | None = None  # why it is probably not in German ("Originalversion", "engl.", "ARTE.FR")
     status: FilmStatusOut | None = None
 
     @classmethod
@@ -400,6 +403,8 @@ class FilmOut(BaseModel):
             url_subtitle=film.url_subtitle,
             url_website=film.url_website,
             geo=list(film.geo),
+            special_version=special_version(film),
+            other_language=other_language(film),
         )
 
 

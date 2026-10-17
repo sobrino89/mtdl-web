@@ -31,6 +31,11 @@ _ACCENTS = re.compile(f"(?<![aou]){chr(0x308)}|[{chr(0x300)}-{chr(0x307)}{chr(0x
 
 
 _SHARP_S_WORD = re.compile(r"\w*ß\w*")
+# Apostrophes between letters in the film list of 17.10.2026 (11,691 titles and topics): ' and ’ by far, then ´,
+# ‘, ` and ʼ. "Girl's", "geht's", "Ku'damm", "Liebesg'schichten".
+_APOSTROPHES = "'’´‘`ʼ"
+_APOSTROPHE = re.compile(f"[{_APOSTROPHES}]")
+_APOSTROPHE_WORD = re.compile(rf"\w+(?:[{_APOSTROPHES}]\w+)+")
 
 
 def search_text(text: str) -> str:
@@ -46,8 +51,12 @@ def search_text(text: str) -> str:
 def index_text(text: str) -> str:
     """What the full-text index stores: ``search_text``, and every word with "ß" a second and third time with "ss"
     and "s" ("Maß" → "maß mass mas"). So "Mass" and "Mas" find "Maß", while "Maß" finds only words with "ß", not
-    "Masse". The index tokenizer itself removes nothing."""
+    "Masse". A word with an apostrophe comes a second time without it ("Girl's" → "girl's girls"): the tokenizer
+    splits at the apostrophe, so "Girls" would find nothing, while "Girl" and "Girl's" still find it. The index
+    tokenizer itself removes nothing."""
     folded = search_text(text)
-    if "ß" not in folded:
-        return folded
-    return _SHARP_S_WORD.sub(lambda m: f"{m[0]} {m[0].replace('ß', 'ss')} {m[0].replace('ß', 's')}", folded)
+    if "ß" in folded:
+        folded = _SHARP_S_WORD.sub(lambda m: f"{m[0]} {m[0].replace('ß', 'ss')} {m[0].replace('ß', 's')}", folded)
+    if _APOSTROPHE.search(folded):
+        folded = _APOSTROPHE_WORD.sub(lambda m: f"{m[0]} {_APOSTROPHE.sub('', m[0])}", folded)
+    return folded

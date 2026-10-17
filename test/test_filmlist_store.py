@@ -225,6 +225,25 @@ def test_sharp_s_finds_only_itself_but_ss_and_s_find_it() -> None:
     assert found("mas") == {1, 2, 3}
 
 
+def test_a_word_with_an_apostrophe_is_found_with_and_without_it() -> None:
+    con = sqlite3.connect(":memory:")  # the index as the store builds it; topics of the film list of 17.10.2026
+    con.executescript("CREATE TABLE film (pk INTEGER PRIMARY KEY);" + _FTS_DDL)
+    texts = {1: "A Good Girl's Guide to Murder", 2: "Ku'damm 59", 3: "Die Girlande"}
+    for pk, text in texts.items():
+        con.execute(
+            "INSERT INTO film_fts (rowid, topic, title, description) VALUES (?, ?, '', '')", (pk, index_text(text))
+        )
+
+    def found(query: str) -> set[int]:
+        return {
+            pk for (pk,) in con.execute("SELECT rowid FROM film_fts WHERE film_fts MATCH ?", (match_expression(query),))
+        }
+
+    assert found("good girls guide") == found("Good Girl’s Guide") == {1}  # either apostrophe, or none
+    assert found("girl") == {1, 3}  # word prefixes as before
+    assert found("Kudamm") == found("Ku'damm") == found("damm") == {2}
+
+
 def test_an_index_from_before_the_normalization_is_rebuilt(tmp_path: Path) -> None:
     path = tmp_path / "films.sqlite"
     with FilmStore(path, index_description=True) as store:

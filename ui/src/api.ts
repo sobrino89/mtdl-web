@@ -29,6 +29,10 @@ export interface Film {
   url_subtitle: string | null;
   url_website: string | null;
   geo: string[];
+  /** The marker of a special version ("Audiodeskription"); answers before 0.1.0.dev40 lack it. */
+  special_version?: string | null;
+  /** Why it is probably not in German ("Originalversion", "engl.", "ARTE.FR"); answers before 0.1.0.dev40 lack it. */
+  other_language?: string | null;
   status?: FilmStatus | null;
 }
 

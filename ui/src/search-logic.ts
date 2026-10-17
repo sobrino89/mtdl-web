@@ -18,6 +18,10 @@ export interface Filters {
   zeit: Period;
   hd: boolean;
   ut: boolean;
+  /** Only broadcasts that seem to be in German (the server's other_language). */
+  deutsch: boolean;
+  /** Without audio description, sign language and the other special versions. */
+  ohnesonder: boolean;
   kuenftig: boolean;
   gruppe: boolean;
   sort: SortKey;
@@ -52,6 +56,8 @@ export function parseFilters(query: Record<string, string>): Filters {
     zeit,
     hd: query.hd === "1",
     ut: query.ut === "1",
+    deutsch: query.deutsch === "1",
+    ohnesonder: query.ohnesonder === "1",
     kuenftig: query.kuenftig === "1",
     gruppe: query.gruppe === "1",
     sort,
@@ -98,6 +104,8 @@ function passes(film: Film, f: Filters, now: number, skip: Skip): boolean {
   if (f.zeit && (start === null || start < now - Number(f.zeit) * DAY)) return false;
   if (f.hd && !film.url_hd) return false;
   if (f.ut && !film.url_subtitle) return false;
+  if (f.deutsch && film.other_language) return false;
+  if (f.ohnesonder && film.special_version) return false;
   return true;
 }
 
@@ -288,6 +296,8 @@ export function activeFilters(f: Filters): { kind: string; value: string; patch:
   if (f.zeit) chips.push({ kind: "zeit", value: f.zeit, patch: { zeit: "" } });
   if (f.hd) chips.push({ kind: "hd", value: "", patch: { hd: "" } });
   if (f.ut) chips.push({ kind: "ut", value: "", patch: { ut: "" } });
+  if (f.deutsch) chips.push({ kind: "deutsch", value: "", patch: { deutsch: "" } });
+  if (f.ohnesonder) chips.push({ kind: "ohnesonder", value: "", patch: { ohnesonder: "" } });
   return chips;
 }
 
@@ -295,7 +305,19 @@ export function hasFilters(f: Filters): boolean {
   return activeFilters(f).length > 0 || f.kuenftig;
 }
 
-export const NO_FILTERS = { sender: "", thema: "", titel: "", dmin: "", dmax: "", zeit: "", hd: "", ut: "", kuenftig: "" };
+export const NO_FILTERS = {
+  sender: "",
+  thema: "",
+  titel: "",
+  dmin: "",
+  dmax: "",
+  zeit: "",
+  hd: "",
+  ut: "",
+  deutsch: "",
+  ohnesonder: "",
+  kuenftig: "",
+};
 
 export function toggled(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((x) => x !== value) : [...list, value];

@@ -10,7 +10,8 @@ in Millisekunden, sortiert mit den neuesten zuerst.
 
 Freie Wörter suchen in Thema und Titel. Groß- und Kleinschreibung zählt nicht, jedes Wort zählt als Wortanfang
 (`gipfel` findet „Gipfeltreffen“). Akzente zählen nicht (`cafe` findet „Café“), ä, ö und ü sind eigene Buchstaben,
-ß lässt sich auch als `ss` oder `s` tippen (`strasse` findet „Straße“).
+ß lässt sich auch als `ss` oder `s` tippen (`strasse` findet „Straße“). Ein Apostroph darf fehlen: `girls` findet
+„A Good Girl's Guide to Murder“, `kudamm` findet „Ku'damm“.
 
 Wer MediathekViewWeb kennt, kann dessen Syntax verwenden. Ein Klick auf **Suchsyntax** neben dem Suchfeld zeigt
 Beispiele zum Einfügen.
@@ -39,9 +40,17 @@ freie Wörter nur noch im Titel. Abos verstehen dieselbe Syntax.
 | Dauer | von bis, in Minuten |
 | Zeitraum | letzte 7 Tage, 30 Tage, 12 Monate oder alles |
 | nur HD, mit Untertiteln | nur Sendungen, die das anbieten |
+| nur Deutsch | ohne Sendungen, die vermutlich nicht deutsch sind (siehe unten) |
+| ohne Sonderfassungen | ohne Fassungen mit Audiodeskription, Gebärdensprache, als Hörfassung oder in klarer Sprache, so wie Abos sie erkennen |
 | auch künftige Sendungen | Einträge, die erst ab einem späteren Tag abrufbar sind |
 
 Die Suche in Beschreibungen fehlt, wenn `MTDL_INDEX_DESCRIPTION=false` gesetzt ist.
+
+Eine Sprachangabe hat die Filmliste nicht. **nur Deutsch** blendet deshalb aus, was sich verrät: die fremdsprachigen
+Ausgaben von ARTE (französisch, englisch, spanisch, polnisch, italienisch), Kennzeichen wie „(Originalversion)“,
+„(OV)“, „(OmU)“, eine Sprache in Klammern wie „(Englisch)“ oder „(engl.)“, Titel in kyrillischer oder arabischer
+Schrift und die sorbischen Magazine. Fassungen mit deutschem Ton und Untertiteln bleiben, ebenso Sendungen, die eine
+Sprache nur im Titel nennen („Englisch lernen“). Wer etwas vermisst, schaltet den Filter kurz aus.
 
 ## Treffer
 

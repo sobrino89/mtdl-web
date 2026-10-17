@@ -201,6 +201,8 @@ export const de = {
   "search.zeit_chip_365": "letzte 12 Monate",
   "search.hd": "nur HD",
   "search.ut": "mit Untertiteln",
+  "search.deutsch": "nur Deutsch",
+  "search.ohnesonder": "ohne Sonderfassungen",
   "search.kuenftig": "auch künftige Sendungen",
   "search.reset": "Filter zurücksetzen",
   "search.stale_title": "Filmliste veraltet: Stand {date}.",

@@ -97,7 +97,7 @@ _INSERT = (
 _UPDATE = f"UPDATE film SET {', '.join(f'{f} = ?' for f in _FIELDS[1:])}, content_hash = ? WHERE pk = ?"
 _WORD = re.compile(r"[^\W_]+")
 # How film_fts stores text (``text.index_text``); a new value rebuilds the index at the next start.
-FTS_TEXT = "fold-2"
+FTS_TEXT = "fold-3"
 
 Kind = Literal["full", "diff"]
 _UNCHANGED, _ADDED, _CHANGED = range(3)

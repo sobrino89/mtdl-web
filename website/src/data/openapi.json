@@ -3920,6 +3920,28 @@
             "type": "array",
             "title": "Geo"
           },
+          "special_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Special Version"
+          },
+          "other_language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Language"
+          },
           "status": {
             "anyOf": [
               {

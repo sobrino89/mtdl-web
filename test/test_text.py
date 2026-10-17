@@ -39,6 +39,9 @@ def test_umlauts_survive() -> None:
         ("Maß halten", "maß halten", "maß mass mas halten"),  # "Mass" and "Mas" find it, "Maß" only "ß" words
         ("Größten", "größten", "größten grössten grösten"),
         ("Das Gipfeltreffen", "das gipfeltreffen", "das gipfeltreffen"),
+        ("A Good Girl's Guide", "a good girl's guide", "a good girl's girls guide"),  # 17.10.2026: "Girls" finds it
+        ("Ku’damm 59", "ku’damm 59", "ku’damm kudamm 59"),
+        ("Liebesg´schichten", "liebesg´schichten", "liebesg´schichten liebesgschichten"),
     ],
 )
 def test_search_and_index_text(text: str, query: str, index: str) -> None:

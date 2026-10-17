@@ -203,6 +203,8 @@ export const en: Catalog = {
   "search.zeit_chip_365": "last 12 months",
   "search.hd": "HD only",
   "search.ut": "with subtitles",
+  "search.deutsch": "German only",
+  "search.ohnesonder": "no special versions",
   "search.kuenftig": "also future broadcasts",
   "search.reset": "Reset filters",
   "search.stale_title": "Film list outdated: as of {date}.",
