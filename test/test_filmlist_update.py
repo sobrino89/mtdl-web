@@ -1,5 +1,6 @@
 import datetime as dt
 import email.utils
+import json
 import lzma
 from collections.abc import Iterator
 from pathlib import Path
@@ -26,15 +27,15 @@ def at(day: int, hour: int, minute: int = 0) -> dt.datetime:
 @pytest.mark.parametrize(
     ("last_full", "now", "expected"),
     [
-        (None, at(12, 21), ("full", at(12, 7))),  # first start: the list at once
-        (at(12, 9, 58), at(12, 21, 40), ("diff", None)),
-        (at(12, 9, 58), at(13, 3, 58), ("diff", None)),  # at night the diff too, like the project's Kodi add-on
-        (at(12, 9, 58), at(13, 7, 58), ("full", at(13, 7))),  # once a day from 07:00 UTC, newer than 07:00
-        (at(13, 8, 58), at(13, 9, 58), ("diff", None)),
-        (at(11, 9, 58), at(13, 3, 58), ("full", at(12, 7))),  # the machine was off for a day: at once
+        (None, at(12, 21), "full"),  # first start: the list at once
+        (at(12, 9, 58), at(12, 21, 40), "diff"),
+        (at(12, 9, 58), at(13, 3, 58), "diff"),  # at night the diff too, like the project's Kodi add-on
+        (at(12, 9, 58), at(13, 7, 58), "full"),  # once a day from 07:00 UTC
+        (at(13, 7, 58), at(13, 8, 58), "diff"),  # had it today, whatever the server sent
+        (at(11, 9, 58), at(13, 3, 58), "full"),  # the machine was off for a day: at once
     ],
 )
-def test_plan(last_full: dt.datetime | None, now: dt.datetime, expected: tuple[str, dt.datetime | None]) -> None:
+def test_plan(last_full: dt.datetime | None, now: dt.datetime, expected: str) -> None:
     assert plan(last_full, now) == expected
 
 
@@ -42,8 +43,8 @@ PUBLISHED = dt.datetime(2026, 10, 12, 20, 45, 5, tzinfo=UTC)
 
 
 class FakeServer:
-    """liste.mediathekview.de as far as we use it: two files with ETag and Last-Modified; 304 on a matching
-    If-None-Match, or without one on an If-Modified-Since not older than the file (as nginx does)."""
+    """liste.mediathekview.de as far as we use it: two files with ETag and Last-Modified, revalidated like its nginx
+    does (checked on 17.10.2026): 304 only when every condition sent matches, If-Modified-Since by the exact date."""
 
     def __init__(self) -> None:
         self.files: dict[str, tuple[bytes, str, dt.datetime]] = {}
@@ -59,10 +60,9 @@ class FakeServer:
         if self.fail_with is not None:
             return self.fail_with
         body, etag, published = self.files[request.url.path.lstrip("/")]
-        if request.headers.get("if-none-match") == etag:
-            return httpx.Response(304)
-        since = request.headers.get("if-modified-since")
-        if since and "if-none-match" not in request.headers and published <= email.utils.parsedate_to_datetime(since):
+        tag, since = request.headers.get("if-none-match"), request.headers.get("if-modified-since")
+        same_date = since is None or email.utils.parsedate_to_datetime(since) == published
+        if (tag or since) and tag in (None, etag) and same_date:
             return httpx.Response(304)
         headers = {"etag": etag, "last-modified": email.utils.format_datetime(published, usegmt=True)}
         return httpx.Response(200, content=body, headers=headers)
@@ -261,15 +261,21 @@ def relabel(source: Path, created_utc: str, list_id: str) -> bytes:
     return text.replace(old_created, f'"{created_utc}"', 1).replace(old_id, list_id, 1).encode()
 
 
+def full_requests(server: FakeServer) -> list[httpx.Request]:
+    return [r for r in server.requests if r.url.path == "/Filmliste-akt.xz"]
+
+
+def make_updater(store: FilmStore, client: httpx.AsyncClient, lists: Path, clock: list[dt.datetime]) -> FilmlistUpdater:
+    return FilmlistUpdater(store, ListFetcher(client, lists), EventBus(), clock=lambda: clock[0])
+
+
 @pytest.mark.anyio
 async def test_a_day_of_updates(tmp_path: Path, server: FakeServer) -> None:
-    """The full list once a day, as soon as the server has one published after 07:00 UTC; the diff in between, at
-    night too. Before 07:00 the night diffs, then 304 until the day's list exists: no 77 MB download every hour."""
+    """The full list once a day, at the first round after 07:00 UTC; the diff in between, at night too."""
     clock = [at(12, 21, 0)]
     with FilmStore(tmp_path / "films.sqlite", index_description=False, clock=lambda: clock[0].timestamp()) as store:
         async with make_client(httpx.MockTransport(server.handler)) as client:
-            fetcher = ListFetcher(client, tmp_path / "lists")
-            updater = FilmlistUpdater(store, fetcher, EventBus(), clock=lambda: clock[0])
+            updater = make_updater(store, client, tmp_path / "lists", clock)
 
             first = await updater.update()
             assert first is not None and first.kind == "full"  # the first start
@@ -279,23 +285,98 @@ async def test_a_day_of_updates(tmp_path: Path, server: FakeServer) -> None:
             night = await updater.update()
             assert night is not None and night.kind == "diff"
 
-            clock[0] = at(13, 7, 58)  # the day's full list is due, the server has none after 07:00 yet
-            assert await updater.update() is None
-            asked = server.requests[-1]
-            assert asked.url.path == "/Filmliste-akt.xz" and "if-none-match" not in asked.headers
-            assert asked.headers["if-modified-since"] == "Tue, 13 Oct 2026 07:00:00 GMT"
-
-            day_list = relabel(FULL_EXTRACT, "13.10.2026, 07:33", NEXT_ID)
-            server.put("Filmliste-akt.xz", day_list, '"akt-0733"', published=at(13, 7, 55))
-            clock[0] = at(13, 8, 58)
-            day = await updater.update()
+            day_list = relabel(FULL_EXTRACT, "13.10.2026, 06:33", NEXT_ID)
+            server.put("Filmliste-akt.xz", day_list, '"akt-0633"', published=at(13, 6, 50))
+            clock[0] = at(13, 7, 58)
+            day = await updater.update()  # the newest list counts, even one made before 07:00
             assert day is not None and (day.kind, day.list_id) == ("full", NEXT_ID)
 
-            clock[0] = at(13, 9, 58)
-            assert await updater.update() is None  # the diff, unchanged: 304
-            assert server.requests[-1].url.path == "/Filmliste-diff.xz"
-    full = [r.headers.get("if-modified-since") for r in server.requests if r.url.path == "/Filmliste-akt.xz"]
-    assert full == [None, "Tue, 13 Oct 2026 07:00:00 GMT", "Tue, 13 Oct 2026 07:00:00 GMT"]
+            for hour in (8, 9, 15, 21):
+                clock[0] = at(13, hour, 58)
+                assert await updater.update() is None  # the diff, unchanged: 304
+                assert server.requests[-1].url.path == "/Filmliste-diff.xz"
+    first_start, day_one = full_requests(server)
+    assert "if-none-match" not in first_start.headers
+    assert day_one.headers["if-none-match"] == '"akt-2019"'  # revalidated with what we have
+
+
+@pytest.mark.parametrize("other_server", [False, True])
+@pytest.mark.anyio
+async def test_a_server_without_a_new_list_is_not_asked_again_that_day(
+    tmp_path: Path, server: FakeServer, other_server: bool
+) -> None:
+    """The day's full list is due, but the server has no new one: it answers 304, or the other server behind the
+    name sends the same list with its own ETag and date. Either counts for the day: the diffs go on, and there is no
+    77 MB every hour."""
+    clock = [at(12, 21, 0)]
+    with FilmStore(tmp_path / "films.sqlite", index_description=False, clock=lambda: clock[0].timestamp()) as store:
+        async with make_client(httpx.MockTransport(server.handler)) as client:
+            updater = make_updater(store, client, tmp_path / "lists", clock)
+            assert await updater.update() is not None  # the first start
+            if other_server:
+                other = PUBLISHED + dt.timedelta(seconds=8)
+                server.put("Filmliste-akt.xz", FULL_EXTRACT, '"akt-2019-other"', published=other)
+            for hour in range(7, 24):
+                clock[0] = at(13, hour, 10)
+                assert await updater.update() is None
+    paths = [r.url.path for r in server.requests]
+    assert paths.count("/Filmliste-akt.xz") == 2  # the first start and once on the 13th
+    assert paths.count("/Filmliste-diff.xz") == 16  # every round after that
+
+
+@pytest.mark.anyio
+async def test_a_restart_during_the_import_does_not_download_again(tmp_path: Path, server: FakeServer) -> None:
+    """The full list arrived, then the container stopped before the import was done: the next start imports the
+    file it has and asks the server only for the diff."""
+    clock = [at(12, 21, 0)]
+    async with make_client(httpx.MockTransport(server.handler)) as client:
+        await ListFetcher(client, tmp_path / "lists").fetch("full", now=clock[0])
+        clock[0] = at(12, 21, 3)
+        with FilmStore(tmp_path / "films.sqlite", index_description=False, clock=lambda: clock[0].timestamp()) as store:
+            updater = make_updater(store, client, tmp_path / "lists", clock)
+            result = await updater.update()
+            assert result is not None and (result.kind, result.total) == ("full", 220)
+            clock[0] = at(12, 22, 10)
+            assert await updater.update() is None  # the diff of the same generation: nothing new
+    assert [r.url.path for r in server.requests] == ["/Filmliste-akt.xz", "/Filmliste-diff.xz"]
+
+
+@pytest.mark.anyio
+async def test_a_broken_copy_does_not_hold_up_the_updates(tmp_path: Path, server: FakeServer) -> None:
+    """A full list that cannot be read is tried once from disk; then the rounds go on with the diff."""
+    clock = [at(12, 21, 0)]
+    async with make_client(httpx.MockTransport(server.handler)) as client:
+        fetcher = ListFetcher(client, tmp_path / "lists")
+        await fetcher.fetch("full", now=clock[0])
+        copy = fetcher.path("full")
+        copy.write_bytes(copy.read_bytes()[: copy.stat().st_size // 2])
+        with FilmStore(tmp_path / "films.sqlite", index_description=False) as store:
+            updater = FilmlistUpdater(store, fetcher, EventBus(), clock=lambda: clock[0])
+            with pytest.raises(EOFError):
+                await updater.update()
+            clock[0] = at(12, 22, 0)
+            result = await updater.update()  # not the copy again, the diff
+            assert result is not None and result.kind == "diff"
+    assert [r.url.path for r in server.requests] == ["/Filmliste-akt.xz", "/Filmliste-diff.xz"]
+
+
+@pytest.mark.anyio
+async def test_lists_fetched_before_this_version_count_by_their_import(tmp_path: Path, server: FakeServer) -> None:
+    """Up to 0.1.0.dev37 the copy carried no fetched_at: the import history decides, no extra full list."""
+    clock = [at(13, 7, 10)]
+    with FilmStore(tmp_path / "films.sqlite", index_description=False, clock=lambda: clock[0].timestamp()) as store:
+        async with make_client(httpx.MockTransport(server.handler)) as client:
+            fetcher = ListFetcher(client, tmp_path / "lists")
+            updater = FilmlistUpdater(store, fetcher, EventBus(), clock=lambda: clock[0])
+            assert await updater.update() is not None
+            validators = tmp_path / "lists" / "Filmliste-akt.xz.http.json"
+            before = json.loads(validators.read_text())
+            del before["fetched_at"]
+            validators.write_text(json.dumps(before))
+            assert fetcher.fetched_at("full") is None
+            clock[0] = at(13, 8, 10)
+            await updater.update()
+    assert len(full_requests(server)) == 1
 
 
 @pytest.mark.anyio

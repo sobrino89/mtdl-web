@@ -8,6 +8,11 @@ base exists, and diffs in between. The desktop client marks that point as 07:00 
 every 12 hours; mtdl-web asks every hour, like the project's Kodi add-on, which also loads the full list once a day
 and diffs otherwise, at night too.
 
+Whether we already have the day's full list, the server cannot say: it answers If-Modified-Since with 304 only for
+the exact date of its file (nginx's default, checked on 17.10.2026), and the two servers behind the name date and
+tag the same file differently. So mtdl-web notes next to each file when it last had the list, downloaded or
+confirmed with 304 (``fetched_at``), and plans by that.
+
 Where the list lives says the project's server directory (``res.mediathekview.de/akt.xml`` and ``diff.xml``;
 forum topic 3508, 17.06.2020): read once a day, the server with the best ``Prio`` wins, and the official address
 stays the fallback. The team asked for no experiments with other URLs and announced rate limiting; mtdl-web asks at
@@ -22,6 +27,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from xml.etree import ElementTree
 
 import httpx
@@ -52,21 +58,17 @@ def servers(xml: bytes) -> list[str]:
 DAY_STARTS = dt.time(7)  # UTC: by then the day's base list exists (the desktop client's mark)
 
 
-def plan(last_full: dt.datetime | None, now: dt.datetime) -> tuple[Kind, dt.datetime | None]:
-    """What to fetch, and for a full list the time it must be newer than (else the server answers 304).
-
-    ``last_full``: when the newest full list was imported. Once a day, from 07:00 UTC, the full list is due: the
-    request asks only for a list published after 07:00, so the next hours bring nothing until the server has one,
-    and then it comes exactly once. Between full lists, also at night, the diff: night diffs already refer to the
+def plan(last_full: dt.datetime | None, now: dt.datetime) -> Kind:
+    """Full list or diff. ``last_full``: when we last had the server's full list, downloaded, confirmed with 304 or
+    imported. Once a day, from 07:00 UTC, the full list is due, and what the server then sends counts for the day,
+    even a list we already know. Between full lists, also at night, the diff: night diffs already refer to the
     next day's base, but they add what is new; the day's full list fills the rest. A list older than the last
     07:00 (the first start, a machine that was off) is replaced at once."""
     day = now.astimezone(dt.UTC)
     start = dt.datetime.combine(day.date(), DAY_STARTS, dt.UTC)
     if start > day:
         start -= dt.timedelta(days=1)
-    if last_full is not None and last_full >= start:
-        return "diff", None
-    return "full", start
+    return "diff" if last_full is not None and last_full >= start else "full"
 
 
 class FetchError(Exception):
@@ -94,8 +96,9 @@ def _retry_after(response: httpx.Response, now: dt.datetime) -> float | None:
 
 
 class ListFetcher:
-    """Downloads into ``directory``; the validators (ETag, Last-Modified) live next to each file. With
-    ``server_directory`` the URL comes from the project's directory, else straight from ``base_url``."""
+    """Downloads into ``directory``; the validators (ETag, Last-Modified) and when we last had the list live next to
+    each file. With ``server_directory`` the URL comes from the project's directory, else straight from
+    ``base_url``."""
 
     def __init__(
         self,
@@ -128,35 +131,54 @@ class ListFetcher:
         self._known[kind] = (time.monotonic(), url)
         return url
 
+    def path(self, kind: Kind) -> Path:
+        """Where the copy of ``kind`` lives once downloaded."""
+        return self._dir / FILES[kind]
+
+    def fetched_at(self, kind: Kind) -> dt.datetime | None:
+        """When we last had ``kind`` from the server, downloaded or confirmed with 304; None without a copy."""
+        stamp = self._validators(kind).get("fetched_at") if self.path(kind).exists() else None
+        return dt.datetime.fromtimestamp(stamp, dt.UTC) if isinstance(stamp, int) else None
+
+    def _validators(self, kind: Kind) -> dict[str, Any]:
+        try:
+            value = json.loads((self._dir / f"{FILES[kind]}.http.json").read_text())
+        except (OSError, ValueError):
+            return {}
+        return value if isinstance(value, dict) else {}
+
+    def _note(self, kind: Kind, validators: dict[str, Any], now: dt.datetime | None) -> None:
+        when = now if now is not None else dt.datetime.now(dt.UTC)
+        file = self._dir / f"{FILES[kind]}.http.json"
+        part = file.with_name(f"{file.name}.part")
+        part.write_text(json.dumps({**validators, "fetched_at": int(when.timestamp())}))
+        part.replace(file)
+
     async def fetch(
         self,
         kind: Kind,
         progress: Callable[[int, int | None], None] | None = None,
         *,
-        newer_than: dt.datetime | None = None,
+        now: dt.datetime | None = None,
     ) -> Fetched:
-        """``progress`` hears the bytes so far and the expected size (Content-Length, if the server names it).
-        ``newer_than``: only a list published after this time (the day's full list, ``plan``); until the server has
-        one it answers 304. Otherwise the copy we have is revalidated with ETag and Last-Modified. Behind the name
-        are two servers whose ETags differ for the same file, so the full list asks by time alone."""
+        """``progress`` hears the bytes so far and the expected size (Content-Length, if the server names it). The
+        copy we have is revalidated with its ETag and Last-Modified; either way, downloaded or 304, ``now`` is noted
+        as the time we last had the list (``fetched_at``)."""
         name = FILES[kind]
         url = await self.url(kind)
-        target = self._dir / name
+        target = self.path(kind)
         part = self._dir / f"{name}.part"
-        validators_file = self._dir / f"{name}.http.json"
+        validators = self._validators(kind) if target.exists() else {}
         headers = {}
-        if target.exists() and newer_than is not None:
-            headers["If-Modified-Since"] = email.utils.format_datetime(newer_than.astimezone(dt.UTC), usegmt=True)
-        elif target.exists() and validators_file.exists():
-            validators = json.loads(validators_file.read_text())
-            if validators.get("etag"):
-                headers["If-None-Match"] = validators["etag"]
-            if validators.get("last_modified"):
-                headers["If-Modified-Since"] = validators["last_modified"]
+        if validators.get("etag"):
+            headers["If-None-Match"] = validators["etag"]
+        if validators.get("last_modified"):
+            headers["If-Modified-Since"] = validators["last_modified"]
         self._dir.mkdir(parents=True, exist_ok=True)
         try:
             async with self._client.stream("GET", url, headers=headers) as response:
                 if response.status_code == httpx.codes.NOT_MODIFIED:
+                    self._note(kind, validators, now)
                     return Fetched(target, modified=False)
                 if response.status_code != httpx.codes.OK:
                     retry_after = _retry_after(response, dt.datetime.now(dt.UTC))
@@ -177,7 +199,7 @@ class ListFetcher:
         except httpx.HTTPError as exc:
             raise FetchError(f"{name}: {exc!r}") from exc
         part.replace(target)
-        validators_file.write_text(json.dumps(validators))
+        self._note(kind, validators, now)
         return Fetched(target, modified=True)
 
 

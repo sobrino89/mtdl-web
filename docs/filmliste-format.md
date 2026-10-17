@@ -7,8 +7,9 @@ auf diesen Stand. Testdaten daraus: `test/fixtures/README.md`.
 ## Abruf
 
 - `https://liste.mediathekview.de/Filmliste-akt.xz` (Vollliste) und `…/Filmliste-diff.xz` (Diff).
-- Der Server liefert `Last-Modified`, `ETag` und `Accept-Ranges: bytes`. `If-Modified-Since` und `If-None-Match`
-  beantwortet er mit `304` (beides geprüft). Die Wurzel `/` liefert `403`.
+- Der Server (nginx) liefert `Last-Modified`, `ETag` und `Accept-Ranges: bytes`. Mit `304` antwortet er nur, wenn
+  `If-None-Match` das ETag trifft und `If-Modified-Since` genau das Datum der Datei nennt; ein späteres Datum
+  bringt `200` (Voreinstellung `if_modified_since exact`, geprüft am 17.10.2026). Die Wurzel `/` liefert `403`.
 - Hinter dem Namen stehen zwei Server (`88.99.10.178`, `.179`, 13.10.2026). Dieselbe Datei hatte dort zeitweise
   verschiedene `Last-Modified` und ETags (21:55:02 gegen 21:55:19, gleiche Größe): Ein bedingter Request trifft nur
   beim selben Server. Folge nur Bandbreite, kein Doppelimport, weil mtdl-web die Listen-ID prüft.
@@ -25,10 +26,14 @@ auf diesen Stand. Testdaten daraus: `test/fixtures/README.md`.
     hinzufügen, Metadaten der Diff übernehmen. Gelöschte Sendungen verschwinden erst mit der nächsten Vollliste.
   - Lädt beim Start ab 3 Stunden Alter, danach alle 12 Stunden; für diesen Takt ist die Regel gebaut.
 - mtdl-web fragt stündlich und macht es wie die Kodi-Erweiterung des Projekts (`updater.py`): die Vollliste einmal
-  am Tag, sonst die Diff, auch nachts (`filmlist/fetch.py`, `plan`). Die Vollliste wird ab 07:00 UTC mit
-  `If-Modified-Since: <heute 07:00 UTC>` angefragt: Bis der Server eine danach veröffentlichte Liste hat, antwortet
-  er 304, danach kommt sie genau einmal. Die 07:00-Regel stündlich angewandt hätte zwischen Mitternacht und 07:00
-  UTC jede neue Vollliste geladen (in den Tagen bis 0.1.0.dev36: fünf bis sechs je Nacht).
+  am Tag, sonst die Diff, auch nachts (`filmlist/fetch.py`, `plan`). Fällig ist die Vollliste, wenn mtdl-web seit
+  der letzten 07:00 UTC keine mehr hatte; was der Server dann schickt, gilt für den Tag, auch eine schon bekannte
+  Liste. Ob es die Liste des Tages schon hat, merkt sich mtdl-web selbst (`fetched_at` neben der Datei, bei `200`
+  und `304`), denn der Server kann es nicht sagen: `If-Modified-Since` nur exakt, und die zwei Server dahinter
+  datieren und taggen dieselbe Datei verschieden. Eine geladene, aber nicht importierte Vollliste (Neustart während
+  des Imports) wird von der Platte importiert, nicht neu geladen. Die 07:00-Regel des Java-Clients stündlich
+  angewandt hätte zwischen Mitternacht und 07:00 UTC jede neue Vollliste geladen (in den Tagen bis 0.1.0.dev36:
+  fünf bis sechs je Nacht).
 
 ## Aufbau
 

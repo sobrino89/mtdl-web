@@ -23,7 +23,8 @@ die Kodi-Erweiterung des Projekts:
 |---|---|
 | Erster Start | die vollständige Liste, ein bis zwei Minuten samt Index |
 | Stündlich | zu einer festen Minute je Installation die Änderungsliste (wenige hundert KB), auch nachts |
-| Einmal am Tag | die vollständige Liste, sobald der Server eine nach 07:00 UTC (9 Uhr Sommerzeit, 8 Uhr Winterzeit) hat; bis dahin antwortet er ohne Daten |
+| Einmal am Tag | die vollständige Liste, beim ersten Abruf nach 07:00 UTC (9 Uhr Sommerzeit, 8 Uhr Winterzeit) |
+| Neustart | nichts zusätzlich, es gilt dieser Rhythmus; eine geladene, noch nicht eingelesene Liste liest mtdl-web von der Platte |
 | Adresse | aus dem Server-Verzeichnis des Projekts, wie beim MediathekView-Programm, mit Rückfall auf die offizielle |
 | Schonung | Bedingungs-Anfragen (`ETag`, `If-Modified-Since`), Pausen nach Fehlern, `Retry-After` wird beachtet |
 
