@@ -27,6 +27,12 @@
     {
       "matchFileNames": ["Dockerfile", ".github/**"],
       "commitMessagePrefix": "Build:"
+    },
+    {
+      "description": "A new Python or Node.js version changes the runtime for all code and dependencies at once: it waits for approval on the dependency dashboard and is then done as one change (base image, required version, lint and type check targets). Digests and patches come as usual.",
+      "matchPackageNames": ["python", "node"],
+      "matchUpdateTypes": ["major", "minor"],
+      "dependencyDashboardApproval": true
     }
   ],
   "customManagers": [
