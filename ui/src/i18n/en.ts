@@ -668,8 +668,10 @@ export const en: Catalog = {
   "ed.special_title": "Leave out special versions",
   "ed.special_excludes": "excludes {n}",
   "ed.special_none": "excludes nothing",
-  "ed.special_by_setting": "Audio description, sign language, \"Hörfassung\" and clear speech, as in the settings.",
-  "ed.special_by_sub": "Audio description, sign language, \"Hörfassung\" and clear speech, always for this subscription.",
+  "ed.special_by_setting":
+    "Audio description, sign language, \"Hörfassung\", clear speech and subtitled versions (ARTE), as in the settings.",
+  "ed.special_by_sub":
+    "Audio description, sign language, \"Hörfassung\", clear speech and subtitled versions (ARTE), always for this subscription.",
   "ed.special_all": "All remaining hits are special versions. If this subscription should load exactly those, load them too.",
   "ed.special_include": "Load them for this subscription",
   "ed.special_included": "This subscription loads special versions too.",
@@ -994,7 +996,7 @@ export const en: Catalog = {
   "set.fallback_text": "If the preferred quality is missing, mtdl-web loads the next lower one, else the next higher one.",
   "set.subtitles": "Subtitles",
   "set.special": "Special versions",
-  "set.special_sub": "Audio description, sign language, \"Hörfassung\", clear speech",
+  "set.special_sub": "Audio description, sign language, \"Hörfassung\", clear speech, subtitled versions (ARTE)",
   "set.special_off": "Do not load them in subscriptions",
   "set.special_text": "Applies to every subscription that does not say otherwise; change it per subscription under options. Single downloads from the search are not affected.",
   "set.subtitles_load": "Load if available (as .srt next to the file)",

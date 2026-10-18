@@ -25,6 +25,8 @@ VERSIONS = [  # (topic, title) -> marker
     ("Löwenzahn", "Peter in Bärstadt (Hörfassung)", "Hörfassung"),
     ("Die Kinderdoku", "Der Freund (3) (klare Sprache)", "klare Sprache"),
     ("Kika", "Etage (Video in klarer Sprache)", "Video in klarer Sprache"),
+    ("Aktuelles und Gesellschaft - Reportagen", "Re: Grüner Güterverkehr (mit Untertitel)", "mit Untertitel"),  # ARTE
+    ("Hallo SRF!", "Das Publikum im Dialog mit SRF-Direktor Ruedi Matter (mit Untertitel)", "mit Untertitel"),
 ]
 ABOUT = [  # programmes about the subject: no versions
     ("Sehen statt Hören", "Geschichte der Deutschen Gebärdensprache"),
@@ -32,6 +34,7 @@ ABOUT = [  # programmes about the subject: no versions
     ("Gesellschaft", "Ersatz für das Hören – Gebärdensprache und Implantat"),
     ("100percentme", "Wahr oder falsch? 6 Fakten über Gehörlosigkeit und Gebärdensprache | 100percentme"),
     ("tagesschau24", "tagesschau in Einfacher Sprache"),  # its own format, not one of the versions
+    ("Fernsehfilme und Serien - Serien", "Please Like Me - Staffel 3 (7/10) (Originalversion mit Untertitel)"),  # OV
 ]
 
 

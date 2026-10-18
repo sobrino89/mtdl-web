@@ -52,8 +52,9 @@ nummerierten Folgen übrig (im Oktober 2026 waren es 20):
 
 ## Sonderfassungen
 
-Fassungen mit Audiodeskription, Gebärdensprache, Hörfassung oder klarer Sprache lassen Abos ab Werk weg. In der
-Vorschau steht dafür ein fester letzter Schritt nach den Regeln, mit Grund für jeden ausgeschlossenen Treffer.
+Fassungen mit Audiodeskription, Gebärdensprache, Hörfassung oder klarer Sprache lassen Abos ab Werk weg, ebenso die
+Fassungen mit Untertiteln, die ARTE neben der normalen anbietet („(mit Untertitel)“). In der Vorschau steht dafür ein
+fester letzter Schritt nach den Regeln, mit Grund für jeden ausgeschlossenen Treffer.
 Je Abo lässt sich unter **Optionen** wählen: wie in den Einstellungen, nicht laden oder mitladen. Ein Abo für genau
 eine solche Fassung braucht „mitladen“. Die Voreinstellung steht unter **Einstellungen**, **Qualität**.
 

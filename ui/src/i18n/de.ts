@@ -670,8 +670,10 @@ export const de = {
   "ed.special_title": "Sonderfassungen ausschließen",
   "ed.special_excludes": "schließt {n} aus",
   "ed.special_none": "schließt nichts aus",
-  "ed.special_by_setting": "Audiodeskription, Gebärdensprache, Hörfassung und klare Sprache, wie in den Einstellungen.",
-  "ed.special_by_sub": "Audiodeskription, Gebärdensprache, Hörfassung und klare Sprache, für dieses Abo immer.",
+  "ed.special_by_setting":
+    "Audiodeskription, Gebärdensprache, Hörfassung, klare Sprache und Untertitel-Fassungen (ARTE), wie in den Einstellungen.",
+  "ed.special_by_sub":
+    "Audiodeskription, Gebärdensprache, Hörfassung, klare Sprache und Untertitel-Fassungen (ARTE), für dieses Abo immer.",
   "ed.special_all": "Alle übrigen Treffer sind Sonderfassungen. Soll dieses Abo genau solche laden, hier mitladen.",
   "ed.special_include": "Für dieses Abo mitladen",
   "ed.special_included": "Dieses Abo lädt Sonderfassungen mit.",
@@ -996,7 +998,7 @@ export const de = {
   "set.fallback_text": "Fehlt die bevorzugte Qualität, lädt mtdl-web die nächstniedrigere, sonst die nächsthöhere.",
   "set.subtitles": "Untertitel",
   "set.special": "Sonderfassungen",
-  "set.special_sub": "Audiodeskription, Gebärdensprache, Hörfassung, klare Sprache",
+  "set.special_sub": "Audiodeskription, Gebärdensprache, Hörfassung, klare Sprache, Untertitel-Fassungen (ARTE)",
   "set.special_off": "In Abos nicht laden",
   "set.special_text": "Gilt für jedes Abo, das nichts anderes sagt; je Abo unter Optionen änderbar. Einzelne Downloads aus der Suche betrifft es nicht.",
   "set.subtitles_load": "Laden, wenn vorhanden (als .srt neben der Datei)",

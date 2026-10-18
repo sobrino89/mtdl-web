@@ -41,7 +41,7 @@ freie Wörter nur noch im Titel. Abos verstehen dieselbe Syntax.
 | Zeitraum | letzte 7 Tage, 30 Tage, 12 Monate oder alles |
 | nur HD, mit Untertiteln | nur Sendungen, die das anbieten |
 | nur Deutsch | ohne Sendungen, die vermutlich nicht deutsch sind (siehe unten) |
-| ohne Sonderfassungen | ohne Fassungen mit Audiodeskription, Gebärdensprache, als Hörfassung oder in klarer Sprache, so wie Abos sie erkennen |
+| ohne Sonderfassungen | ohne Fassungen mit Audiodeskription, Gebärdensprache, als Hörfassung, in klarer Sprache oder mit Untertiteln (ARTE), so wie Abos sie erkennen |
 | auch künftige Sendungen | Einträge, die erst ab einem späteren Tag abrufbar sind |
 
 Die Suche in Beschreibungen fehlt, wenn `MTDL_INDEX_DESCRIPTION=false` gesetzt ist.
