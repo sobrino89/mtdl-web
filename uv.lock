@@ -537,7 +537,7 @@ wheels = [
 
 [[package]]
 name = "mtdl-web"
-version = "0.1.0.dev40"
+version = "0.1.0.dev41"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
