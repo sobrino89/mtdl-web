@@ -1,9 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Updates for every pinned dependency: Python (uv.lock), the UI and the website (npm), base images by digest, Debian packages in the Dockerfile and GitHub Actions by commit. A release waits two weeks before it is proposed.",
+  "description": "Updates for every pinned dependency: Python (uv.lock), the UI and the website (npm), base images by digest, Debian packages in the Dockerfile and GitHub Actions by commit. A release waits two weeks before it is proposed. The project's own image in the compose templates is left alone.",
   "extends": ["config:recommended", "docker:pinDigests", "helpers:pinGitHubActionDigests", ":semanticCommitsDisabled"],
   "minimumReleaseAge": "14 days",
   "internalChecksFilter": "strict",
+  "ignoreDeps": ["ghcr.io/sobrino89/mtdl-web"],
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 6am on monday"]
