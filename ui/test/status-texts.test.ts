@@ -37,14 +37,14 @@ function status(patch: { filmlist?: Partial<Status["filmlist"]>; downloads?: Par
 test("film list line in the server time zone", () => {
   assert.deepEqual(filmlistTexts(status(), "Europe/Berlin"), {
     dot: "ok",
-    text: "Filmliste · Stand 12.10. 23:33 · 722.672 Einträge",
+    text: "MediathekView-Filmliste · Stand 12.10. 23:33 · 722.672 Einträge",
     short: "Stand 12.10. 23:33 · 722.672 Einträge",
     stale: false,
   });
   const failed = filmlistTexts(status({ filmlist: { last_error: "HTTP 503" } }), "Europe/Berlin");
   assert.equal(failed.dot, "warn");
   assert.equal(failed.stale, true);
-  assert.equal(failed.text, "Filmliste · Stand 12.10. 23:33 · Abruf fehlgeschlagen: HTTP 503");
+  assert.equal(failed.text, "MediathekView-Filmliste · Stand 12.10. 23:33 · Abruf fehlgeschlagen: HTTP 503");
   assert.equal(filmlistTexts(status({ filmlist: { films: 0, last_import: null, running: true } })).text, "Erste Filmliste wird geladen …");
   assert.equal(filmlistTexts(null).text, "Lädt …");
 });

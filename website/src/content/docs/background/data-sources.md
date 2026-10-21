@@ -45,8 +45,8 @@ Dieses Produkt nutzt die TMDB-API, ist aber nicht von TMDB unterstützt oder zer
 ## Senderlogos (optional)
 
 Ab Werk zeigt mtdl-web Sendernamen als Text. Unter **Einstellungen**, **System** lassen sich die Logos des
-MediathekView-Programms einschalten: Der Server lädt sie einmal aus dessen Repository, legt sie im Cache ab und
-liefert sie selbst aus. Der Browser lädt nichts von dort. Die Logos sind Marken der Sender.
+MediathekView-Programms einschalten: Der Server lädt sie einmal aus dessen Repository (fester Stand, GPL-3.0), legt
+sie im Cache ab und liefert sie selbst aus. Der Browser lädt nichts von dort. Die Logos sind Marken der Sender.
 
 ## Videos
 

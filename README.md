@@ -89,6 +89,10 @@ Die Daten stammen aus der Filmliste des [MediathekView](https://mediathekview.de
 [MediathekViewWeb](https://github.com/mediathekview/mediathekviewweb). mtdl-web ist kein Projekt des
 MediathekView-Teams und nicht mit ihm verbunden. Die Sendungen gehören den Sendern und ihren Urhebern.
 
+Die optionalen Senderlogos stammen aus dem Repository von
+[MediathekView](https://github.com/mediathekview/MediathekView) (`src/main/resources/icons/sender`, GPL-3.0); der Server
+lädt sie erst, wenn jemand sie einschaltet. Die Logos sind Marken der Sender.
+
 Serien-, Staffel-, Folgen- und Filmdaten für die Bibliotheken kommen von [TMDB](https://www.themoviedb.org). Dieses
 Produkt nutzt die TMDB-API, ist aber nicht von TMDB unterstützt oder zertifiziert.
 
