@@ -19,7 +19,7 @@ concurrency:
 jobs:
   build:
     if: github.repository == 'sobrino89/mtdl-web'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     defaults:
       run:
         working-directory: website
@@ -40,7 +40,7 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
