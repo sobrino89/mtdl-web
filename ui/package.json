@@ -12,7 +12,7 @@
   "dependencies": {
     "hls.js": "1.7.3",
     "preact": "11.0.1",
-    "swagger-ui-dist": "5.33.0"
+    "swagger-ui-dist": "5.33.1"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
