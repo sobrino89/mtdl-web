@@ -1,6 +1,6 @@
 [project]
 name = "mtdl-web"
-version = "0.1.0.dev41"
+version = "0.1.0"
 description = "Search, download and subscribe to the German public broadcasters' media libraries, self-hosted."
 readme = "README.md"
 license = "GPL-3.0-or-later"
