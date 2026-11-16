@@ -7,7 +7,7 @@ from collections.abc import Collection, Iterable
 from dataclasses import asdict, dataclass
 from typing import Any, Literal
 
-from mtdl_web.models import Film
+from mtdl_web.models import Film, VideoCodec
 from mtdl_web.state import StateStore
 
 State = Literal["queued", "running", "done", "failed", "cancelled"]
@@ -15,7 +15,7 @@ Order = Literal["newest", "queue"]
 ACTIVE: tuple[State, ...] = ("running", "queued", "done")
 _COLUMNS = (
     "id, film, subscription_id, episode_key, quality, subtitles, path, state, bytes_done, bytes_total, error,"
-    " attempts, not_before, created_at, started_at, finished_at, position, error_code, library_id"
+    " attempts, not_before, created_at, started_at, finished_at, position, error_code, library_id, video_codec"
 )
 _NEXT_POSITION = "(SELECT coalesce(max(position), 0) + 1 FROM download)"
 
@@ -41,6 +41,8 @@ class Download:
     position: int  # order in the queue: lower starts first
     error_code: str | None  # kind of the last failure (manager.error_code); the UI explains it
     library_id: int | None = None  # the library the file goes to (libraries.py); None: the download folder
+    # H.264 or HEVC where a stream has both (hls.choose); None: queued before 0.2.0, the settings decide
+    video_codec: VideoCodec | None = None
 
 
 def film_to_json(film: Film) -> str:
@@ -59,7 +61,7 @@ def _download(row: tuple[Any, ...]) -> Download:
     did, film, sub, key, quality, subtitles, path, state, done, total, error, attempts, nb, created, started, fin = row[
         :16
     ]
-    position, error_code, library_id = row[16:]
+    position, error_code, library_id, video_codec = row[16:]
     return Download(
         id=did,
         film=film_from_json(film),
@@ -80,6 +82,7 @@ def _download(row: tuple[Any, ...]) -> Download:
         position=position if position is not None else did,
         error_code=error_code,
         library_id=library_id,
+        video_codec=video_codec,
     )
 
 
@@ -101,10 +104,12 @@ class DownloadQueue:
         episode_key: str,
         subscription_id: int | None = None,
         library_id: int | None = None,
+        video_codec: VideoCodec | None = None,
     ) -> Download:
         _, download_id = self._db.run(
             "INSERT INTO download (film_id, film, subscription_id, episode_key, quality, subtitles, path, state,"
-            f" created_at, position, library_id) VALUES (?, ?, ?, ?, ?, ?, ?, 'queued', ?, {_NEXT_POSITION}, ?)",
+            " created_at, position, library_id, video_codec)"
+            f" VALUES (?, ?, ?, ?, ?, ?, ?, 'queued', ?, {_NEXT_POSITION}, ?, ?)",
             (
                 film.id,
                 film_to_json(film),
@@ -115,6 +120,7 @@ class DownloadQueue:
                 path,
                 self._now(),
                 library_id,
+                video_codec,
             ),
         )
         result = self.get(int(download_id or 0))

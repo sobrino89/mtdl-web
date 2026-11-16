@@ -21,6 +21,8 @@ import {
   type SeriesCandidate,
   type Subscription,
   type SubscriptionDraft,
+  VIDEO_CODECS,
+  type VideoCodec,
 } from "../api";
 import { ChannelBadge } from "../components/channel";
 import { Switch } from "../components/controls";
@@ -68,6 +70,7 @@ interface Draft {
   valid_until: string | null; // ISO date, the last day it searches
   on_expiry: "pause" | "delete";
   special_versions: SpecialVersions; // audio description, sign language
+  video_codec: VideoCodec | null; // null: as in the settings
 }
 
 type Section = "ziel" | "optionen";
@@ -136,6 +139,7 @@ function draftFrom(sub: Subscription): Draft {
     valid_until: sub.valid_until ?? null,
     on_expiry: sub.on_expiry ?? "pause",
     special_versions: sub.special_versions ?? "setting",
+    video_codec: sub.video_codec ?? null,
   };
 }
 
@@ -262,6 +266,7 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
         valid_until: null,
         on_expiry: "pause",
         special_versions: "setting",
+        video_codec: null,
       });
       setBanner(start.conditions.length > 0);
     })();
@@ -524,6 +529,7 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
     valid_until: draft.valid_until,
     on_expiry: draft.on_expiry,
     special_versions: draft.special_versions,
+    video_codec: draft.video_codec,
   });
 
   // Saving an active subscription loads what the preview shows at once; a paused one loads nothing until it runs.
@@ -1347,6 +1353,25 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
         </select>
       </div>
       <div class="field">
+        <label class="field-label" for="ed-codec">
+          {t("ed.codec")}
+        </label>
+        <select
+          id="ed-codec"
+          class="input narrow-input"
+          value={draft.video_codec ?? ""}
+          onChange={(e) => update({ video_codec: ((e.target as HTMLSelectElement).value || null) as VideoCodec | null })}
+        >
+          <option value="">{t("ed.codec_default", { codec: t(`set.codec.${settings?.video_codec ?? "prefer_h264"}` as Key) })}</option>
+          {VIDEO_CODECS.map((c) => (
+            <option key={c} value={c}>
+              {t(`set.codec.${c}` as Key)}
+            </option>
+          ))}
+        </select>
+        <span class="small faint">{t("ed.codec_hint")}</span>
+      </div>
+      <div class="field">
         <div class="field-label">{t("ed.subtitles")}</div>
         <label class="check-label plain">
           <input
@@ -1496,6 +1521,7 @@ export function SubscriptionEditor(props: { route: Route; layout: Layout }): JSX
     I.settings,
     [
       draft.quality ? t(`q.${draft.quality}` as Key) : t("ed.as_default", { value: qualityName }),
+      ...(draft.video_codec ? [t(`set.codec.${draft.video_codec}` as Key)] : []),
       (draft.subtitles ?? settings?.subtitles ?? true) ? t("ed.subtitles_on") : t("ed.subtitles_off"),
       ...(draft.include_description ? [t("ed.description_on")] : []),
       ...(draft.valid_until ? [t("ed.valid_summary", { date: F.date(`${draft.valid_until}T12:00:00Z`, timeZone) })] : []),

@@ -23,6 +23,7 @@ import {
   type Settings as AppSettings,
   type SystemInfo,
   type TakeoverReport,
+  VIDEO_CODECS,
   type Webhook,
   type WebhookDraft,
   type WebhookEvent,
@@ -1068,6 +1069,20 @@ function QualitySection(props: { settings: AppSettings }): JSX.Element {
       </Row>
       <Row label={t("set.fallback")}>
         <span class="muted-text">{t("set.fallback_text")}</span>
+      </Row>
+      <Row label={t("set.codec")} sub={t("set.codec_sub")}>
+        <div role="radiogroup" class="cards">
+          {VIDEO_CODECS.map((c) => {
+            const on = settings.video_codec === c;
+            return (
+              <button key={c} role="radio" aria-checked={on} class={`choice${on ? " on" : ""}`} onClick={() => void save({ video_codec: c })}>
+                <strong>{t(`set.codec.${c}` as Key)}</strong>
+                <span class="small muted-text">{t(`set.codec_desc.${c}` as Key)}</span>
+              </button>
+            );
+          })}
+        </div>
+        <span class="small muted-text block-text">{t("set.codec_text")}</span>
       </Row>
       <Row label={t("set.subtitles")}>
         <label class="check-label plain">

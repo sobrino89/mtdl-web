@@ -73,3 +73,4 @@ dagegen auf). `funk-media-30.m3u8` ist auf die ersten 30 Segmente gekürzt (Orig
 | `funk-media-30.m3u8` | funk | gekürzt |
 | `orf-master.m3u8` | ORF „Universum: Lungau" | Master nach Umleitung auf `vod-ww.mdn.ors.at`, Bild-Varianten plus Ton-Playlist |
 | `funk-master.m3u8` | funk | Master mit reinen Ton-Varianten und I-Frame-Streams |
+| `arte-master.m3u8` | ARTE „Re: Phänomen Lindy Hop“, abgerufen am 16.11.2026 | CMAF-Master: jede Auflösung (432p, 720p, 1080p) in H.264 und HEVC, fünf getrennte Tonspuren (Deutsch als DEFAULT), drei Untertitel-Playlists |

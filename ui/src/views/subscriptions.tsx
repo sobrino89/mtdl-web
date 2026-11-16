@@ -25,6 +25,7 @@ export function draftOf(sub: Subscription): SubscriptionDraft {
     valid_until: sub.valid_until ?? null,
     on_expiry: sub.on_expiry ?? "pause",
     special_versions: sub.special_versions ?? "setting",
+    video_codec: sub.video_codec ?? null,
   };
 }
 

@@ -103,6 +103,13 @@ Gemessen mit `mtdl_web.filmlist.parser.clean_url` an der ganzen Liste:
 Livestreams stehen mit in der Liste: Thema `Livestream` je Sender, ohne Datum, Dauer und Größe, Haupt-URL ist
 ein HLS-Livestream. Der Downloader muss sie ausschließen.
 
+ARTE seit dem 21.10.2026: Neue Einträge haben als Haupt-URL fast nur noch eine HLS-Master-Playlist von
+`manifest-arte.akamaized.net` (1.073 von 1.089 neuen ARTE-Einträgen bis 16.11.), ohne Klein-, HD-URL und Größe. Der
+Master (CMAF) bietet jede Auflösung (432p, 720p, 1080p) in H.264 (`avc1`) und HEVC (`hev1`), HEVC mit knapp höherer
+Spitzenbandbreite; der Ton liegt getrennt in mehreren Sprachen (Deutsch als `DEFAULT`, mehrsprachig, Französisch,
+klare Sprache), dazu Untertitel als eigene Playlists. In 8 von 8 Stichproben gab es beide Codecs in allen drei
+Auflösungen. Beispiel: `test/fixtures/hls/arte-master.m3u8`.
+
 ## Identität und Dubletten
 
 - (Sender, Thema, Titel, Url) ist in der Vollliste eindeutig.

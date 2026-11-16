@@ -18,7 +18,17 @@ import httpx
 
 from mtdl_web.downloads import DownloadError
 from mtdl_web.downloads.bandwidth import TokenBucket
-from mtdl_web.downloads.hls import MasterPlaylist, MediaPlaylist, choose, download_media, fetch_playlist, mux, parse
+from mtdl_web.downloads.hls import (
+    MasterPlaylist,
+    MediaPlaylist,
+    choose,
+    codec_of,
+    download_media,
+    fetch_playlist,
+    geo_notice,
+    mux,
+    parse,
+)
 from mtdl_web.downloads.queue import ACTIVE, Download, DownloadQueue, State
 from mtdl_web.downloads.subtitles import convert
 from mtdl_web.downloads.transfer import fetch, fetch_bytes
@@ -26,7 +36,7 @@ from mtdl_web.episodes import episode_key, same_duration, same_file, videos
 from mtdl_web.events import DownloadCompleted, DownloadEvent, DownloadFailed, DownloadQueued, DownloadStarted, EventBus
 from mtdl_web.libraries import LibraryStore
 from mtdl_web.library import IGNORE_FILES, STAGING
-from mtdl_web.models import Film
+from mtdl_web.models import Film, VideoCodec
 from mtdl_web.mounts import unmounted
 from mtdl_web.state import AppSettings
 
@@ -47,7 +57,7 @@ class Duplicate(Exception):
 
 def error_code(exc: BaseException, film: Film) -> str:
     """The kind of a failure; the UI explains each kind and what helps. Codes: geo, forbidden, gone, http, network,
-    not_public, permission, disk_full, filesystem, not_mounted, mux, format, livestream, no_url, unknown."""
+    not_public, permission, disk_full, filesystem, not_mounted, mux, format, codec, livestream, no_url, unknown."""
     if isinstance(exc, DownloadError):
         if exc.status in (401, 403, 451):
             return "geo" if film.geo else "forbidden"
@@ -151,8 +161,10 @@ class DownloadManager:
         subscription_id: int | None = None,
         library_id: int | None = None,
         force: bool = False,
+        video_codec: VideoCodec | None = None,
     ) -> Download:
-        """``path`` is relative to the library ``library_id``, else to the download folder."""
+        """``path`` is relative to the library ``library_id``, else to the download folder. Quality, subtitles and
+        the video codec default to the settings and are kept with the download."""
         if is_livestream(film):
             raise DownloadError("livestream: cannot be downloaded", code="livestream")
         if not force and (existing := self.find_existing(film)):
@@ -166,6 +178,7 @@ class DownloadManager:
             episode_key=episode_key(film),
             subscription_id=subscription_id,
             library_id=library_id,
+            video_codec=video_codec or settings.video_codec,
         )
         await self._bus.publish(DownloadQueued(**self._event_fields(download)))
         self.wake()
@@ -428,13 +441,20 @@ class DownloadManager:
         progress: Callable[[int, int | None], None],
     ) -> None:
         text, final_url = await fetch_playlist(self._client, url, self._bucket)
+        if geo_notice(final_url):
+            raise DownloadError(f"{url} leads to the broadcaster's geo-protection notice", status=403)
         playlist = parse(text, final_url)
-        audio_url = None
+        audio_url: str | None = None
+        audio_language: str | None = None
+        hevc = False
         if isinstance(playlist, MasterPlaylist):
-            variant, audio = choose(playlist, download.quality)  # type: ignore[arg-type]
+            codec = download.video_codec or self._settings().video_codec
+            variant, audio = choose(playlist, download.quality, codec)  # type: ignore[arg-type]
+            hevc = codec_of(variant) == "hevc"
             text, final_url = await fetch_playlist(self._client, variant.uri, self._bucket)
             playlist = parse(text, final_url)
             audio_url = audio.uri if audio else None
+            audio_language = audio.language if audio else None
         if not isinstance(playlist, MediaPlaylist):
             raise DownloadError("HLS variant is not a media playlist", code="format")
 
@@ -452,7 +472,7 @@ class DownloadManager:
             audio_local = await download_media(self._client, audio_playlist, work / "audio", self._bucket, segments)
         live.phase = "mux"
         async with self._ffmpeg_slots:
-            await mux(video, audio_local, part, ffmpeg=self._ffmpeg)
+            await mux(video, audio_local, part, ffmpeg=self._ffmpeg, hevc=hevc, audio_language=audio_language)
         shutil.rmtree(work, ignore_errors=True)
 
     async def _subtitles(self, download: Download, target: Path, live: Live) -> str | None:

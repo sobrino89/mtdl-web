@@ -3,7 +3,8 @@ files (``-c copy``), so it never reaches the network. Real cases (docs/filmliste
 
 - media playlists with muxed TS segments (SRF, ORF chunklists, WDR, SWR, funk), relative or on another host;
 - master playlists: ORF (redirect to another host, video-only variants plus an audio rendition), funk (audio-only
-  variants and I-frame streams next to the video variants).
+  variants and I-frame streams next to the video variants), ARTE (CMAF: every resolution in H.264 and HEVC, the
+  sound as separate renditions in several languages, German marked DEFAULT).
 
 Live playlists (no ``#EXT-X-ENDLIST``) are refused: a download would never end.
 """
@@ -22,8 +23,18 @@ from mtdl_web.downloads import DownloadError
 from mtdl_web.downloads.bandwidth import TokenBucket
 from mtdl_web.downloads.transfer import fetch, fetch_bytes, refused
 from mtdl_web.http import NotPublic
+from mtdl_web.models import VideoCodec
 
 Quality = Literal["hd", "normal", "low"]
+# ISO 639-1 as the playlists write it, to the ISO 639-2 code that mp4 stores per track (Plex and Jellyfin show it).
+# fmt: off
+_LANGUAGES = {
+    "ar": "ara", "bg": "bul", "cs": "ces", "da": "dan", "de": "deu", "el": "ell", "en": "eng", "es": "spa",
+    "fi": "fin", "fr": "fra", "hr": "hrv", "hu": "hun", "it": "ita", "ja": "jpn", "ko": "kor", "nl": "nld",
+    "no": "nor", "pl": "pol", "pt": "por", "ro": "ron", "ru": "rus", "sk": "slk", "sl": "slv", "sr": "srp",
+    "sv": "swe", "tr": "tur", "uk": "ukr", "zh": "zho",
+}
+# fmt: on
 _ATTRIBUTE = re.compile(r'([A-Z0-9-]+)=("[^"]*"|[^,]*)')
 SEGMENT_CONCURRENCY = 4
 # Limits against a broken or manipulated source: real playlists have a few KB, and a three-hour broadcast in
@@ -169,20 +180,59 @@ def parse(text: str, base_url: str) -> MasterPlaylist | MediaPlaylist:
     return media
 
 
-def choose(master: MasterPlaylist, quality: Quality) -> tuple[Variant, AudioRendition | None]:
-    """The variant for the wanted quality: hd = highest, low = lowest, normal = the highest up to 720p.
+def geo_notice(final_url: str) -> bool:
+    """ORF answers a request from outside the allowed countries with a redirect to a notice video
+    (``…/insert_geoprotection_hr.smil/playlist.m3u8``, one variant without resolution or codecs): never the
+    broadcast, so a download stops there as geo-blocked."""
+    return "geoprotection" in urlsplit(final_url).path.lower()
+
+
+def codec_of(variant: Variant) -> Literal["h264", "hevc"] | None:
+    """From CODECS (``avc1.640028``, ``hev1.1.6.L120.B0``); None when the playlist does not say (ORF)."""
+    codecs = variant.codecs.lower()
+    if "hvc1" in codecs or "hev1" in codecs:
+        return "hevc"
+    if "avc1" in codecs or "avc3" in codecs:
+        return "h264"
+    return None
+
+
+def language_code(language: str | None) -> str | None:
+    """The ISO 639-2 code for an audio track (``de`` → ``deu``); three letters stay as they are (``mul``)."""
+    code = (language or "").strip().lower().split("-")[0]
+    return code if len(code) == 3 and code.isalpha() else _LANGUAGES.get(code)
+
+
+def choose(
+    master: MasterPlaylist, quality: Quality, codec: VideoCodec = "prefer_h264"
+) -> tuple[Variant, AudioRendition | None]:
+    """The variant for the wanted quality: hd = highest, low = lowest, normal = the highest up to 720p. The
+    resolution comes first; where a resolution comes in H.264 and HEVC, ``codec`` picks (a variant without CODECS
+    counts as H.264), then the bandwidth as before. ``h264_only`` never takes HEVC: a master with nothing else fails.
     Audio-only variants (funk) and I-frame streams are not candidates."""
-    video = [v for v in master.variants if v.resolution or "avc" in v.codecs or "hvc" in v.codecs]
+    video = [v for v in master.variants if v.resolution or codec_of(v)]
     if not video:
         raise DownloadError("HLS master playlist without video variants", code="format")
-    video.sort(key=lambda v: (v.resolution[1] if v.resolution else 0, v.bandwidth))
-    if quality == "hd":
-        chosen = video[-1]
-    elif quality == "low":
-        chosen = video[0]
-    else:
-        up_to_720 = [v for v in video if v.resolution and v.resolution[1] <= 720]
-        chosen = up_to_720[-1] if up_to_720 else video[0]
+    if codec == "h264_only":
+        video = [v for v in video if codec_of(v) != "hevc"]
+        if not video:
+            raise DownloadError("the stream comes only in HEVC, which the settings exclude", code="codec")
+
+    def height(v: Variant) -> int:
+        return v.resolution[1] if v.resolution else 0
+
+    preferred = "hevc" if codec == "prefer_hevc" else "h264"
+
+    def first(v: Variant) -> int:  # 1 for the codec the settings prefer
+        return int((codec_of(v) or "h264") == preferred)
+
+    up_to_720 = [height(v) for v in video if v.resolution and height(v) <= 720]
+    if quality == "hd" or (quality == "normal" and up_to_720):
+        top = max(up_to_720) if quality == "normal" else max(height(v) for v in video)
+        chosen = max((v for v in video if height(v) == top), key=lambda v: (first(v), v.bandwidth))
+    else:  # low, and normal without anything up to 720p: the lowest
+        bottom = min(height(v) for v in video)
+        chosen = min((v for v in video if height(v) == bottom), key=lambda v: (-first(v), v.bandwidth))
     group = [a for a in master.audio if a.group == chosen.audio_group and a.uri]
     audio = next((a for a in group if a.default), group[0] if group else None)
     return chosen, audio
@@ -329,15 +379,42 @@ async def download_media(
     return local
 
 
-async def mux(video: Path, audio: Path | None, output: Path, *, ffmpeg: str = "ffmpeg") -> None:
-    """Local HLS playlist(s) to mp4 without re-encoding; only file and crypto protocols are allowed."""
+def mux_args(
+    video: Path,
+    audio: Path | None,
+    output: Path,
+    *,
+    ffmpeg: str = "ffmpeg",
+    hevc: bool = False,
+    audio_language: str | None = None,
+) -> list[str]:
+    """ffmpeg's command line for ``mux``. HEVC is written as ``hvc1``, the tag Apple's players need (ARTE sends
+    ``hev1``; mpv, ExoPlayer and ffmpeg take both). ``audio_language`` labels the separate audio rendition."""
     hls_input = ["-allowed_extensions", "ALL", "-protocol_whitelist", "file,crypto"]
     args = [ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", *hls_input, "-i", str(video)]
     if audio is not None:
         args += [*hls_input, "-i", str(audio), "-map", "0:v:0", "-map", "1:a:0"]
+        if code := language_code(audio_language):
+            args += ["-metadata:s:a:0", f"language={code}"]
     else:
         args += ["-map", "0:v?", "-map", "0:a?"]
-    args += ["-c", "copy", "-movflags", "+faststart", "-f", "mp4", str(output)]
+    args += ["-c", "copy"]
+    if hevc:
+        args += ["-tag:v", "hvc1"]
+    return [*args, "-movflags", "+faststart", "-f", "mp4", str(output)]
+
+
+async def mux(
+    video: Path,
+    audio: Path | None,
+    output: Path,
+    *,
+    ffmpeg: str = "ffmpeg",
+    hevc: bool = False,
+    audio_language: str | None = None,
+) -> None:
+    """Local HLS playlist(s) to mp4 without re-encoding; only file and crypto protocols are allowed."""
+    args = mux_args(video, audio, output, ffmpeg=ffmpeg, hevc=hevc, audio_language=audio_language)
     process = await asyncio.create_subprocess_exec(
         *args, stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
     )

@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from mtdl_web.db import Database
 from mtdl_web.library import DEFAULT_TEMPLATE
 from mtdl_web.library import unknown_placeholders as unknown_library_placeholders
+from mtdl_web.models import VideoCodec
 from mtdl_web.naming import unknown_placeholders
 
 MIGRATIONS = (
@@ -148,6 +149,13 @@ MIGRATIONS = (
     ALTER TABLE subscription ADD COLUMN special_versions TEXT NOT NULL DEFAULT 'setting'
         CHECK (special_versions IN ('setting', 'exclude', 'include'));
     """,
+    # H.264 or HEVC where a stream offers both: per subscription (NULL: as in the settings) and per download.
+    """
+    ALTER TABLE subscription ADD COLUMN video_codec TEXT
+        CHECK (video_codec IN ('prefer_h264', 'prefer_hevc', 'h264_only'));
+    ALTER TABLE download ADD COLUMN video_codec TEXT
+        CHECK (video_codec IN ('prefer_h264', 'prefer_hevc', 'h264_only'));
+    """,
 )
 
 
@@ -176,6 +184,9 @@ class AppSettings(BaseModel):
     parallel_downloads: int = Field(default=2, ge=1, le=10)
     # Preferred quality; falls back to the next lower one that exists.
     quality: Literal["hd", "normal", "low"] = "hd"
+    # Where a stream has the chosen resolution in H.264 and HEVC (ARTE): which one, or never HEVC (hls.choose).
+    # H.264 by default: every player takes it; HEVC files are smaller, but not every device plays them.
+    video_codec: VideoCodec = "prefer_h264"
     subtitles: bool = True
     # Replace characters that cause trouble in file systems (umlauts, accents, emojis, ":" …).
     normalize_filenames: bool = True

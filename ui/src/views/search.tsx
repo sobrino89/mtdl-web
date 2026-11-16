@@ -3,7 +3,19 @@
 import { Component, type JSX } from "preact";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 
-import { api, ApiError, type DownloadBody, errorMessage, type Film, type Library, type Naming, type Quality, type SearchResult } from "../api";
+import {
+  api,
+  ApiError,
+  type DownloadBody,
+  errorMessage,
+  type Film,
+  type Library,
+  type Naming,
+  type Quality,
+  type SearchResult,
+  VIDEO_CODECS,
+  type VideoCodec,
+} from "../api";
 import { ChannelBadge } from "../components/channel";
 import * as F from "../format";
 import { t, type Key } from "../i18n";
@@ -475,7 +487,13 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
   /** How a film travels to the API: by its id in the film list. */
   const bodyOf = (film: Film): DownloadBody => ({ film_id: film.id });
 
-  const enqueue = async (list: Film[], quality: Quality | undefined, force = false, naming?: Naming): Promise<number> => {
+  const enqueue = async (
+    list: Film[],
+    quality: Quality | undefined,
+    force = false,
+    naming?: Naming,
+    codec?: VideoCodec,
+  ): Promise<number> => {
     if (!list.length || !result) return 0;
     remember(f.q);
     let queued = 0;
@@ -483,7 +501,7 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
     let failed = "";
     for (const film of list) {
       try {
-        await api.download({ ...bodyOf(film), quality, force, naming });
+        await api.download({ ...bodyOf(film), quality, force, naming, video_codec: codec });
         queued++;
       } catch (e) {
         if (e instanceof ApiError && e.status === 409) duplicates++;
@@ -493,7 +511,7 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
     const only = list[0];
     if (failed) toast(t("dl.error", { message: failed }));
     else if (list.length === 1 && duplicates && only) {
-      toast(t("dl.duplicate_one"), { label: t("dl.force"), run: () => void enqueue([only], quality, true, naming) });
+      toast(t("dl.duplicate_one"), { label: t("dl.force"), run: () => void enqueue([only], quality, true, naming, codec) });
     } else if (queued) {
       const text = queued === 1 && only ? t("dl.queued_one", { title: only.title }) : t("dl.queued_many", { n: queued });
       toast(duplicates ? `${text} · ${t("dl.duplicate_many", { n: duplicates })}` : text, {
@@ -1138,9 +1156,10 @@ export function Search(props: { route: Route; layout: Layout }): JSX.Element {
             timeZone={timeZone}
             subtitles={settings?.subtitles ?? true}
             quality={settings?.quality ?? "hd"}
+            codec={settings?.video_codec ?? "prefer_h264"}
             live={detail.status?.download_id != null ? live.get(detail.status.download_id) : undefined}
             onClose={() => setQuery({ id: "", ziel: "" })}
-            onDownload={(q) => void enqueue([detail], q)}
+            onDownload={(q, codec) => void enqueue([detail], q, false, undefined, codec)}
             movieLibraries={movieLibraries}
             movieOpen={movieOpen}
             onMovie={(open) => setQuery({ ziel: open ? "film" : "" })}
@@ -1173,10 +1192,13 @@ function Detail(props: {
   subtitles: boolean;
   /** The preferred quality from the settings: the download button and the preview start with it. */
   quality: Quality;
+  /** The video codec from the settings; an HLS broadcast may take another one here. */
+  codec: VideoCodec;
   live: number | undefined;
   future: boolean;
   onClose: () => void;
-  onDownload: (q: Quality) => void;
+  /** ``codec`` only when picked here; otherwise the server takes the settings. */
+  onDownload: (q: Quality, codec?: VideoCodec) => void;
   onSubscribe: () => void;
   onTopic: () => void;
   /** Movie libraries: the film goes there under its TMDB name; empty: no such library, no button. */
@@ -1206,6 +1228,13 @@ function Detail(props: {
   const [picked, setPicked] = useState<{ film: string; quality: Quality } | null>(null);
   const previewQuality = picked?.film === film.id ? picked.quality : preferred;
   const available = S.qualities(film).filter((q) => q.available);
+  // Only an HLS stream can offer H.264 and HEVC side by side (ARTE); the pick holds for this film's downloads.
+  const hls = available.some((q) => S.isHls(S.urlOf(film, q.quality) ?? ""));
+  const [codecPick, setCodecPick] = useState<{ film: string; codec: VideoCodec } | null>(null);
+  const codec = codecPick?.film === film.id ? codecPick.codec : undefined;
+  // An HLS master carries every resolution under one address (ARTE lists it as "Hoch" only): the main button asks for
+  // the preferred quality, and the server takes it from the master, as the download button of a hit row does.
+  const loadQuality = hls ? props.quality : preferred;
   const website = film.url_website;
   return (
     <aside aria-label={t("det.label")} class={`detail${props.side ? " side" : ""}${props.mobile ? " mobile" : ""}`}>
@@ -1275,13 +1304,33 @@ function Detail(props: {
               aria-label={t("det.quality_download")}
               title={t("det.quality_download")}
               disabled={!q.available}
-              onClick={() => props.onDownload(q.quality)}
+              onClick={() => props.onDownload(q.quality, codec)}
             >
               <Icon d={I.download} size={15} stroke={1.9} />
             </button>
           </div>
         ))}
       </div>
+      {hls && (
+        <label class="preview-quality">
+          <span>{t("det.codec")}</span>
+          <select
+            class="input"
+            value={codec ?? ""}
+            onChange={(e) => {
+              const value = (e.target as HTMLSelectElement).value as VideoCodec | "";
+              setCodecPick(value ? { film: film.id, codec: value } : null);
+            }}
+          >
+            <option value="">{t("det.codec_default", { codec: t(`set.codec.${props.codec}` as Key) })}</option>
+            {VIDEO_CODECS.map((c) => (
+              <option key={c} value={c}>
+                {t(`set.codec.${c}` as Key)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <div class="detail-facts">
         <span class="faint">{t("det.subtitles")}</span>
         <span>{film.url_subtitle ? (props.subtitles ? t("det.subtitles_yes") : t("det.subtitles_off")) : t("det.none")}</span>
@@ -1334,9 +1383,9 @@ function Detail(props: {
         ))}
       <div class="grow detail-spacer" />
       <div class="detail-actions">
-        <button class="button primary grow" onClick={() => props.onDownload(preferred)}>
+        <button class="button primary grow" onClick={() => props.onDownload(loadQuality, codec)}>
           <Icon d={I.download} size={15} stroke={1.9} />
-          {t("det.download_quality", { quality: t(QUALITY_KEYS[preferred]) })}
+          {t("det.download_quality", { quality: t(QUALITY_KEYS[loadQuality]) })}
         </button>
         <button class="button" onClick={props.onSubscribe}>
           {t("search.subscribe")}

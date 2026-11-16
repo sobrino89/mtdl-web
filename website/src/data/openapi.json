@@ -3019,6 +3019,16 @@
             "title": "Quality",
             "default": "hd"
           },
+          "video_codec": {
+            "type": "string",
+            "enum": [
+              "prefer_h264",
+              "prefer_hevc",
+              "h264_only"
+            ],
+            "title": "Video Codec",
+            "default": "prefer_h264"
+          },
           "subtitles": {
             "type": "boolean",
             "title": "Subtitles",
@@ -3344,6 +3354,22 @@
             ],
             "title": "Quality"
           },
+          "video_codec": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "prefer_h264",
+                  "prefer_hevc",
+                  "h264_only"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Codec"
+          },
           "subtitles": {
             "anyOf": [
               {
@@ -3436,6 +3462,22 @@
           "quality": {
             "type": "string",
             "title": "Quality"
+          },
+          "video_codec": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "prefer_h264",
+                  "prefer_hevc",
+                  "h264_only"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Codec"
           },
           "subtitles": {
             "type": "boolean",
@@ -3570,6 +3612,7 @@
           "file",
           "library_id",
           "quality",
+          "video_codec",
           "subtitles",
           "subscription_id",
           "bytes_done",
@@ -5594,6 +5637,22 @@
             ],
             "title": "Special Versions",
             "default": "setting"
+          },
+          "video_codec": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "prefer_h264",
+                  "prefer_hevc",
+                  "h264_only"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Codec"
           }
         },
         "type": "object",
@@ -5699,6 +5758,22 @@
             ],
             "title": "Special Versions",
             "default": "setting"
+          },
+          "video_codec": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "prefer_h264",
+                  "prefer_hevc",
+                  "h264_only"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Codec"
           },
           "id": {
             "type": "integer",
@@ -5864,6 +5939,22 @@
             ],
             "title": "Special Versions",
             "default": "setting"
+          },
+          "video_codec": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "prefer_h264",
+                  "prefer_hevc",
+                  "h264_only"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Codec"
           },
           "skip_existing": {
             "type": "boolean",

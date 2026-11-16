@@ -158,3 +158,12 @@ async def test_bandwidth_limit_is_shared_and_changes_at_once() -> None:
     bucket.set_rate(0)  # ... until the limit is lifted
     await task
     assert time.monotonic() - started < 0.2
+
+
+def test_a_network_error_without_text_names_its_kind() -> None:
+    """httpx's timeouts often have an empty message; the log line then ended in "…mp4: "."""
+    from mtdl_web.downloads.transfer import _gave_up
+
+    url = "https://example.org/video.mp4"
+    assert str(_gave_up(httpx.ReadTimeout(""), url)) == f"{url}: ReadTimeout"
+    assert str(_gave_up(httpx.ConnectError("refused"), url)) == f"{url}: refused"

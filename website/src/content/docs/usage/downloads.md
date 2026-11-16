@@ -34,9 +34,13 @@ lokal zusammen.
 |---|---|
 | Video | MP4; HLS-Sendungen setzt ffmpeg ohne Neukodierung zu MP4 zusammen |
 | Qualität | HD, Hoch oder Klein; fehlt die gewünschte, lädt mtdl-web die nächstniedrigere, sonst die nächsthöhere |
+| Videocodec | Bietet ein Sender dieselbe Auflösung in H.264 und HEVC an (derzeit ARTE), entscheidet die Einstellung: **H.264 bevorzugen** (Standard, spielt auf jedem Gerät), **HEVC bevorzugen** (kleinere Dateien) oder **Nur H.264** (nie HEVC; gibt es nur HEVC, schlägt der Download fehl) |
+| Tonspur | Bei getrennten Tonspuren die, die der Sender als Standard markiert, mit ihrer Sprache in der Datei |
 | Untertitel | als `.de.srt` neben dem Video, wenn der Sender welche anbietet (abschaltbar); lassen sie sich nicht lesen, wird der Download ohne sie fertig |
 
-Die Voreinstellungen stehen unter **Einstellungen**, **Qualität**; Abos können eigene haben.
+Die Voreinstellungen stehen unter **Einstellungen**, **Qualität**; Abos können eigene haben, eine einzelne Sendung
+bekommt in ihren Details einen anderen Videocodec. HEVC-Dateien tragen die Kennung `hvc1`, die auch Apples Player
+verlangen. Neu kodiert wird nie: Es gibt nur, was der Sender anbietet.
 
 ## Wiederaufnahme und Wiederholung
 
@@ -57,6 +61,7 @@ zum Kopieren:
 | Zielordner nicht beschreibbar | Rechte passen nicht, mit dem passenden Befehl; siehe [Ordner und Rechte](../../install/folders/). |
 | Kein Platz mehr | Das Ziellaufwerk ist voll; nach dem Aufräumen geht es weiter, wo es war. |
 | Zusammensetzen fehlgeschlagen | ffmpeg konnte die HLS-Teile nicht verbinden. |
+| Nur in HEVC | Der Sender bietet die Sendung nur in HEVC an, und **Nur H.264** schließt das aus. In der Suche mit anderem Videocodec neu laden. |
 | Adresse im eigenen Netz | Die Filmliste oder eine Playlist zeigt auf ein Gerät im eigenen Netz statt auf einen Server im Internet; von dort lädt mtdl-web nicht, siehe [Sicherheit](../../background/security/#downloads). |
 
 **Erneut versuchen** stellt einen Download wieder ein. Ein nicht beschreibbarer Zielordner ist kein Fehler im

@@ -25,7 +25,8 @@ vom Handy.
 - **Abos** mit einfachen, sichtbaren Regeln. Die Vorschau zeigt vor dem Speichern, welche Folgen geladen werden und
   welche Regel die übrigen ausschließt.
 - **Downloads** als MP4 und HLS mit Wiederaufnahme, Untertiteln als SRT, einem gemeinsamen Bandbreitenlimit (auch
-  nach Zeitplan) und Fehlermeldungen, die die Lösung nennen.
+  nach Zeitplan) und Fehlermeldungen, die die Lösung nennen. Wo ein Sender H.264 und HEVC anbietet, entscheidest du,
+  welcher Codec es wird.
 - **Plex und Jellyfin:** Dateinamen mit Staffel und Folge, oder direkt in die Bibliothek des Mediaservers, benannt
   nach TMDB.
 - **Integrationen:** REST-API mit OpenAPI, signierte Webhooks, Skripte je Ereignis und ein MCP-Server für

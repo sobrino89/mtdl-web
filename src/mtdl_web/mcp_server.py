@@ -74,8 +74,9 @@ A subscription draft: query finds the candidates (search syntax). conditions nar
 naming says where files go: scheme season_episode ("(S02/E03)" in the title, else the number "(39)" as season 1,
 else the date), episode_number, date (default) or template; show and folder replace the show name (default: the
 topic), season fixes the season. Into a series library under TMDB's names instead: target "library", library_id
-(list_libraries) and tmdb_id (find_series). Optional: quality hd/normal/low, subtitles, valid_until (last day,
-YYYY-MM-DD) with on_expiry pause or delete, state active or paused. special_versions: versions with audio
+(list_libraries) and tmdb_id (find_series). Optional: quality hd/normal/low, video_codec prefer_h264, prefer_hevc or
+h264_only (where a stream has both, as ARTE's), subtitles, valid_until (last day, YYYY-MM-DD) with on_expiry pause
+or delete, state active or paused. special_versions: versions with audio
 description, sign language, "Hörfassung" or "klare Sprache" are left out as the setting says ("setting", default:
 out), "exclude" or "include" (a subscription for exactly such a version needs "include")."""
 
@@ -175,6 +176,7 @@ def _download(d: Mapping[str, Any]) -> dict[str, Any]:
         "title": film["title"],
         "file": d["file"],
         "quality": d["quality"],
+        "video_codec": d.get("video_codec"),
         "subscription_id": d["subscription_id"],
         "created_at": d["created_at"],
         "finished_at": d["finished_at"],
@@ -244,6 +246,9 @@ class SubscriptionChanges(BaseModel):
     valid_until: dt.date | None = Field(default=None, description="The last day; null removes it.")
     on_expiry: Literal["pause", "delete"] | None = None
     special_versions: Literal["setting", "exclude", "include"] | None = None
+    video_codec: Literal["prefer_h264", "prefer_hevc", "h264_only"] | None = Field(
+        default=None, description="Where a stream has the resolution in H.264 and HEVC; null: as in the settings."
+    )
 
 
 class SettingsChanges(BaseModel):
@@ -257,6 +262,10 @@ class SettingsChanges(BaseModel):
     bandwidth_enabled: bool | None = Field(default=None, description="Switch the limit on or off; the value stays.")
     quality: Literal["hd", "normal", "low"] | None = Field(
         default=None, description="Preferred quality; a film without it loads the next lower one."
+    )
+    video_codec: Literal["prefer_h264", "prefer_hevc", "h264_only"] | None = Field(
+        default=None,
+        description="Where a stream has the chosen resolution in H.264 and HEVC (ARTE): which one, or never HEVC.",
     )
     subtitles: bool | None = None
     parallel_downloads: int | None = Field(default=None, ge=1, le=10)
@@ -526,9 +535,9 @@ conditions replace all conditions). To pause or resume, set_subscription_state i
 
         @server.tool(annotations=OVERWRITES)
         async def update_settings(ctx: Context, changes: SettingsChanges) -> dict[str, Any]:
-            """Change the bandwidth limit (Mbit/s, for all downloads together, live), the preferred quality,
-            subtitles or how many downloads run at once. A limit schedule from the settings page may set another
-            limit at times; get_status shows the one in effect."""
+            """Change the bandwidth limit (Mbit/s, for all downloads together, live), the preferred quality and
+            video codec, subtitles or how many downloads run at once. A limit schedule from the settings page may
+            set another limit at times; get_status shows the one in effect."""
             body = changes.to_settings()
             if not body:
                 raise ToolError("Nothing to change.")
@@ -542,10 +551,17 @@ conditions replace all conditions). To pause or resume, set_subscription_state i
             quality: Literal["hd", "normal", "low"] | None = None,
             subtitles: bool | None = None,
             force: Annotated[bool, Field(description="Load even if the broadcast was loaded before.")] = False,
+            video_codec: Literal["prefer_h264", "prefer_hevc", "h264_only"] | None = None,
         ) -> dict[str, Any]:
-            """Queue one film (an id from search) into the download folder, named after the settings. Quality and
-            subtitles default to the settings."""
-            body = {"film_id": film_id, "quality": quality, "subtitles": subtitles, "force": force}
+            """Queue one film (an id from search) into the download folder, named after the settings. Quality,
+            subtitles and video codec (where the stream has H.264 and HEVC) default to the settings."""
+            body = {
+                "film_id": film_id,
+                "quality": quality,
+                "subtitles": subtitles,
+                "force": force,
+                "video_codec": video_codec,
+            }
             return _download(await rest(ctx, "POST", "/downloads", body=body))
 
         return self._http(server)

@@ -8,6 +8,10 @@ from typing import Literal
 # Where a search looks: topic and title (MediathekViewWeb default), only one of them, or also descriptions.
 Scope = Literal["topic_title", "title", "topic", "all"]
 
+# The video codec a download takes when a stream offers two at the same resolution (HLS masters of ARTE carry
+# H.264 and HEVC): H.264 first, HEVC first, or never HEVC.
+VideoCodec = Literal["prefer_h264", "prefer_hevc", "h264_only"]
+
 
 def film_id(channel: str, topic: str, title: str, url: str) -> int:
     """Stable 63-bit id of a film list entry.

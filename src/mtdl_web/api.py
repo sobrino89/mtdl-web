@@ -39,7 +39,7 @@ from mtdl_web.library import (
 )
 from mtdl_web.library import unknown_placeholders as unknown_library_placeholders
 from mtdl_web.metadata import EpisodeInfo, MetadataError, MovieInfo, SeriesInfo
-from mtdl_web.models import Film, Scope, film_id
+from mtdl_web.models import Film, Scope, VideoCodec, film_id
 from mtdl_web.naming import Naming, Scheme, Target, target_path, unknown_placeholders
 from mtdl_web.plex import PlexError
 from mtdl_web.query import parse as parse_query
@@ -741,6 +741,8 @@ def post_naming_preview(rt: RuntimeDep, body: NamingPreviewIn) -> dict[str, list
 class DownloadIn(BaseModel):
     film_id: str  # from the film list
     quality: Literal["hd", "normal", "low"] | None = None
+    # Where the stream has the resolution in H.264 and HEVC: which one, or never HEVC. None: as in the settings.
+    video_codec: VideoCodec | None = None
     subtitles: bool | None = None
     naming: NamingIn | None = None
     force: bool = False  # load even if the broadcast was loaded before
@@ -754,6 +756,7 @@ class DownloadOut(BaseModel):
     file: str  # the video as the container sees it, absolute
     library_id: int | None
     quality: str
+    video_codec: VideoCodec | None  # None: queued before 0.2.0, the settings decide
     subtitles: bool
     subscription_id: int | None
     bytes_done: int
@@ -782,6 +785,7 @@ class DownloadOut(BaseModel):
             file=file,
             library_id=download.library_id,
             quality=download.quality,
+            video_codec=download.video_codec,
             subtitles=download.subtitles,
             subscription_id=download.subscription_id,
             bytes_done=live.done if live else download.bytes_done,
@@ -844,6 +848,7 @@ async def post_download(rt: RuntimeDep, body: DownloadIn) -> DownloadOut:
             subtitles=body.subtitles,
             library_id=target.library.id if target.library else None,
             force=body.force,
+            video_codec=body.video_codec,
         )
     except Duplicate as exc:
         detail = {"code": "duplicate", "existing_id": exc.existing.id, "state": exc.existing.state}
@@ -993,6 +998,8 @@ class SubscriptionIn(BaseModel):
     on_expiry: Literal["pause", "delete"] = "pause"
     # Audio description, sign language and the like (special.py): as in the settings, always out, or loaded too.
     special_versions: SpecialVersions = "setting"
+    # Where a stream has the resolution in H.264 and HEVC: which one, or never HEVC. None: as in the settings.
+    video_codec: VideoCodec | None = None
 
     def to_draft(self, *, require_name: bool) -> SubscriptionDraft:
         conditions = []
@@ -1018,6 +1025,7 @@ class SubscriptionIn(BaseModel):
             valid_until=self.valid_until,
             on_expiry=self.on_expiry,
             special_versions=self.special_versions,
+            video_codec=self.video_codec,
         )
 
 
@@ -1058,6 +1066,7 @@ class SubscriptionOut(SubscriptionIn):
             valid_until=sub.valid_until,
             on_expiry=sub.on_expiry,
             special_versions=sub.special_versions,
+            video_codec=sub.video_codec,
             created_at=dt.datetime.fromtimestamp(sub.created_at, dt.UTC),
             updated_at=dt.datetime.fromtimestamp(sub.updated_at, dt.UTC),
             last_check=when(sub.last_check),

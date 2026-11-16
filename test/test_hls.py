@@ -15,9 +15,13 @@ from mtdl_web.downloads.hls import (
     MasterPlaylist,
     MediaPlaylist,
     choose,
+    codec_of,
     download_media,
     fetch_playlist,
+    geo_notice,
+    language_code,
     mux,
+    mux_args,
     parse,
 )
 from mtdl_web.http import make_client
@@ -29,6 +33,7 @@ ORF = "https://apasfiis.sf.apa.at/ipad/cms-worldwide/2026/10/12/2026-10-12_2251_
 WDR = "https://wdrvod-rwrtr.akamaized.net/i/,/medp/ondemand/weltweit/fsk0/353/3539543/,3539543_69050203,3539543_69050204,3539543_69050205,3539543_69050202,3539543_69050201,.mp4.csmil/index-f3-v1-a1.m3u8"
 ORF_MASTER = "https://vod-ww.mdn.ors.at/cms-worldwide_nas/_definst_/nas/cms-worldwide/online/2026/08/11/2026-08-11_1512_in_06_Universum--Lung_____14334737__o__1944837662__s16134677_Q6A.mp4/playlist.m3u8"
 FUNK_MASTER = "https://funk-02.akamaized.net/22679/files/21/02/16/2776328/22679-Kj2Twv7yV8X4tNq.ism/manifest.m3u8"
+ARTE_MASTER = "https://manifest-arte.akamaized.net/api/manifest/v1/Generate/fbb1944a-661e-4e8e-a8a8-5712e122f925/de/XQ+KS+CHEV1/127400-010-A.m3u8"
 
 
 def media(name: str, url: str) -> MediaPlaylist:
@@ -79,6 +84,88 @@ def test_funk_master_skips_audio_only_variants() -> None:
     assert variant.uri.endswith("-audio=152000-video=3968000.m3u8")
     assert audio is None  # audio is muxed into the variant
     assert choose(funk, "low")[0].resolution == (426, 240)
+
+
+def test_arte_master_in_h264_and_hevc() -> None:
+    """ARTE since 10/2026: every resolution twice, HEVC with a slightly higher peak bandwidth. Before the codec
+    choice the bandwidth decided and every download came as HEVC."""
+    arte = master("arte-master.m3u8", ARTE_MASTER)
+    assert sorted((codec_of(v), v.resolution) for v in arte.variants) == [
+        ("h264", (768, 432)),
+        ("h264", (1280, 720)),
+        ("h264", (1920, 1080)),
+        ("hevc", (768, 432)),
+        ("hevc", (1280, 720)),
+        ("hevc", (1920, 1080)),
+    ]
+    expected = {"hd": "v1080", "normal": "v720", "low": "v432"}
+    for quality, size in expected.items():
+        for codec, suffix in (("prefer_h264", "h264"), ("h264_only", "h264"), ("prefer_hevc", "h265")):
+            variant, audio = choose(arte, quality, codec)  # type: ignore[arg-type]
+            assert variant.uri.endswith(f"_{size}_crf_{suffix}.m3u8"), (quality, codec)
+            # Five renditions (German, multilingual, French, both in plain language): German is the default.
+            assert audio is not None and audio.language == "de" and audio.default
+    assert choose(arte, "hd")[0].uri.endswith("_v1080_crf_h264.m3u8")  # H.264 unless told otherwise
+
+
+def test_codec_choice_leaves_single_codec_masters_alone() -> None:
+    """ORF names no codecs (they count as H.264), funk only H.264: every choice gives what the bandwidth gave."""
+    for name, url in (("orf-master.m3u8", ORF_MASTER), ("funk-master.m3u8", FUNK_MASTER)):
+        playlist = master(name, url)
+        for quality in ("hd", "normal", "low"):
+            plain = choose(playlist, quality)
+            for codec in ("prefer_hevc", "h264_only"):
+                assert choose(playlist, quality, codec) == plain
+
+
+def test_hevc_only_stream_without_hevc() -> None:
+    # The ARTE master without its H.264 variants (each one is a tag line plus its uri line).
+    lines = (HLS / "arte-master.m3u8").read_text().splitlines()
+    text: list[str] = []
+    skip = False
+    for line in lines:
+        if skip:
+            skip = False
+        elif line.startswith("#EXT-X-STREAM-INF") and "avc1" in line:
+            skip = True
+        else:
+            text.append(line)
+    hevc_only = parse("\n".join(text), ARTE_MASTER)
+    assert isinstance(hevc_only, MasterPlaylist) and {codec_of(v) for v in hevc_only.variants} == {"hevc"}
+    assert choose(hevc_only, "hd")[0].resolution == (1920, 1080)  # preferring H.264 still takes HEVC
+    with pytest.raises(DownloadError) as caught:
+        choose(hevc_only, "hd", "h264_only")
+    assert caught.value.code == "codec"
+
+
+def test_geo_notice() -> None:
+    # Where ORF sends a request from outside Austria (16.11.2026), and two ordinary addresses.
+    assert geo_notice(
+        "https://apasfiis.sf.apa.at/gp_nas/_definst_/nas/gp/online/insert_geoprotection_hr.smil/playlist.m3u8"
+    )
+    assert not geo_notice(ORF_MASTER) and not geo_notice(ARTE_MASTER)
+
+
+def test_language_codes_and_mux_arguments(tmp_path: Path) -> None:
+    assert [language_code(x) for x in ("de", "DE", "fr", "de-DE", "mul", "qaa", "xx", None, "")] == [
+        "deu",
+        "deu",
+        "fra",
+        "deu",
+        "mul",
+        "qaa",
+        None,
+        None,
+        None,
+    ]
+    video, audio, out = tmp_path / "v.m3u8", tmp_path / "a.m3u8", tmp_path / "o.mp4"
+    plain = mux_args(video, None, out)
+    assert "-tag:v" not in plain and not any(a.startswith("language=") for a in plain)
+    assert plain[-1] == str(out) and plain[plain.index("-c") + 1] == "copy"
+    hevc = mux_args(video, audio, out, hevc=True, audio_language="de")
+    assert hevc[hevc.index("-tag:v") + 1] == "hvc1"
+    assert hevc[hevc.index("-metadata:s:a:0") + 1] == "language=deu"
+    assert "language=deu" not in mux_args(video, None, out, audio_language="de")  # no separate rendition
 
 
 def test_not_a_playlist() -> None:
@@ -235,3 +322,43 @@ async def test_real_orf_stream_with_separate_audio(tmp_path: Path) -> None:
     info = json.loads(probe.stdout)
     assert sorted(s["codec_type"] for s in info["streams"]) == ["audio", "video"]
     assert float(info["format"]["duration"]) == pytest.approx(189.7, abs=2)
+
+
+@pytest.mark.net
+@pytest.mark.anyio
+async def test_real_arte_stream_as_hevc(tmp_path: Path) -> None:
+    """Opt-in (pytest -m net, needs ffmpeg): ARTE "ASEAN-Gipfel: Protest gegen US-KI-Projekt" of 15.11.2026 (104 s),
+    the lowest HEVC variant plus the German rendition. ARTE sends hev1; the file says hvc1 and its sound deu."""
+    if shutil.which("ffmpeg") is None:
+        pytest.skip("ffmpeg missing")
+    url = "https://manifest-arte.akamaized.net/api/manifest/v1/Generate/675ecd7a-cc2f-4a76-ab1d-65b2868392eb/de/XQ+KS+CHEV1/136379-000-A.m3u8"
+    bucket = TokenBucket()
+    async with make_client() as client:
+        text, final_url = await fetch_playlist(client, url, bucket)
+        top = parse(text, final_url)
+        assert isinstance(top, MasterPlaylist)
+        variant, audio = choose(top, "low", "prefer_hevc")
+        assert codec_of(variant) == "hevc" and audio is not None and audio.uri is not None
+        playlists = []
+        for name, uri in (("video", variant.uri), ("audio", audio.uri)):
+            text, final_url = await fetch_playlist(client, uri, bucket)
+            parsed = parse(text, final_url)
+            assert isinstance(parsed, MediaPlaylist)
+            playlists.append(await download_media(client, parsed, tmp_path / name, bucket, lambda *a: None))
+    output = tmp_path / "arte.mp4"
+    await mux(playlists[0], playlists[1], output, hevc=True, audio_language=audio.language)
+    probe = subprocess.run(
+        [
+            *("ffprobe", "-v", "error", "-of", "json"),
+            *("-show_entries", "format=duration:stream=codec_type,codec_name,codec_tag_string:stream_tags=language"),
+            str(output),
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    info = json.loads(probe.stdout)
+    streams = {s["codec_type"]: s for s in info["streams"]}
+    assert (streams["video"]["codec_name"], streams["video"]["codec_tag_string"]) == ("hevc", "hvc1")
+    assert streams["audio"]["tags"]["language"] == "deu"
+    assert float(info["format"]["duration"]) == pytest.approx(104, abs=2)

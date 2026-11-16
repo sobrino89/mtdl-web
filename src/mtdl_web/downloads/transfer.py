@@ -29,7 +29,8 @@ def _gave_up(exc: Exception, url: str) -> DownloadError:
     """The error after the last retry: keeps the server's status, else it was the network."""
     if isinstance(exc, DownloadError):
         return DownloadError(str(exc), retryable=True, status=exc.status, code=exc.code)
-    return DownloadError(f"{url}: {exc}", retryable=True, code="network")
+    # httpx's timeouts often carry no text: then the kind of error says what happened (ReadTimeout).
+    return DownloadError(f"{url}: {str(exc) or type(exc).__name__}", retryable=True, code="network")
 
 
 def _content_range_total(value: str | None) -> int | None:

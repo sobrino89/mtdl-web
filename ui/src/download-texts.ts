@@ -17,6 +17,7 @@ const CODES = [
   "not_mounted",
   "mux",
   "format",
+  "codec",
   "livestream",
   "no_url",
   "unknown",
@@ -61,7 +62,7 @@ export function failure(download: Download, info: Info | null): Failure {
     text: t(key("text"), vars),
     solution: t(key("solution"), vars),
     command: code === "permission" ? `docker exec -u 0 mtdl-web chown -R ${uid}:${gid} "${path}"` : null,
-    retryable: code !== "gone" && code !== "livestream",
+    retryable: code !== "gone" && code !== "livestream" && code !== "codec", // a retry keeps the codec choice
     path,
   };
 }

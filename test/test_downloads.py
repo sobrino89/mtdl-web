@@ -249,6 +249,29 @@ async def test_hls_through_the_manager(setup: Setup) -> None:
 
 
 @pytest.mark.anyio
+async def test_hls_codec_from_settings_or_download(setup: Setup) -> None:
+    """The real ARTE master (H.264 and HEVC per resolution): the settings pick HEVC, one download asks for H.264.
+    HEVC goes to ffmpeg with the tag hvc1, the German rendition with its language."""
+    master_url = "https://manifest-arte.akamaized.net/api/manifest/v1/Generate/x/de/XQ+KS+CHEV1/127400-010-A.m3u8"
+    setup.server.bodies[master_url] = (HLS / "arte-master.m3u8").read_bytes()
+    log = setup.folder.parent / "ffmpeg-args"
+    ffmpeg = setup.folder.parent / "ffmpeg"  # the stand-in of the fixture, now also writing its arguments
+    ffmpeg.write_text(f'#!/bin/sh\necho "$@" >> {log}\nfor last; do :; done\nprintf muxed > "$last"\n')
+    setup.state.update_settings({"video_codec": "prefer_hevc"})
+    film = dataclasses.replace(mvw("Gestrickte Wollust (54)"), url_hd=master_url, url_subtitle=None)
+    hevc = await setup.manager.enqueue(film, PurePosixPath("arte/hevc.mp4"))
+    assert hevc.video_codec == "prefer_hevc"  # kept with the download
+    await until(lambda: setup.queue.get(hevc.id).state == "done")  # type: ignore[union-attr]
+    h264 = await setup.manager.enqueue(film, PurePosixPath("arte/h264.mp4"), force=True, video_codec="prefer_h264")
+    await until(lambda: setup.queue.get(h264.id).state == "done")  # type: ignore[union-attr]
+    playlists = [str(r.url).rsplit("/", 1)[-1] for r in setup.server.requests if "_crf_" in str(r.url)]
+    assert playlists == ["127400-010-A_v1080_crf_h265.m3u8", "127400-010-A_v1080_crf_h264.m3u8"]
+    first, second = log.read_text().splitlines()
+    assert "-tag:v hvc1" in first and "language=deu" in first
+    assert "-tag:v" not in second and "language=deu" in second
+
+
+@pytest.mark.anyio
 async def test_livestreams_and_missing_urls(setup: Setup) -> None:
     (stream,) = [f for f in load_films(FULL_EXTRACT) if f.title == "3Sat Livestream"]
     with pytest.raises(DownloadError, match="livestream"):
@@ -350,6 +373,27 @@ def test_download_through_the_api(api: TestClient) -> None:
     assert api.delete(f"/api/v1/downloads/{created['id']}").status_code == 204
 
 
+def test_video_codec_in_settings_subscriptions_and_downloads(api: TestClient) -> None:
+    from test_subscriptions import REFERENCE
+
+    assert api.get("/api/v1/settings").json()["video_codec"] == "prefer_h264"
+    assert api.patch("/api/v1/settings", json={"video_codec": "hevc"}).status_code == 422
+    assert api.patch("/api/v1/settings", json={"video_codec": "prefer_hevc"}).json()["video_codec"] == "prefer_hevc"
+    saved = api.post("/api/v1/subscriptions", json={**REFERENCE, "state": "paused"}).json()
+    assert saved["video_codec"] is None  # as in the settings
+    assert api.post("/api/v1/subscriptions", json={**REFERENCE, "video_codec": "av1"}).status_code == 422
+    fields = {**REFERENCE, "state": "paused", "video_codec": "h264_only"}
+    assert api.put(f"/api/v1/subscriptions/{saved['id']}", json=fields).json()["video_codec"] == "h264_only"
+    assert api.post(f"/api/v1/subscriptions/{saved['id']}/check").json() == {"queued": 20}
+    queued = api.get("/api/v1/downloads", params={"subscription": saved["id"], "limit": 100}).json()["items"]
+    assert len(queued) == 20 and {d["video_codec"] for d in queued} == {"h264_only"}
+    wait_until_idle(api)
+    hit = api.get("/api/v1/search", params={"q": "das gipfeltreffen", "limit": 1}).json()["films"][0]
+    by_setting = api.post("/api/v1/downloads", json={"film_id": hit["id"], "force": True}).json()
+    asked = api.post("/api/v1/downloads", json={"film_id": hit["id"], "force": True, "video_codec": "prefer_h264"})
+    assert (by_setting["video_codec"], asked.json()["video_codec"]) == ("prefer_hevc", "prefer_h264")
+
+
 @pytest.mark.anyio
 async def test_gone_is_not_retried(setup: Setup) -> None:
     film = mvw("Eulen vor die Säue (57)")
@@ -358,6 +402,19 @@ async def test_gone_is_not_retried(setup: Setup) -> None:
     await until(lambda: setup.queue.get(download.id).state == "failed")  # type: ignore[union-attr]
     failed = setup.queue.get(download.id)
     assert failed is not None and (failed.error_code, failed.attempts) == ("gone", 1)
+
+
+@pytest.mark.anyio
+async def test_orf_geo_notice_is_geo_blocked(setup: Setup) -> None:
+    """ORF redirects requests from outside Austria to a notice video (address of 16.11.2026, film list entry
+    "Was geht?: Ehrlichkeit", geo AT); before, the download failed as an unknown format."""
+    notice = "https://apasfiis.sf.apa.at/gp_nas/_definst_/nas/gp/online/insert_geoprotection_hr.smil/playlist.m3u8"
+    film = dataclasses.replace(mvw("Eulen vor die Säue (57)"), url_hd=notice, url_subtitle=None, geo=("AT",))
+    download = await setup.manager.enqueue(film, path_for(film))
+    await until(lambda: setup.queue.get(download.id).state == "failed")  # type: ignore[union-attr]
+    failed = setup.queue.get(download.id)
+    assert failed is not None and (failed.error_code, failed.attempts) == ("geo", 1)
+    assert not [r for r in setup.server.requests if str(r.url).endswith(".ts")]  # nothing of the notice loaded
 
 
 def test_error_codes() -> None:

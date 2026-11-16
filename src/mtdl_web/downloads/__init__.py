@@ -6,7 +6,7 @@ class DownloadError(Exception):
     """A download failed for a reason worth showing to the user; ``retryable`` if trying again later may help.
 
     ``status`` is the HTTP status if the server answered, ``code`` the kind of failure otherwise ("network",
-    "format", "livestream", "no_url", "mux"); the manager turns both into the error code the UI explains."""
+    "format", "codec", "livestream", "no_url", "mux"); the manager turns both into the error code the UI explains."""
 
     def __init__(
         self, message: str, *, retryable: bool = False, status: int | None = None, code: str | None = None

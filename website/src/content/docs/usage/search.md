@@ -68,6 +68,8 @@ Ein Klick auf einen Treffer öffnet die Details: Beschreibung, Qualitäten (eine
 Sender und ohne Bandbreitenlimit, in der bevorzugten Qualität aus **Einstellungen**, **Qualität**. Darunter lässt
 sich eine andere wählen; die Wiedergabe läuft an derselben Stelle weiter. Manche HLS-Sendungen lassen sich im Browser
 nicht abspielen, weil der Sender das Abspielen auf fremden Seiten nicht erlaubt; geladen werden können sie trotzdem.
+Bei HLS-Sendungen steht unter den Qualitäten der **Videocodec**: Die Downloads aus den Details nehmen dann H.264 oder
+HEVC abweichend von den Einstellungen, wo der Sender beides anbietet.
 
 ## Herunterladen und abonnieren
 

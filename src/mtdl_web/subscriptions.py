@@ -27,7 +27,7 @@ from mtdl_web.events import Event, EventBus, FilmlistUpdated, SubscriptionExpire
 from mtdl_web.libraries import LibraryStore
 from mtdl_web.library import EpisodeMatch, LibraryUnavailable, Shelf
 from mtdl_web.metadata import EpisodeInfo, Tmdb
-from mtdl_web.models import Film
+from mtdl_web.models import Film, VideoCodec
 from mtdl_web.naming import Naming, target_path
 from mtdl_web.rules.engine import ConditionResult, RuleSet
 from mtdl_web.rules.model import Condition, Field
@@ -109,17 +109,18 @@ class Subscription:
     valid_until: dt.date | None = None
     on_expiry: Expiry = "pause"
     special_versions: SpecialVersions = "setting"  # audio description, sign language (special.py)
+    video_codec: VideoCodec | None = None  # H.264 or HEVC where a stream has both; None: from the settings
 
 
 _COLUMNS = (
     "id, name, query, include_description, conditions, naming, quality, subtitles, state, created_at,"
-    " updated_at, last_check, last_error, last_queued, valid_until, on_expiry, special_versions"
+    " updated_at, last_check, last_error, last_queued, valid_until, on_expiry, special_versions, video_codec"
 )
 
 
 def _row(row: tuple[Any, ...]) -> Subscription:
     sid, name, query, desc, conditions, naming, quality, subtitles, state, created, updated, lc, le, lq = row[:14]
-    valid_until, on_expiry, special_versions = row[14:]
+    valid_until, on_expiry, special_versions, video_codec = row[14:]
     return Subscription(
         id=sid,
         name=name,
@@ -138,6 +139,7 @@ def _row(row: tuple[Any, ...]) -> Subscription:
         valid_until=dt.date.fromisoformat(valid_until) if valid_until else None,
         on_expiry=on_expiry,
         special_versions=special_versions,
+        video_codec=video_codec,
     )
 
 
@@ -154,6 +156,7 @@ class SubscriptionDraft:
     valid_until: dt.date | None = None
     on_expiry: Expiry = "pause"
     special_versions: SpecialVersions = "setting"
+    video_codec: VideoCodec | None = None
 
 
 def expired(subscription: Subscription, today: dt.date) -> bool:
@@ -178,14 +181,15 @@ class SubscriptionStore:
             draft.valid_until.isoformat() if draft.valid_until else None,
             draft.on_expiry,
             draft.special_versions,
+            draft.video_codec,
         )
 
     def add(self, draft: SubscriptionDraft) -> Subscription:
         now = int(time.time())
         _, subscription_id = self._db.run(
             "INSERT INTO subscription (name, query, include_description, conditions, naming, quality,"
-            " subtitles, state, valid_until, on_expiry, special_versions, created_at, updated_at)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " subtitles, state, valid_until, on_expiry, special_versions, video_codec, created_at, updated_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (*self._values(draft), now, now),
         )
         result = self.get(int(subscription_id or 0))
@@ -196,7 +200,7 @@ class SubscriptionStore:
         changed, _ = self._db.run(
             "UPDATE subscription SET name = ?, query = ?, include_description = ?, conditions = ?,"
             " naming = ?, quality = ?, subtitles = ?, state = ?, valid_until = ?, on_expiry = ?, special_versions = ?,"
-            " updated_at = ?"
+            " video_codec = ?, updated_at = ?"
             " WHERE id = ?",
             (*self._values(draft), int(time.time()), subscription_id),
         )
@@ -523,6 +527,7 @@ class SubscriptionService:
                         subtitles=subscription.subtitles,
                         subscription_id=subscription.id,
                         library_id=item.library_id,
+                        video_codec=subscription.video_codec,
                     )
                     queued += 1
                 except (Duplicate, DownloadError):
@@ -591,4 +596,5 @@ def draft_of(subscription: Subscription) -> SubscriptionDraft:
         valid_until=subscription.valid_until,
         on_expiry=subscription.on_expiry,
         special_versions=subscription.special_versions,
+        video_codec=subscription.video_codec,
     )

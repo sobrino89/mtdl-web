@@ -2,6 +2,9 @@
 
 export type Scope = "topic_title" | "title" | "topic" | "all";
 export type Quality = "hd" | "normal" | "low";
+/** Where a stream has the resolution in H.264 and HEVC (ARTE): which one, or never HEVC. */
+export type VideoCodec = "prefer_h264" | "prefer_hevc" | "h264_only";
+export const VIDEO_CODECS: readonly VideoCodec[] = ["prefer_h264", "prefer_hevc", "h264_only"];
 export type SpeedUnit = "Mbit/s" | "MB/s";
 export type DownloadState = "queued" | "running" | "done" | "failed" | "cancelled";
 
@@ -117,6 +120,7 @@ export interface Settings {
   schedule_limit: number; // byte/s, 0 = unlimited
   parallel_downloads: number;
   quality: Quality;
+  video_codec: VideoCodec;
   subtitles: boolean;
   normalize_filenames: boolean;
   channel_logos: boolean;
@@ -153,6 +157,7 @@ export interface Download {
   file: string; // absolute, as the container sees it
   library_id: number | null;
   quality: Quality;
+  video_codec: VideoCodec | null; // null: queued before 0.2.0, the settings decide
   subtitles: boolean;
   subscription_id: number | null;
   bytes_done: number;
@@ -228,6 +233,7 @@ export interface DownloadTarget {
 export interface DownloadBody {
   film_id: string;
   quality?: Quality;
+  video_codec?: VideoCodec; // left out: as in the settings
   naming?: Naming;
   force?: boolean;
 }
@@ -265,6 +271,7 @@ export interface SubscriptionDraft {
   valid_until?: string | null; // the last day it searches (ISO date); then it pauses itself or goes
   on_expiry?: "pause" | "delete";
   special_versions?: SpecialVersions; // audio description, sign language: as in the settings, out, or loaded too
+  video_codec?: VideoCodec | null; // null: as in the settings
 }
 
 export interface Subscription extends SubscriptionDraft {

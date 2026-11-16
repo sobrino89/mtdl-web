@@ -86,6 +86,7 @@ Regel.
 | Option | Wirkung |
 |---|---|
 | Qualität | HD bevorzugt, Hoch oder Klein; Standard wie in den Einstellungen |
+| Videocodec | H.264 bevorzugen, HEVC bevorzugen oder Nur H.264; wirkt nur, wo ein Sender beides anbietet (derzeit ARTE); Standard wie in den Einstellungen |
 | Untertitel | als `.de.srt` neben die Datei, wenn vorhanden |
 | Auch in Beschreibungen suchen | die Suche des Abos findet auch Wörter aus der Beschreibung |
 | Gültig bis | letzter Tag, an dem das Abo sucht, etwa bis eine Staffel endet; danach pausiert es oder löscht sich (Dateien und Verlauf bleiben) |
