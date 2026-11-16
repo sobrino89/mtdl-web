@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Updates for every pinned dependency: Python (uv.lock), the UI and the website (npm), base images by digest, Debian packages in the Dockerfile and GitHub Actions by commit. A release waits two weeks before it is proposed. The project's own image in the compose templates is left alone.",
+  "description": "Updates for every pinned dependency: Python (uv.lock), the UI and the website (npm), base images by digest, Debian packages in the Dockerfile and GitHub Actions by commit. A release waits two weeks before it is proposed, except where no release date exists (see the rules). The project's own image in the compose templates is left alone.",
   "extends": ["config:recommended", "docker:pinDigests", "helpers:pinGitHubActionDigests", ":semanticCommitsDisabled"],
   "minimumReleaseAge": "14 days",
   "internalChecksFilter": "strict",
@@ -29,6 +29,26 @@
       "commitMessagePrefix": "Build:"
     },
     {
+      "description": "Images: Docker Hub dates a release by the last push of its tag, and the official images are pushed again every few days, so two weeks never pass; GHCR gives no date at all. Without a date Renovate holds an update for good, and the base image would keep outdated Debian packages. They come without the wait, as pull requests that are tested before the merge.",
+      "matchDatasources": ["docker"],
+      "minimumReleaseAge": null
+    },
+    {
+      "description": "Debian packages: looked up in the release and in its security archive (merged), so a security update shows before the next point release. They have no release date either, and a pinned version leaves the archive with the next update of the package.",
+      "matchDatasources": ["deb"],
+      "registryUrls": [
+        "https://deb.debian.org/debian?suite=trixie&components=main&binaryArch=amd64",
+        "https://security.debian.org/debian-security?suite=trixie-security&components=main&binaryArch=amd64"
+      ],
+      "minimumReleaseAge": null
+    },
+    {
+      "description": "uv waits the two weeks itself (exclude-newer in pyproject.toml), also when it rewrites uv.lock in the lock file maintenance, which has no release dates.",
+      "matchManagers": ["pep621"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "minimumReleaseAge": null
+    },
+    {
       "description": "A new Python or Node.js version changes the runtime for all code and dependencies at once: it waits for approval on the dependency dashboard and is then done as one change (base image, required version, lint and type check targets). Digests and patches come as usual.",
       "matchPackageNames": ["python", "node"],
       "matchUpdateTypes": ["major", "minor"],
@@ -42,8 +62,7 @@
       "managerFilePatterns": ["/(^|/)Dockerfile$/"],
       "matchStrings": ["\\s(?<depName>[a-z0-9][a-z0-9.+-]*)=(?<currentValue>\\d[^\\s\\\\]*)"],
       "datasourceTemplate": "deb",
-      "versioningTemplate": "deb",
-      "registryUrlTemplate": "https://deb.debian.org/debian?suite=trixie&components=main&binaryArch=amd64"
+      "versioningTemplate": "deb"
     }
   ]
 }

@@ -29,6 +29,11 @@ dev = [
 requires = ["uv_build>=0.13.0,<0.14"]
 build-backend = "uv_build"
 
+[tool.uv]
+# Nothing younger than two weeks gets into uv.lock, also not through Renovate's lock file maintenance. A security fix
+# that cannot wait goes in with exclude-newer-package.
+exclude-newer = "14 days"
+
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = ["-m", "not full and not net", "--strict-markers"]
