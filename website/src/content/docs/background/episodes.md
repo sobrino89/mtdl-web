@@ -37,7 +37,9 @@ sucht mtdl-web die passende Folge über drei Signale, das stärkste zuerst:
 3. **Sendetag** gleich dem Ausstrahlungstag bei TMDB. Allein entscheidet er nur, wenn auch die Länge passt: Der
    Eintrag darf um ein Viertel der Laufzeit bei TMDB davon abweichen, mindestens aber um 5 Minuten. Eine Folge von
    45 Minuten darf also rund 34 bis 56 Minuten lang sein, eine von 15 Minuten 10 bis 20. Der Grund für die Vorsicht:
-   Sender stellen Folgen teils Wochen vor dem TMDB-Datum online, und Ausschnitte tragen den Tag ihrer Folge.
+   Sender stellen Folgen teils Wochen vor dem TMDB-Datum online, und Ausschnitte tragen den Tag ihrer Folge. Kennt
+   TMDB die Laufzeit einer Folge noch nicht, etwa weil sie erst mit Tag und dem Namen „Folge 7“ eingetragen ist,
+   zählt die übliche Laufzeit ihrer Staffel (der Median der Folgen mit Laufzeit, sonst der aller regulären Staffeln).
 
 Die Vorschau des Abos nennt für jeden Eintrag den Grund:
 
@@ -46,6 +48,7 @@ Die Vorschau des Abos nennt für jeden Eintrag den Grund:
 | Nummer im Titel, Nummer und Titel, Nummer und Sendetag | die Nummer passt, der Titel passt oder fehlt |
 | Titel, Titel und Sendetag | nur der Titel passt, zu genau einer Folge |
 | Sendetag und Länge | nur Tag und Länge passen, zu genau einer Folge |
+| Sendetag und übliche Länge der Staffel | wie eben, die Folge hat bei TMDB aber noch keine Laufzeit |
 | Nummer und Titel nennen verschiedene Folgen | Widerspruch: keine Zuordnung |
 | Mehrere TMDB-Folgen kommen in Frage | der Titel passt auf mehrere, und weder Tag noch Nummer entscheiden |
 | Viel kürzer als die Folge, wohl ein Ausschnitt | kürzer als die halbe Laufzeit bei TMDB |

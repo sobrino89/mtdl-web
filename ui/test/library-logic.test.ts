@@ -83,6 +83,7 @@ test("presets, codes and reasons", () => {
   assert.equal(episodeCode({ season: 13, number: 8 }), "S13E08");
   assert.equal(episodeCode({ season: 0, number: 1 }), "S00E01");
   assert.equal(reasonKey("number_title"), "lib.reason.number_title");
+  assert.equal(reasonKey("date_usual"), "lib.reason.date_usual");
   assert.equal(reasonKey("conflict"), "lib.none.conflict");
   assert.equal(reasonKey(undefined), "lib.none.no_match");
 });

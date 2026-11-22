@@ -787,6 +787,7 @@ export const en: Catalog = {
   "lib.reason.title": "title",
   "lib.reason.title_date": "title and broadcast day",
   "lib.reason.date": "broadcast day and length",
+  "lib.reason.date_usual": "broadcast day and the season's usual length",
   "lib.none.no_series": "No series assigned",
   "lib.none.no_match": "No matching TMDB episode",
   "lib.none.ambiguous": "Several TMDB episodes fit",

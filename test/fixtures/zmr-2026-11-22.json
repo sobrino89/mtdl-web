@@ -1,0 +1,2391 @@
+{
+  "tmdb_cache": {
+    "fetched_at": 1795381081,
+    "value": {
+      "tmdb_id": 111956,
+      "name": "ZDF Magazin Royale",
+      "original_name": "ZDF Magazin Royale",
+      "first_air_date": "2020-11-06",
+      "imdb_id": "tt13486352",
+      "tvdb_id": 390284,
+      "episodes": [
+        [
+          0,
+          1,
+          "Endlich Hauptprogramm",
+          "2020-11-06",
+          1
+        ],
+        [
+          0,
+          2,
+          "Personalgespräch 1: Ein Spagat zwischen scheiße und geil!",
+          "2020-11-17",
+          5
+        ],
+        [
+          0,
+          3,
+          "#besonderehelden​ Gemeinsam NICHTS tun. (1)",
+          "2020-11-18",
+          2
+        ],
+        [
+          0,
+          4,
+          "#besonderehelden​ Gemeinsam NICHTS tun. (2)",
+          "2020-11-20",
+          1
+        ],
+        [
+          0,
+          5,
+          "Personalgespräch 2: Fernsehen ist Arbeit für die Zuschauer!",
+          "2020-11-24",
+          6
+        ],
+        [
+          0,
+          6,
+          "Interview mit dem unglaublichen Detektiv-Trio der Oppositionsbank",
+          "2020-11-27",
+          25
+        ],
+        [
+          0,
+          7,
+          "Personalgespräch 3: Personalgespräch ist keine Einbahnstraße",
+          "2020-12-01",
+          7
+        ],
+        [
+          0,
+          8,
+          "Personalgespräch 4: Freundlicher Mittelfinger zur Weihnachtszeit",
+          "2020-12-08",
+          6
+        ],
+        [
+          0,
+          9,
+          "Koloniale Raubkunst - Prof. Dr. Bénédicte Savoy im Interview",
+          "2020-12-11",
+          12
+        ],
+        [
+          0,
+          10,
+          "Personalgespräch 5: ZDF-Gesicht hat so eine Kravatte",
+          "2020-12-15",
+          7
+        ],
+        [
+          0,
+          11,
+          "Making-of 4D Woodkid Performance",
+          "2020-12-18",
+          30
+        ],
+        [
+          0,
+          12,
+          "Personalgespräch 6: Meinungsfreiheit, aber nicht für dich!",
+          "2020-12-22",
+          7
+        ],
+        [
+          0,
+          13,
+          "Deutsche Leitkultur - Der Böller",
+          "2020-12-28",
+          3
+        ],
+        [
+          0,
+          14,
+          "School @ Home – digitale Betreuungs- und Lerneinheit mit Herr Böhmermann",
+          "2021-01-21",
+          49
+        ],
+        [
+          0,
+          15,
+          "Ruckrede 2021: 96 Millionen $ Clown spricht zum Volk",
+          "2021-01-26",
+          5
+        ],
+        [
+          0,
+          16,
+          "Personalgespräch 7: Deeskalationsstufe \"Orange\"",
+          "2021-02-02",
+          6
+        ],
+        [
+          0,
+          17,
+          "Being Böhmi - Undercover bei Tinder!",
+          "2021-02-10",
+          8
+        ],
+        [
+          0,
+          18,
+          "The Bastel Brothers: Schreibtisch Edition",
+          "2021-02-16",
+          4
+        ],
+        [
+          0,
+          19,
+          "Schneemann feat. Skizuz - “WINTER”",
+          "2021-02-19",
+          5
+        ],
+        [
+          0,
+          20,
+          "Deutsche Sicherheitspolitik - Thüringens Innenminister Georg Maier im Interview",
+          "2021-02-19",
+          18
+        ],
+        [
+          0,
+          21,
+          "Personalgespräch 8: ZDF-Defluencer Jan Böhmermann",
+          "2021-03-02",
+          6
+        ],
+        [
+          0,
+          22,
+          "Talk mit Arnd Zeigler",
+          "2021-03-05",
+          21
+        ],
+        [
+          0,
+          23,
+          "Klima-Talk mit Carla Reemtsma",
+          "2021-03-12",
+          17
+        ],
+        [
+          0,
+          24,
+          "Being Böhmi - Undercover  im Internet: \"Kommentar-Edition\"",
+          "2021-03-16",
+          5
+        ],
+        [
+          0,
+          25,
+          "Personalgespräch 9: Healing the world mit Jan & Helene",
+          "2021-03-23",
+          6
+        ],
+        [
+          0,
+          26,
+          "Deutsche Leitkultur - Der Eierschneider",
+          "2021-03-30",
+          4
+        ],
+        [
+          0,
+          27,
+          "Being Böhmi - Undercover im Internet: Quantenheilung auf Tinder",
+          "2021-04-06",
+          6
+        ],
+        [
+          0,
+          28,
+          "Talk mit Kiran Pereira",
+          "2021-04-09",
+          15
+        ],
+        [
+          0,
+          29,
+          "Werkstattgespräch zur Kunstfreiheit",
+          "2021-04-09",
+          14
+        ],
+        [
+          0,
+          30,
+          "Deutsche Leitkultur - Der Dübel",
+          "2021-05-25",
+          3
+        ],
+        [
+          0,
+          31,
+          "Full Body Workout für Beginner - Part 1",
+          "2021-06-02",
+          21
+        ],
+        [
+          0,
+          32,
+          "Full Body Workout für Beginner - Part 2",
+          "2021-06-08",
+          25
+        ],
+        [
+          0,
+          33,
+          "Sternenergie Royale - Steinbock, Wassermann, Fische und Widder",
+          "2021-07-27",
+          8
+        ],
+        [
+          0,
+          34,
+          "Deutsche Leitkultur - Tischdeckenbeschwerer",
+          "2021-06-22",
+          3
+        ],
+        [
+          0,
+          35,
+          "Sternenergie Royale: Stier, Zwilling, Krebs und Löwe",
+          "2021-07-06",
+          9
+        ],
+        [
+          0,
+          36,
+          "Screenshots Fired: Das lustige Ratespiel für alle, die Screenshots machen",
+          "2021-07-20",
+          10
+        ],
+        [
+          0,
+          37,
+          "Sternenergie Royale: Jungfrau, Waage, Skorpion und Schütze",
+          "2021-07-27",
+          9
+        ],
+        [
+          0,
+          38,
+          "Screenshots Fired Part 2: El Hotzo vs. Miguel",
+          "2021-08-03",
+          9
+        ],
+        [
+          0,
+          39,
+          "Deutsche Leitkultur - Der Marmorkuchen",
+          "2021-08-10",
+          3
+        ],
+        [
+          0,
+          40,
+          "Personalgespräch 10: Dieses Personalgespräch ist ungültig",
+          "2021-09-07",
+          4
+        ],
+        [
+          0,
+          41,
+          "Deutsche Leitkultur - Der Türstopper",
+          "2021-09-14",
+          2
+        ],
+        [
+          0,
+          42,
+          "Screenshots Fired Part 3: Aurel Mertz vs. Caro Worbs",
+          "2021-09-21",
+          11
+        ],
+        [
+          0,
+          43,
+          "Being Böhmi - Undercover im Internet: 3, 2, 1, Deins!",
+          "2021-10-05",
+          7
+        ],
+        [
+          0,
+          44,
+          "Personalgespräch 11: Reflexion des eigenen Tuns in 5 Minuten",
+          "2021-10-12",
+          6
+        ],
+        [
+          0,
+          45,
+          "Deutsche Leitkultur: Lange Unterhose",
+          "2021-10-26",
+          3
+        ],
+        [
+          0,
+          46,
+          "Screenshots Fired - Part 4: Bubble-Butt, Fußmenschen und Teigwaren mit Gesicht",
+          "2021-11-02",
+          10
+        ],
+        [
+          0,
+          47,
+          "Personalgespräch 12: The heat is on im Personalgespräch",
+          "2021-11-16",
+          7
+        ],
+        [
+          0,
+          48,
+          "Die \"hart aber fair\"-Vorhersage für Montag, den 22. November",
+          "2021-11-22",
+          3
+        ],
+        [
+          0,
+          49,
+          "Being Böhmi - Undercover im Internet: Eher Top oder Bottom?",
+          "2021-11-30",
+          7
+        ],
+        [
+          0,
+          50,
+          "Deutsche Leitkultur - Heizpilz",
+          "2021-12-07",
+          3
+        ],
+        [
+          0,
+          51,
+          "Minister Shoutout - Das Kabinett 2021 kurz vorgestellt",
+          "2021-12-10",
+          4
+        ],
+        [
+          0,
+          52,
+          "Facebook Papers: Talk mit der ehemaligen Facebook-Managerin und Whistleblowerin Frances Haugen",
+          "2021-12-10",
+          30
+        ],
+        [
+          0,
+          53,
+          "Facebook verklagen mit Max Schrems",
+          "2021-12-10",
+          18
+        ],
+        [
+          0,
+          54,
+          "Personalgespräch 13: Die Tiefpunkte der Vergangenheit werden die Höhepunkte der Zukunft sein",
+          "2021-12-14",
+          6
+        ],
+        [
+          0,
+          55,
+          "Deutsche Leitkultur - Glühweintasse",
+          "2021-12-21",
+          4
+        ],
+        [
+          0,
+          56,
+          "Personalgespräch 14: THERE IS NO I IN TEAM!",
+          "2022-02-01",
+          6
+        ],
+        [
+          0,
+          57,
+          "Being Böhmi - Undercover im Internet: Noch da?",
+          "2022-02-08",
+          5
+        ],
+        [
+          0,
+          58,
+          "Eier aus Stahl KIDS - Herr Tierlieb oder Herr Tierböse?",
+          "2022-02-22",
+          5
+        ],
+        [
+          0,
+          59,
+          "Interview mit Ljudmyla Melnyk - Krieg in der Ukraine",
+          "2022-03-04",
+          11
+        ],
+        [
+          0,
+          60,
+          "So reich sind wir mit dem Freizeit Magazin Royale geworden!",
+          "2022-03-08",
+          14
+        ],
+        [
+          0,
+          61,
+          "Talk mit Paulita Pappel - Pornos & Ethik",
+          "2022-03-11",
+          11
+        ],
+        [
+          0,
+          62,
+          "Being Böhmi - Jodel dir einen!",
+          "2022-03-22",
+          6
+        ],
+        [
+          0,
+          63,
+          "Interview mit Szabolcs Panyi - Orbán & Ungarn",
+          "2022-04-01",
+          10
+        ],
+        [
+          0,
+          64,
+          "Personalgespräch 15: Home is where the Wandtattoo is!",
+          "2022-04-05",
+          6
+        ],
+        [
+          0,
+          65,
+          "Eier aus Stahl KIDS - Spießerkönig Papa Blocksberg",
+          "2022-04-20",
+          6
+        ],
+        [
+          0,
+          66,
+          "Hotline Ehrenfeld: Das ZDF Magazin Servicetelefon für jedermann",
+          "2022-05-03",
+          7
+        ],
+        [
+          0,
+          67,
+          "PR tips for Ukraine",
+          "2022-05-17",
+          5
+        ],
+        [
+          0,
+          68,
+          "Being Böhmi - Undercover im Internet: Unmatched auf Tinder",
+          "2022-05-24",
+          6
+        ],
+        [
+          0,
+          69,
+          "Böhmannsland - Der Supercut",
+          "2022-06-14",
+          28
+        ],
+        [
+          0,
+          70,
+          "Eier aus Stahl KIDS - Meine Freundin Conni (ist super nervig)",
+          "2022-06-21",
+          5
+        ],
+        [
+          0,
+          71,
+          "Rate den Song! - Menderes’ Musikbox",
+          "2022-06-28",
+          10
+        ],
+        [
+          0,
+          72,
+          "Autoren auf dem Prüfstand – Potenzialanalyse 1",
+          "2022-07-05",
+          6
+        ],
+        [
+          0,
+          73,
+          "Hier spielt die Musik! – Menderes’ Musikbox Folge 2",
+          "2022-07-12",
+          10
+        ],
+        [
+          0,
+          74,
+          "Assessmentcenter – Potenzialanalyse 2",
+          "2022-07-26",
+          6
+        ],
+        [
+          0,
+          75,
+          "Bis der letzte Ton verstummt! – Das große Finale bei Menderes’ Musikbox",
+          "2022-08-02",
+          9
+        ],
+        [
+          0,
+          76,
+          "Offenlegung: Wer steckt hinter dem ZDF MAGAZIN? – Staffelansprache Herbst 2022",
+          "2022-08-30",
+          5
+        ],
+        [
+          0,
+          77,
+          "Auf ein Neues — Potenzialanalyse 3",
+          "2022-09-06",
+          6
+        ],
+        [
+          0,
+          78,
+          "Being Böhmi - Undercover im Internet: 1 in den Chat",
+          "2022-09-20",
+          6
+        ],
+        [
+          0,
+          79,
+          "Hotline Ehrenfeld: Deutsche Traditionen WTF",
+          "2022-09-27",
+          13
+        ],
+        [
+          0,
+          80,
+          "🕺💀🔥 Zu KRANK! ZDF-Fernsehgarten Schlagerparty eskaliert KOMPLETT 🤯",
+          "2022-10-12",
+          8
+        ],
+        [
+          0,
+          81,
+          "Eier aus Stahl KIDS - Umweltsünder mit langen Ohren",
+          "2022-10-18",
+          6
+        ],
+        [
+          0,
+          82,
+          "Mit DJ BoBo beim Corona-Test",
+          "2022-10-26",
+          8
+        ],
+        [
+          0,
+          83,
+          "Wer hat's gesagt?",
+          "2022-11-01",
+          8
+        ],
+        [
+          0,
+          84,
+          "Personalgespräch 16: Vertragsverlängerung trotz Asbest!",
+          "2022-11-08",
+          7
+        ],
+        [
+          0,
+          85,
+          "15 Minuten Hollywood: Mit Bill und Tom beim Corona-Test",
+          "2022-11-23",
+          10
+        ],
+        [
+          0,
+          86,
+          "Personalgespräch 17: Jan goes international",
+          "2022-12-07",
+          6
+        ],
+        [
+          0,
+          87,
+          "Wie tickt die Ausländerbehörde – Interview mit Kommunalbeamtin Souad Lamroubal",
+          "2022-12-10",
+          17
+        ],
+        [
+          0,
+          88,
+          "Personalgespräch 18: Hört ER mit ZDF Magazin auf???",
+          "2022-12-13",
+          7
+        ],
+        [
+          0,
+          89,
+          "Die Innenministerkonferenz",
+          "2022-12-16",
+          45
+        ],
+        [
+          0,
+          90,
+          "Wer hat's gesagt? – 2022 Jahresrückblick",
+          "2022-12-30",
+          9
+        ],
+        [
+          0,
+          91,
+          "Ekel-Stream FSK 🔞😳",
+          "2023-01-03",
+          11
+        ],
+        [
+          0,
+          92,
+          "Eier aus Stahl KIDS - Toxic Masculinity in Bobhausen",
+          "2023-01-10",
+          5
+        ],
+        [
+          0,
+          93,
+          "Ehrenfeld Intergalactic",
+          "2023-01-27",
+          63
+        ],
+        [
+          0,
+          94,
+          "Staffelansprache 2023: Das Mastermind hinter der Marke Jan Böhmermann",
+          "2023-01-31",
+          5
+        ],
+        [
+          0,
+          95,
+          "Richtig gutes Gespräch beim Corona-Test mit Deichkind",
+          "2023-02-08",
+          6
+        ],
+        [
+          0,
+          96,
+          "Personalgespräch 19: So steht Jan Böhmermann wirklich zum ZDF!",
+          "2023-02-15",
+          7
+        ],
+        [
+          0,
+          97,
+          "Wer hat's gesagt? Jetzt erst recht!",
+          "2023-02-22",
+          8
+        ],
+        [
+          0,
+          98,
+          "ZDF Magazin Royale Publikumsfeedback – Netter Kontakt, nie wieder!",
+          "2023-03-01",
+          6
+        ],
+        [
+          0,
+          99,
+          "WTF 😵 so luxuriös wohnt mein Freund ***** ??? 🔥💰🔥",
+          "2023-03-08",
+          7
+        ],
+        [
+          0,
+          100,
+          "Neu im ZDF-Shop: Personalisierte Urnen mit Kultfaktor",
+          "2023-03-14",
+          1
+        ],
+        [
+          0,
+          101,
+          "Personalgespräch 20: Alles eine Frage des Mainzsets!",
+          "2023-03-15",
+          8
+        ],
+        [
+          0,
+          102,
+          "Eier aus Stahl KIDS - Paw Patrol: Ein Fall fürs Jugendamt",
+          "2023-03-22",
+          6
+        ],
+        [
+          0,
+          103,
+          "Wer hat's gesagt? – Das Original",
+          "2023-04-11",
+          8
+        ],
+        [
+          0,
+          104,
+          "WAS ist DA los??? 😳🤯 Epic Polizei-Fail von Andreas G.🔥",
+          "2023-04-18",
+          8
+        ],
+        [
+          0,
+          105,
+          "Nett? OK? Super Nice? - Das ZDF Magazin Royale Publikumsfeedback",
+          "2023-04-26",
+          7
+        ],
+        [
+          0,
+          106,
+          "Eier aus Stahl KIDS - Das Klara Sesemann Gate",
+          "2023-05-04",
+          6
+        ],
+        [
+          0,
+          107,
+          "Freiherr Steffen Glamour von Bickendorf im 2LIVE Fragenhagel",
+          "2023-05-16",
+          3
+        ],
+        [
+          0,
+          108,
+          "Immer nah am Menschen – Das ZDF Magazin Royale Publikumsfeedback",
+          "2023-05-30",
+          7
+        ],
+        [
+          0,
+          109,
+          "Personalgespräch 21: Diagnose: Sehr fest angestellt",
+          "2023-06-15",
+          7
+        ],
+        [
+          0,
+          110,
+          "Nuhr einmal – Denkverbote & Sprachgebote",
+          "2023-06-19",
+          7
+        ],
+        [
+          0,
+          111,
+          "Being Böhmi - Das passiert, während wir arbeiten!",
+          "2023-08-01",
+          7
+        ],
+        [
+          0,
+          112,
+          "Diese FRAU ist ZU KRASS!!! ❤️‍🔥😩✊ Soll ich NUMMER KLÄREN?? 👅🤣😈",
+          "2023-08-15",
+          9
+        ],
+        [
+          0,
+          113,
+          "Eine Sendung, die den Frieden sichert – Staffelansprache Herbst 2023",
+          "2023-08-31",
+          3
+        ],
+        [
+          0,
+          114,
+          "Personalgespräch 22: Sommerpause vorbei: RTL auf Kurzwahl",
+          "2023-09-06",
+          9
+        ],
+        [
+          0,
+          115,
+          "😳 ZUUU SICKK: Diesen ORT gibt es WIRKLICH 🇳🇴🌭😏",
+          "2023-09-12",
+          10
+        ],
+        [
+          0,
+          116,
+          "Die Feedbackshow mit Deutschlands schönsten Kniescheiben",
+          "2023-09-19",
+          9
+        ],
+        [
+          0,
+          117,
+          "Eier aus Stahl KIDS - Held oder Rabenvater — Das brandgefährliche Geheimnis von Feuerwehrmann Sam",
+          "2023-10-18",
+          8
+        ],
+        [
+          0,
+          118,
+          "Personalgespräch 23: Sketch-Comedy ersetzt ZDF Magazin Royale",
+          "2023-10-25",
+          7
+        ],
+        [
+          0,
+          119,
+          "Christophorus Töppel im 2LIVE Fragenhagel",
+          "2023-11-05",
+          3
+        ],
+        [
+          0,
+          120,
+          "We need to talk about Kroketten!",
+          "2023-11-14",
+          6
+        ],
+        [
+          0,
+          121,
+          "Ich übernehm den Bums 🤫💥😏",
+          "2023-11-23",
+          9
+        ],
+        [
+          0,
+          122,
+          "Wie steht’s um die Pressefreiheit? Interview mit Günter Wallraff",
+          "2023-11-24",
+          17
+        ],
+        [
+          0,
+          123,
+          "Personalgespräch 24: Statement zu letzter Folge „Wetten, dass..?“",
+          "2023-11-30",
+          7
+        ],
+        [
+          0,
+          124,
+          "Die Feedbackbox der Tiere",
+          "2023-12-05",
+          7
+        ],
+        [
+          0,
+          125,
+          "Personalgespräch 25: SO schneidet man Baumkuchen richtig!",
+          "2023-12-19",
+          8
+        ],
+        [
+          0,
+          126,
+          "Köstlich, schmöchtlich 😋🔥 Kochen mit M & M 🎄🍗",
+          "2023-12-23",
+          10
+        ],
+        [
+          0,
+          127,
+          "Eier aus Stahl KIDS - Dunkle Wolken über Schlumpfhausen: Die Demaskierung von Papa Schlumpf",
+          "2023-12-27",
+          6
+        ],
+        [
+          0,
+          128,
+          "Das Grundgesetz der Tiere",
+          "2024-01-19",
+          31
+        ],
+        [
+          0,
+          129,
+          "Personalgespräch 26: Wie viel verdient Horst Lichters Bart wirklich?",
+          "2024-01-31",
+          7
+        ],
+        [
+          0,
+          130,
+          "Feedbackbox Team-Edition: Keine Schweine fürs ZDF Magazin Royale",
+          "2024-02-08",
+          7
+        ],
+        [
+          0,
+          131,
+          "Roomtour im Sexbunker von Mannheim 🔥😏 Rettet den armen Hund! 🐶",
+          "2024-03-21",
+          9
+        ],
+        [
+          0,
+          132,
+          "Personalgespräch 27: Überwachungsstaat ZDF?!",
+          "2024-04-17",
+          7
+        ],
+        [
+          0,
+          133,
+          "Feedbackbox Team-Edition: Schleim-Attacke beim Chef",
+          "2024-04-24",
+          8
+        ],
+        [
+          0,
+          134,
+          "Klartext-ABRECHNUNG mit dem ESC (Vorentscheid)",
+          "2024-05-09",
+          9
+        ],
+        [
+          0,
+          135,
+          "Eier aus Stahl KIDS: Lupenreine Verschwörungstheoretiker",
+          "2024-06-19",
+          7
+        ],
+        [
+          0,
+          136,
+          "Eier aus Stahl KIDS: Superheldin, Freundin oder toxische Chefin?",
+          "2024-09-10",
+          6
+        ],
+        [
+          0,
+          137,
+          "Personalgespräch 28: Vogue-Wahnsinn führt zu Tränen",
+          "2024-09-24",
+          10
+        ],
+        [
+          0,
+          138,
+          "Gaming-Communitys: Der letzte unpolitische Ort auf Erden",
+          "2024-09-27",
+          31
+        ],
+        [
+          0,
+          139,
+          "Personalgespräch 29: So schmeckt Dubai-Scholade wirklich",
+          "2024-12-10",
+          9
+        ],
+        [
+          0,
+          140,
+          "Eier aus Stahl KIDS: Drogen-Verharmlosung in Scherenschnitt-Serie",
+          "2024-12-23",
+          7
+        ],
+        [
+          0,
+          141,
+          "Eier aus Stahl KIDS: Der Kannibale aus dem Kinderfernsehen",
+          "2025-01-03",
+          7
+        ],
+        [
+          0,
+          142,
+          "Personalgespräch 30: Jan fackelt das Personalbüro ab",
+          "2025-02-19",
+          6
+        ],
+        [
+          0,
+          143,
+          "Deep Dive Microtargeting",
+          "2025-02-21",
+          18
+        ],
+        [
+          0,
+          144,
+          "Personalgespräch 31: Strafe wegen E-Scooter?",
+          "2025-05-13",
+          7
+        ],
+        [
+          1,
+          1,
+          "Die ganz große Verschwörung!",
+          "2020-11-06",
+          30
+        ],
+        [
+          1,
+          2,
+          "Volkswagen - Das Weltauto!",
+          "2020-11-13",
+          30
+        ],
+        [
+          1,
+          3,
+          "Online-Glücksspiele in Schleswig-Holstein",
+          "2020-11-20",
+          30
+        ],
+        [
+          1,
+          4,
+          "Eier aus Stahl: Jan Marsalek",
+          "2020-11-27",
+          30
+        ],
+        [
+          1,
+          5,
+          "Rassismus in der Polizei",
+          "2020-12-04",
+          30
+        ],
+        [
+          1,
+          6,
+          "Das Humboldt Forum - Raubkunst in Berlin?",
+          "2020-12-11",
+          30
+        ],
+        [
+          1,
+          7,
+          "Corona-Unternehmer des Jahres",
+          "2020-12-18",
+          30
+        ],
+        [
+          2,
+          1,
+          "Trump-Wahnsinn made in Germany",
+          "2021-01-29",
+          30
+        ],
+        [
+          2,
+          2,
+          "Die Wahrheit über Frontex",
+          "2021-02-05",
+          30
+        ],
+        [
+          2,
+          3,
+          "Influencer-Paradies Dubai",
+          "2021-02-12",
+          30
+        ],
+        [
+          2,
+          4,
+          "Die 17 Innenminister der Innenminister",
+          "2021-02-19",
+          30
+        ],
+        [
+          2,
+          5,
+          "Stop & Go im deutschen Internet",
+          "2021-02-26",
+          30
+        ],
+        [
+          2,
+          6,
+          "Profifußball trotz Pandemie",
+          "2021-03-05",
+          30
+        ],
+        [
+          2,
+          7,
+          "Wie Ischgl zum Corona-Cluster wurde",
+          "2021-03-12",
+          30
+        ],
+        [
+          2,
+          8,
+          "Wohin mit unserem Atommüll?",
+          "2021-03-19",
+          30
+        ],
+        [
+          2,
+          9,
+          "Nazi-Hotspot Dresden - woran liegt es?",
+          "2021-03-26",
+          30
+        ],
+        [
+          2,
+          10,
+          "Die internationale Sandkrise",
+          "2021-04-09",
+          30
+        ],
+        [
+          2,
+          11,
+          "Die Lügen der Klatschpresse",
+          "2021-04-16",
+          30
+        ],
+        [
+          2,
+          12,
+          "Clusterfuck Hartz IV",
+          "2021-04-23",
+          30
+        ],
+        [
+          2,
+          13,
+          "Das Problem der deutschen Filmlandschaft",
+          "2021-04-30",
+          30
+        ],
+        [
+          2,
+          14,
+          "Sebastian Kurz und seine türkise Familie",
+          "2021-05-07",
+          30
+        ],
+        [
+          3,
+          1,
+          "Wie die Wikipedia politisch beeinflusst wird",
+          "2021-09-03",
+          30
+        ],
+        [
+          3,
+          2,
+          "Siri, Sexbots & Staubsaugerroboter",
+          "2021-09-10",
+          30
+        ],
+        [
+          3,
+          3,
+          "Auto first, Mensch second",
+          "2021-09-17",
+          30
+        ],
+        [
+          3,
+          4,
+          "Die schmutzigen Facebook-Tricks der Parteien",
+          "2021-09-24",
+          30
+        ],
+        [
+          3,
+          5,
+          "Staatliche Förderung für AfD-Stiftung",
+          "2021-10-08",
+          30
+        ],
+        [
+          3,
+          6,
+          "Profiler - zu true, um wahr zu sein",
+          "2021-10-15",
+          30
+        ],
+        [
+          3,
+          7,
+          "Das neue Moria",
+          "2021-10-22",
+          30
+        ],
+        [
+          3,
+          8,
+          "Lifestyle-CBD: Teure Produkte ohne Effekt",
+          "2021-10-29",
+          30
+        ],
+        [
+          3,
+          9,
+          "Der Eierwurf von Halle - Das Musical",
+          "2021-11-05",
+          30
+        ],
+        [
+          3,
+          10,
+          "Das Pyramidensystem der DVAG",
+          "2021-11-12",
+          30
+        ],
+        [
+          3,
+          11,
+          "Wie Cancel Culture Springer kaputt macht",
+          "2021-11-19",
+          30
+        ],
+        [
+          3,
+          12,
+          "Die Grünen: Verrat an den eigenen Idealen",
+          "2021-11-26",
+          30
+        ],
+        [
+          3,
+          13,
+          "Fahren ohne Fahrschein: Straftat seit 1935",
+          "2021-12-03",
+          30
+        ],
+        [
+          3,
+          14,
+          "Wie Facebook weltweit Demokratien zerstört",
+          "2021-12-10",
+          30
+        ],
+        [
+          4,
+          1,
+          "Wir brauchen eine globale Impfstoffverteilung",
+          "2022-01-28",
+          30
+        ],
+        [
+          4,
+          2,
+          "Das Problem mit den Psychotherapieplätzen",
+          "2022-02-04",
+          30
+        ],
+        [
+          4,
+          3,
+          "Wer ist Peter Thiel?",
+          "2022-02-11",
+          30
+        ],
+        [
+          4,
+          4,
+          "Das Problem mit deutscher Erinnerungskultur",
+          "2022-02-18",
+          30
+        ],
+        [
+          4,
+          5,
+          "Was passiert hier? - Putins Krieg in Europa",
+          "2022-03-04",
+          30
+        ],
+        [
+          4,
+          6,
+          "Pornos im Internet",
+          "2022-03-11",
+          30
+        ],
+        [
+          4,
+          7,
+          "Fahrtrichtung Frust: Deutsche Bahn",
+          "2022-03-18",
+          30
+        ],
+        [
+          4,
+          8,
+          "The Godfather of Schlager",
+          "2022-03-25",
+          30
+        ],
+        [
+          4,
+          9,
+          "Die Macht des Viktor Orbán",
+          "2022-04-01",
+          30
+        ],
+        [
+          4,
+          10,
+          "Einmal aussehen wie auf Instagram",
+          "2022-04-08",
+          30
+        ],
+        [
+          4,
+          11,
+          "Clemens Tönnies – Geboren, um zu schlachten",
+          "2022-04-22",
+          30
+        ],
+        [
+          4,
+          12,
+          "Putins Puppen in Deutschland",
+          "2022-04-29",
+          30
+        ],
+        [
+          4,
+          13,
+          "Fynn Kliemann: Scheiße bauen (DIY)",
+          "2022-05-06",
+          30
+        ],
+        [
+          4,
+          14,
+          "Das denkt Deutschland über Meinungsforschung",
+          "2022-05-13",
+          34
+        ],
+        [
+          4,
+          15,
+          "Abschiebungen, Oligarchen-Geld und Giftgas",
+          "2022-05-20",
+          35
+        ],
+        [
+          4,
+          16,
+          "404: polizei not found",
+          "2022-05-27",
+          35
+        ],
+        [
+          5,
+          1,
+          "Deutsche und ihr Wasser: Es ist kompliziert",
+          "2022-09-02",
+          32
+        ],
+        [
+          5,
+          2,
+          "Tierische Krankheiten, vom Menschen gemacht",
+          "2022-09-09",
+          33
+        ],
+        [
+          5,
+          3,
+          "In-Game-Käufe – Falsche Währung, echter Dispo",
+          "2022-09-16",
+          33
+        ],
+        [
+          5,
+          4,
+          "Satelliten: Spielzeuge der Milliardäre",
+          "2022-09-23",
+          33
+        ],
+        [
+          5,
+          5,
+          "Bye Bundestag: Politiker auf Jobsuche",
+          "2022-09-30",
+          34
+        ],
+        [
+          5,
+          6,
+          "Sicherheitsrisiko Cyberclown",
+          "2022-10-07",
+          33
+        ],
+        [
+          5,
+          7,
+          "Wie edel ist Wein wirklich?",
+          "2022-10-14",
+          32
+        ],
+        [
+          5,
+          8,
+          "There's a Party",
+          "2022-10-21",
+          29
+        ],
+        [
+          5,
+          9,
+          "Pssst! Die NSU-Akten",
+          "2022-10-28",
+          31
+        ],
+        [
+          5,
+          10,
+          "Ein Rundfunk für alle?",
+          "2022-11-04",
+          33
+        ],
+        [
+          5,
+          11,
+          "Geschäftsmodell Spielerberater",
+          "2022-11-11",
+          34
+        ],
+        [
+          5,
+          12,
+          "Menschen, Lernen, Tanzen, Geld",
+          "2022-11-18",
+          33
+        ],
+        [
+          5,
+          13,
+          "Der Lindner-Lehfeldt-Komplex",
+          "2022-11-25",
+          30
+        ],
+        [
+          5,
+          14,
+          "Transfeindlichkeit ist Trend",
+          "2022-12-02",
+          32
+        ],
+        [
+          5,
+          15,
+          "Willkommen in der Willkommensbehörde",
+          "2022-12-09",
+          30
+        ],
+        [
+          6,
+          1,
+          "Rette sich, wer (es sich leisten) kann",
+          "2023-02-03",
+          30
+        ],
+        [
+          6,
+          2,
+          "Orang-Utans – gefährdete Champions",
+          "2023-02-10",
+          31
+        ],
+        [
+          6,
+          3,
+          "Christian Schmidt – What is on?",
+          "2023-02-17",
+          30
+        ],
+        [
+          6,
+          4,
+          "Geld-Weg-Garantie",
+          "2023-02-24",
+          32
+        ],
+        [
+          6,
+          5,
+          "Irans brutalste Garde aktiv in Deutschland",
+          "2023-03-03",
+          31
+        ],
+        [
+          6,
+          6,
+          "Würde, Pietät und schicke Urnen",
+          "2023-03-10",
+          null
+        ],
+        [
+          6,
+          7,
+          "Weltrekorde zu verkaufen!",
+          "2023-03-17",
+          33
+        ],
+        [
+          6,
+          8,
+          "Nuhr im Zweiten",
+          "2023-03-24",
+          31
+        ],
+        [
+          6,
+          9,
+          "Obenrum frei",
+          "2023-03-31",
+          31
+        ],
+        [
+          6,
+          10,
+          "Bummeln zwischen Beton und Nagelbrettern",
+          "2023-04-14",
+          29
+        ],
+        [
+          6,
+          11,
+          "Angstraum auf vier Rädern",
+          "2023-04-21",
+          34
+        ],
+        [
+          6,
+          12,
+          "Die große ZDF-Magazin-Live-Show",
+          "2023-04-28",
+          73
+        ],
+        [
+          6,
+          13,
+          "Die USA, unsere Waffen und wir",
+          "2023-05-05",
+          32
+        ],
+        [
+          6,
+          14,
+          "From Great Britain with Love",
+          "2023-05-12",
+          29
+        ],
+        [
+          6,
+          15,
+          "Effizient und dezent: Das ICMPD",
+          "2023-05-19",
+          31
+        ],
+        [
+          6,
+          16,
+          "Unter falschen Flaggen",
+          "2023-05-26",
+          33
+        ],
+        [
+          6,
+          17,
+          "Twitter: Mit der Freiheit in den Untergang",
+          "2023-06-02",
+          32
+        ],
+        [
+          6,
+          18,
+          "Mit Fantasiegebühren zum Eventimperium",
+          "2023-06-09",
+          32
+        ],
+        [
+          7,
+          1,
+          "Reden ist Silber, Rechte horten Gold",
+          "2023-09-01",
+          32
+        ],
+        [
+          7,
+          2,
+          "Wenn man vom Teufel spricht",
+          "2023-09-08",
+          30
+        ],
+        [
+          7,
+          3,
+          "Warum Deutsche Liechtenstein lieben sollten",
+          "2023-09-15",
+          34
+        ],
+        [
+          7,
+          4,
+          "Werbung in eigener Sache (für Deutschland)",
+          "2023-09-22",
+          31
+        ],
+        [
+          7,
+          5,
+          "Tatort Gruppenchat: Was Polizisten lustig finden",
+          "2023-09-29",
+          33
+        ],
+        [
+          7,
+          6,
+          "Was die Polizei mit dem NSU 2.0 zu tun hat",
+          "2023-10-06",
+          32
+        ],
+        [
+          7,
+          7,
+          "Reisebüro Bundestag",
+          "2023-10-20",
+          32
+        ],
+        [
+          7,
+          8,
+          "Finger weg von meiner Niere",
+          "2023-10-27",
+          31
+        ],
+        [
+          7,
+          9,
+          "Biene vs. Borkenkäfer",
+          "2023-11-03",
+          null
+        ],
+        [
+          7,
+          10,
+          "More Nutrition – harmloser Hype?",
+          "2023-11-10",
+          32
+        ],
+        [
+          7,
+          11,
+          "Mach mal lauter!",
+          "2023-11-17",
+          33
+        ],
+        [
+          7,
+          12,
+          "Mit Klagen canceln",
+          "2023-11-24",
+          30
+        ],
+        [
+          7,
+          13,
+          "Safe Space für Männer in Deutschland: Die Ehe",
+          "2023-12-01",
+          32
+        ],
+        [
+          7,
+          14,
+          "LinkedIn: Business, Baggern, Bullshit",
+          "2023-12-08",
+          30
+        ],
+        [
+          7,
+          15,
+          "Wie Deutschland über den Nahost-Krieg redet",
+          "2023-12-15",
+          29
+        ],
+        [
+          8,
+          1,
+          "Tank & Rast: Quasi-Monopol ohne Konkurrenz",
+          "2024-01-26",
+          32
+        ],
+        [
+          8,
+          2,
+          "Tatort Blumentopf",
+          "2024-02-02",
+          30
+        ],
+        [
+          8,
+          3,
+          "Die FPÖ und ihr Volkskanzler",
+          "2024-02-16",
+          34
+        ],
+        [
+          8,
+          4,
+          "Der TikTok-Star der AfD",
+          "2024-02-23",
+          33
+        ],
+        [
+          8,
+          5,
+          "Die Jagd: Naturschutz oder Bock auf Ballern?",
+          "2024-03-01",
+          32
+        ],
+        [
+          8,
+          6,
+          "Alles für ein schönes Lächeln",
+          "2024-03-08",
+          33
+        ],
+        [
+          8,
+          7,
+          "Böhmermanns Grenzfälle der Justiz",
+          "2024-03-15",
+          30
+        ],
+        [
+          8,
+          8,
+          "Leben wie Gott in Hessen",
+          "2024-03-22",
+          30
+        ],
+        [
+          8,
+          9,
+          "Eine Leiche im Keller von Olaf Scholz",
+          "2024-04-05",
+          30
+        ],
+        [
+          8,
+          10,
+          "Die Boomer der Straße",
+          "2024-04-12",
+          29
+        ],
+        [
+          8,
+          11,
+          "Dieses Geheimnis macht uns krank",
+          "2024-04-19",
+          29
+        ],
+        [
+          8,
+          12,
+          "Das deutsche Versagen beim Anschlag von Hanau",
+          "2024-04-26",
+          32
+        ],
+        [
+          8,
+          13,
+          "Echte Gefahren einer falschen Wissenschaft",
+          "2024-05-03",
+          29
+        ],
+        [
+          8,
+          14,
+          "Wie gefährlich ist der Genie-Kult?",
+          "2024-05-10",
+          32
+        ],
+        [
+          8,
+          15,
+          "Rauchen für die Tonne: Einweg-Vapes",
+          "2024-05-17",
+          31
+        ],
+        [
+          8,
+          16,
+          "KI an EU-Außengrenzen: Die smarte Dystopie",
+          "2024-05-24",
+          30
+        ],
+        [
+          8,
+          17,
+          "Top, die Sportwette gilt",
+          "2024-05-31",
+          32
+        ],
+        [
+          8,
+          18,
+          "Macher & Lacher",
+          "2024-06-07",
+          31
+        ],
+        [
+          9,
+          1,
+          "Chronisch krank, aber niemand glaubt dir",
+          "2024-08-30",
+          30
+        ],
+        [
+          9,
+          2,
+          "Warum wir nicht mit und nicht ohne Staub können",
+          "2024-09-06",
+          31
+        ],
+        [
+          9,
+          3,
+          "Wolkig mit Aussicht auf Produktplatzierung",
+          "2024-09-13",
+          31
+        ],
+        [
+          9,
+          4,
+          "Bedrohte Art: Lokaljournalismus",
+          "2024-09-20",
+          31
+        ],
+        [
+          9,
+          5,
+          "Gaming-Communitys: Der letzte unpolitische Ort auf Erden",
+          "2024-09-27",
+          null
+        ],
+        [
+          9,
+          6,
+          "Daddeln, Scrollen, Wischen – Gefangen im Netz",
+          "2024-10-04",
+          30
+        ],
+        [
+          9,
+          7,
+          "Das Geisterbüro im Bismarckwald",
+          "2024-10-11",
+          32
+        ],
+        [
+          9,
+          8,
+          "TOP SECRET: Was Ex-Geheimdienstchefs in ihrem Ruhestand machen",
+          "2024-10-18",
+          30
+        ],
+        [
+          9,
+          9,
+          "Das Secondhand-Business und seine Schattenseiten",
+          "2024-10-25",
+          30
+        ],
+        [
+          9,
+          10,
+          "Rückgrat zeigen!",
+          "2024-11-08",
+          31
+        ],
+        [
+          9,
+          11,
+          "Das Millionengeschäft mit Geflüchteten-Unterkünften",
+          "2024-11-15",
+          31
+        ],
+        [
+          9,
+          12,
+          "Der Final Fight – Warum Stadtkinder nicht einparken und Dorfkinder nicht zuhören können",
+          "2024-11-22",
+          32
+        ],
+        [
+          9,
+          13,
+          "Der letzte Swipe: Stehen Dating-Apps vor dem Aus?",
+          "2024-11-29",
+          33
+        ],
+        [
+          9,
+          14,
+          "Nius: Wo Rechte eine Bühne bekommen",
+          "2024-12-06",
+          32
+        ],
+        [
+          9,
+          15,
+          "Wie Ausgrenzung als Inklusion verkauft wird",
+          "2024-12-13",
+          32
+        ],
+        [
+          10,
+          1,
+          "Was Rechte uns als Freiheit verkaufen",
+          "2025-02-07",
+          32
+        ],
+        [
+          10,
+          2,
+          "Tanz der Sekte",
+          "2025-02-14",
+          31
+        ],
+        [
+          10,
+          3,
+          "Wahlkampf im Internet - Microtargeting 2.0",
+          "2025-02-21",
+          32
+        ],
+        [
+          10,
+          4,
+          "Politik und Medien und die Stimmung im Land",
+          "2025-02-28",
+          34
+        ],
+        [
+          10,
+          5,
+          "Gemeinsam gegen die Einsamkeit!",
+          "2025-03-07",
+          32
+        ],
+        [
+          10,
+          6,
+          "Medizinische Influencer: Diagnose Selbstvermarktung",
+          "2025-03-14",
+          31
+        ],
+        [
+          10,
+          7,
+          "Wer sich deutsche Kinder für Deutschland wünscht",
+          "2025-03-21",
+          33
+        ],
+        [
+          10,
+          8,
+          "Wer ist hier das Sicherheitsrisiko?",
+          "2025-03-28",
+          32
+        ],
+        [
+          10,
+          9,
+          "René Benko: Macht, Korruption, Milliardenpleite",
+          "2025-04-04",
+          34
+        ],
+        [
+          10,
+          10,
+          "Schon lange bereit für den Ernstfall: Polen",
+          "2025-04-11",
+          34
+        ],
+        [
+          10,
+          11,
+          "Deutschland - Eine Erfahrung",
+          "2025-04-25",
+          30
+        ],
+        [
+          10,
+          12,
+          "Und mit uns die Sintflut: Hochwasserschutz in Deutschland",
+          "2025-05-02",
+          31
+        ],
+        [
+          10,
+          13,
+          "Rechte YouTuber: Das Vorfeld der AfD",
+          "2025-05-09",
+          29
+        ],
+        [
+          10,
+          14,
+          "Eine Ode an den Zyklus",
+          "2025-05-16",
+          30
+        ],
+        [
+          10,
+          15,
+          "Zwei Zimmer/Küche/Geld",
+          "2025-05-23",
+          32
+        ],
+        [
+          10,
+          16,
+          "Queerfeindlichkeit – Im Namen der Kinder?",
+          "2025-05-30",
+          32
+        ],
+        [
+          10,
+          17,
+          "Grönland: Hot or Not?",
+          "2025-06-06",
+          33
+        ],
+        [
+          10,
+          18,
+          "Eisern Ehrenfeld Tour 2025",
+          "2025-06-13",
+          33
+        ],
+        [
+          11,
+          1,
+          "Was kommt nach rechts und links?",
+          "2025-08-29",
+          36
+        ],
+        [
+          11,
+          2,
+          "Gewalt gegen Frauen in Deutschland",
+          "2025-09-05",
+          31
+        ],
+        [
+          11,
+          3,
+          "42,195 km: Eine Medaille fürs Verdrängen",
+          "2025-09-12",
+          28
+        ],
+        [
+          11,
+          4,
+          "Fack Ju Hitla",
+          "2025-09-19",
+          27
+        ],
+        [
+          11,
+          5,
+          "Kimmel, Kirk und Kinderbücher: Sind die USA im Umbau zur Autokratie?",
+          "2025-09-26",
+          29
+        ],
+        [
+          11,
+          6,
+          "Wie reiche Männer Meinung kaufen",
+          "2025-10-10",
+          30
+        ],
+        [
+          11,
+          7,
+          "Austern for Future",
+          "2025-10-17",
+          29
+        ],
+        [
+          11,
+          8,
+          "ZDF Magazin Royale präsentiert: International Comedy Union",
+          "2025-10-24",
+          32
+        ],
+        [
+          11,
+          9,
+          "Hilfe, die Polizei kommt!",
+          "2025-10-31",
+          32
+        ],
+        [
+          11,
+          10,
+          "1000 Wege nicht ins Gras zu beißen",
+          "2025-11-07",
+          29
+        ],
+        [
+          11,
+          11,
+          "Deutschlands schönste Steueroasen",
+          "2025-11-14",
+          31
+        ],
+        [
+          11,
+          12,
+          "Dein Körper, meine Entscheidung",
+          "2025-11-21",
+          31
+        ],
+        [
+          11,
+          13,
+          "KI-Chatbots: Schleimen, Lügen, Dranbleiben",
+          "2025-11-28",
+          33
+        ],
+        [
+          11,
+          14,
+          "Russlands hybrider Krieg in Deutschland",
+          "2025-12-05",
+          31
+        ],
+        [
+          11,
+          15,
+          "Die Gefahren von Lachgas",
+          "2025-12-12",
+          30
+        ],
+        [
+          11,
+          16,
+          "Nicht umgebracht ist genug geholfen",
+          "2025-12-19",
+          33
+        ],
+        [
+          12,
+          1,
+          "Absolute Herrschaft mit Fun-Faktor",
+          "2026-02-27",
+          31
+        ],
+        [
+          12,
+          2,
+          "Willkommen im Epstein-Rabbit-Hole",
+          "2026-03-06",
+          33
+        ],
+        [
+          12,
+          3,
+          "Völkerrecht: Ja, nein, vielleicht",
+          "2026-03-13",
+          31
+        ],
+        [
+          12,
+          4,
+          "Moneymaxxing auf Rezept",
+          "2026-03-20",
+          30
+        ],
+        [
+          12,
+          5,
+          "Maskenball im Dunkelfeld",
+          "2026-03-27",
+          30
+        ],
+        [
+          12,
+          6,
+          "ZDF Magazin Royale präsentiert: ZMR vor Ort: Die Eifel bebt",
+          "2026-04-10",
+          29
+        ],
+        [
+          12,
+          7,
+          "Die vielen Anwälte des Christian Ulmen",
+          "2026-04-17",
+          33
+        ],
+        [
+          12,
+          8,
+          "Wer bildet die Polizei aus?",
+          "2026-04-24",
+          37
+        ],
+        [
+          12,
+          9,
+          "Die Taliban im Bundesamt",
+          "2026-05-01",
+          31
+        ],
+        [
+          12,
+          10,
+          "Grundi-Gate: Ausbeutung Made in Germany",
+          "2026-05-08",
+          29
+        ],
+        [
+          12,
+          11,
+          "Politischer Einfluss auf den ÖRR",
+          "2026-05-15",
+          34
+        ],
+        [
+          12,
+          12,
+          "Zehn Jahre \"Rundfunk-Tanzorchester Ehrenfeld\"",
+          "2026-05-22",
+          33
+        ],
+        [
+          12,
+          13,
+          "ZDF Magazin vor Ort - Die Colonius-Sprengung",
+          "2026-05-29",
+          27
+        ],
+        [
+          13,
+          1,
+          "Wie die Kirche im Osten die AfD bekämpft",
+          "2026-10-02",
+          32
+        ],
+        [
+          13,
+          2,
+          "Stillgestanden, Rüstungsinspektion!",
+          "2026-10-09",
+          32
+        ],
+        [
+          13,
+          3,
+          "Wilde Tiere greifen Deutschland an",
+          "2026-10-16",
+          34
+        ],
+        [
+          13,
+          4,
+          "Sebastian Kurz: Vom Kanzler zum Millionär",
+          "2026-10-23",
+          33
+        ],
+        [
+          13,
+          5,
+          "Böhmermann trifft Selenskyj",
+          "2026-11-06",
+          34
+        ],
+        [
+          13,
+          6,
+          "Wie $uperreiche legal das Finanzamt dribbeln",
+          "2026-11-13",
+          30
+        ],
+        [
+          13,
+          7,
+          "Folge 7",
+          "2026-11-20",
+          32
+        ]
+      ]
+    }
+  },
+  "films": [
+    {
+      "id": "9104621935936359173",
+      "channel": "ZDF",
+      "topic": "ZDF Magazin Royale",
+      "title": "Endlich Hauptprogramm",
+      "description": "Das \"ZDF Magazin Royale\" hebt seinen Vorhang. Ab dem 6. November begrüßt Jan Böhmermann seine Zuschauer*innen immer freitags um 23 Uhr zu seiner neuen Late-Night-Satire im ZDF - und schon ab 20 Uhr in der Mediathek.",
+      "timestamp": 1604700000,
+      "duration": 30,
+      "size": 6291456,
+      "url": "https://rodlzdf-a.akamaihd.net/none/zdf/20/11/201106_zdfmagazinroyale30er_zmr/2/201106_zdfmagazinroyale30er_zmr_2360k_p35v15.mp4",
+      "url_low": "https://rodlzdf-a.akamaihd.net/none/zdf/20/11/201106_zdfmagazinroyale30er_zmr/2/201106_zdfmagazinroyale30er_zmr_808k_p11v15.mp4",
+      "url_hd": "https://rodlzdf-a.akamaihd.net/none/zdf/20/11/201106_zdfmagazinroyale30er_zmr/2/201106_zdfmagazinroyale30er_zmr_3360k_p36v15.mp4",
+      "url_subtitle": null,
+      "url_website": "https://www.zdf.de/comedy/zdf-magazin-royale/trailer-344.html",
+      "geo": []
+    },
+    {
+      "id": "699452067328270881",
+      "channel": "ZDF",
+      "topic": "ZDF Magazin Royale",
+      "title": "POL1Z1STENS0HN: Bürgermeister",
+      "description": "Jan Böhmermann beendet seine Karriere als POL1Z1STENS0HN - der fünfte und letzte Track.",
+      "timestamp": 1607177220,
+      "duration": 256,
+      "size": 61865984,
+      "url": "https://rodlzdf-a.akamaihd.net/none/zdf/20/12/201204_buergermeister_onl/1/201204_buergermeister_onl_2360k_p35v15.mp4",
+      "url_low": "https://rodlzdf-a.akamaihd.net/none/zdf/20/12/201204_buergermeister_onl/1/201204_buergermeister_onl_808k_p11v15.mp4",
+      "url_hd": "https://rodlzdf-a.akamaihd.net/none/zdf/20/12/201204_buergermeister_onl/1/201204_buergermeister_onl_3360k_p36v15.mp4",
+      "url_subtitle": null,
+      "url_website": "https://www.zdf.de/comedy/zdf-magazin-royale/jan-boehmermann-polizistensohn-musikvideo-buergermeister-100.html",
+      "geo": []
+    },
+    {
+      "id": "1024229061069644013",
+      "channel": "ZDF",
+      "topic": "ZDF Magazin Royale",
+      "title": "Die Eifel bebt - ZMR vor Ort",
+      "description": "Droht der Eifel ein Vulkanausbruch? Reporterin Katja Fohrord ist vor Ort und informiert über die aktuellen Entwicklungen. Aus dem Nachrichtenstudio berichtet Carolina-Sabine \"Sabine\" Foehnigs.",
+      "timestamp": 1775854800,
+      "duration": 1725,
+      "size": 622854144,
+      "url": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/04/260410_sendung124efb_zmr/1/260410_sendung124efb_zmr_3360k_p36v17.mp4",
+      "url_low": "https://rodlzdf-a.akamaihd.net/none/zdf/26/04/260410_sendung124efb_zmr/1/260410_sendung124efb_zmr_808k_p11v17.mp4",
+      "url_hd": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/04/260410_sendung124efb_zmr/1/260410_sendung124efb_zmr_6660k_p37v17.mp4",
+      "url_subtitle": "https://utstreaming.zdf.de/mtt/zdf/26/04/260410_sendung124efb_zmr/3/ZDF_Magazin_vor_Ort_100426.xml",
+      "url_website": "https://www.zdf.de/video/shows/zdf-magazin-vor-ort-100/zdf-magazin-vor-ort-vom-10-april-2026-100",
+      "geo": []
+    },
+    {
+      "id": "8646473938763777848",
+      "channel": "ZDF",
+      "topic": "ZDF Magazin Royale",
+      "title": "Deutschland und die Auslandsadoption - ZDF Magazin Royale",
+      "description": "Die deutsche Geschichte hat eine ziemlich durchwachsene Bilanz Aber es gab eine Zeit, in der Deutschland seine Barmherzigkeit entdeckte und Kinder aus der \"Dritten Welt\" in den Wohlstand rettete.",
+      "timestamp": 1795212000,
+      "duration": 1912,
+      "size": 686817280,
+      "url": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/11/261120_2000_sendung834hwk_zmr/1/261120_2000_sendung834hwk_zmr_3360k_p36v17.mp4",
+      "url_low": "https://rodlzdf-a.akamaihd.net/none/zdf/26/11/261120_2000_sendung834hwk_zmr/1/261120_2000_sendung834hwk_zmr_808k_p11v17.mp4",
+      "url_hd": "https://nrodlzdf-a.akamaihd.net/none/zdf/26/11/261120_2000_sendung834hwk_zmr/1/261120_2000_sendung834hwk_zmr_6660k_p37v17.mp4",
+      "url_subtitle": "https://utstreaming.zdf.de/mtt/zdf/26/11/261120_2000_sendung834hwk_zmr/3/Magazin_Royale_20112026.xml",
+      "url_website": "https://www.zdf.de/video/shows/zdf-magazin-royale-102/zdf-magazin-royale-vom-20-november-2026-100",
+      "geo": []
+    }
+  ]
+}

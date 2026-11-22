@@ -111,7 +111,7 @@ export function errorKey(code: string | undefined): string | null {
 
 /** Why a Mediathek entry is that TMDB episode, or why none: the keys of the language catalogue. */
 export function reasonKey(reason: string | null | undefined): string {
-  const known = ["number", "number_title", "number_date", "title", "title_date", "date"];
+  const known = ["number", "number_title", "number_date", "title", "title_date", "date", "date_usual"];
   const missing = ["no_series", "no_match", "ambiguous", "conflict", "too_short"];
   if (reason && known.includes(reason)) return `lib.reason.${reason}`;
   if (reason && missing.includes(reason)) return `lib.none.${reason}`;

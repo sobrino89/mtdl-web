@@ -35,8 +35,10 @@ from mtdl_web.library import (
     marker,
     match_episode,
     preferred_folder,
+    usual_runtime,
+    without_show,
 )
-from mtdl_web.metadata import MetadataCache, MetadataError, Pace, SeriesInfo, Tmdb
+from mtdl_web.metadata import MetadataCache, MetadataError, Pace, SeriesInfo, Tmdb, _series_from_json
 from mtdl_web.models import Film
 from mtdl_web.state import StateStore
 
@@ -277,6 +279,51 @@ def test_a_placeholder_name_on_tmdb_gives_way_to_the_mediathek_title() -> None:
 
     assert name(9, 1) == "Das Gipfeltreffen - S09E01 - Das Beste kommt noch!.mp4"
     assert name(8, 8) == f"Das Gipfeltreffen - S08E08 - {by_number[(8, 8)].name}.mp4"  # a real name stays
+
+
+def test_a_new_episode_without_runtime_on_tmdb_matches_by_its_day() -> None:
+    """ZDF Magazin Royale S13E07 (20.11.2026): TMDB listed it with its day and the name "Folge 7" for two days and
+    without a runtime until the afternoon of 22.11. (seen in mtdl-web's cache; the fixture holds the evening's data,
+    with 32 min). Neither a marker nor the title can tell, so the day decides, with the season's usual runtime."""
+    data = json.loads((FIXTURES / "zmr-2026-11-22.json").read_text(encoding="utf-8"))
+    later = _series_from_json(json.dumps(data["tmdb_cache"]["value"]), data["tmdb_cache"]["fetched_at"])
+    episodes = tuple(
+        dataclasses.replace(e, runtime=None) if (e.season, e.number) == (13, 7) else e for e in later.episodes
+    )
+    show = dataclasses.replace(later, episodes=episodes)  # as TMDB had it until the afternoon
+    by_title = {f["title"]: Film(**{**f, "id": int(f["id"]), "geo": tuple(f["geo"])}) for f in data["films"]}
+    film = by_title["Deutschland und die Auslandsadoption - ZDF Magazin Royale"]
+    assert film.duration == 1912  # 32 min
+    assert [e.runtime for e in show.episodes if e.season == 13] == [32, 32, 34, 33, 34, 30, None]
+    assert usual_runtime(show, 13) == 32.5
+
+    m = match_episode(film, show, BERLIN)
+    assert m.episode is not None and (m.episode.season, m.episode.number, m.reason) == (13, 7, "date_usual")
+    m = match_episode(film, later, BERLIN)  # once TMDB has the runtime: day and length, as before
+    assert m.episode is not None and (m.episode.number, m.reason) == (7, "date")
+    clip = dataclasses.replace(film, id=1, title="Ein Ausschnitt", duration=300)  # a clip of that day stays out
+    assert (match_episode(clip, show, BERLIN).episode, match_episode(clip, show, BERLIN).reason) == (None, "no_match")
+
+    # Specials run any length: they never borrow the runtime of the regular seasons.
+    plain = tuple(dataclasses.replace(e, runtime=None) if e.season == 0 else e for e in show.episodes)
+    assert usual_runtime(dataclasses.replace(show, episodes=plain), 0) is None
+    assert usual_runtime(dataclasses.replace(show, episodes=plain), 13) == 32.5
+
+    # The file takes the Mediathek title while TMDB has only "Folge 7", without the show's name a second time.
+    path = library_path(
+        film,
+        m.episode,
+        show,
+        DEFAULT_TEMPLATE,
+        root=Path("/data/shows"),
+        existing=None,
+        normalize=False,
+        timezone=BERLIN,
+    )
+    assert path.name == "ZDF Magazin Royale - S13E07 - Deutschland und die Auslandsadoption.mp4"
+    assert without_show("ZDF Magazin Royale: Die Eifel bebt", "ZDF Magazin Royale") == "Die Eifel bebt"
+    assert without_show("Die Eifel bebt - ZMR vor Ort", "ZDF Magazin Royale") == "Die Eifel bebt - ZMR vor Ort"
+    assert without_show("ZDF Magazin Royale", "ZDF Magazin Royale") == "ZDF Magazin Royale"  # never empty
 
 
 def test_existing_folders_are_found_by_their_id_and_new_episodes_join_them(tmp_path: Path) -> None:

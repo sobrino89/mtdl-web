@@ -13,6 +13,7 @@ Echte Daten, nicht nachgebaut. Formatbefunde: `docs/filmliste-format.md`.
 | `films-filme-2026-10-13.json` | Ein Spielfilm der Filmliste vom 13.10.2026: „Nikita - Spielfilm, Frankreich/Italien 1990" (3sat, gesendet 11.10.2026). |
 | `tmdb-die-anstalt-2026-10-13.json`, `tmdb-werwoelfe-2026-10-13.json`, `tmdb-das-gipfeltreffen-2026-10-13.json` | TMDB-Antworten vom 13.10.2026 (`de-DE`) je Serie: `tv/{id}` mit `external_ids` und jede Staffel `tv/{id}/season/{n}`, gekürzt auf die Felder, die mtdl-web liest. |
 | `tmdb-search-2026-10-13.json` | TMDB `search/tv` vom 13.10.2026 für die drei Serien. |
+| `zmr-2026-11-22.json` | ZDF Magazin Royale (TMDB 111956): der TMDB-Cache von mtdl-web vom 22.11.2026, 21:58 (`tmdb_cache`, internes Format, 330 Folgen) und die vier Einträge der Filmliste mit diesem Thema (`films`). S13E07 („Folge 7“, 20.11.) hatte bis 15:58 desselben Tages keine Laufzeit, im Fixture 32 min; der Test nimmt sie für den früheren Stand wieder heraus. |
 | `tmdb-movie-nikita-2026-10-13.json`, `tmdb-search-movie-nikita-2026-10-13.json` | TMDB `movie/9322` und `search/movie` („Nikita", Jahr 1990) vom 13.10.2026 (`de-DE`), ungekürzt. |
 | `res-mediathekview-akt-2026-10-13.xml`, `res-mediathekview-diff-2026-10-13.xml` | Server-Verzeichnis von MediathekView (`res.mediathekview.de/akt.xml`, `diff.xml`) vom 13.10.2026. |
 

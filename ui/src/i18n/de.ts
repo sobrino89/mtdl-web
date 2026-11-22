@@ -789,6 +789,7 @@ export const de = {
   "lib.reason.title": "Titel",
   "lib.reason.title_date": "Titel und Sendetag",
   "lib.reason.date": "Sendetag und Länge",
+  "lib.reason.date_usual": "Sendetag und übliche Länge der Staffel",
   "lib.none.no_series": "Keine Serie zugeordnet",
   "lib.none.no_match": "Keine passende TMDB-Folge",
   "lib.none.ambiguous": "Mehrere TMDB-Folgen kommen in Frage",

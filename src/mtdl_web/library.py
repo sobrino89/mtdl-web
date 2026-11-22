@@ -17,6 +17,7 @@ shorter than the episode: better no file than a wrong one in the library.
 
 import datetime as dt
 import re
+import statistics
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -89,7 +90,8 @@ def marker(title: str) -> tuple[Marker | None, str]:
 @dataclass(frozen=True, slots=True)
 class EpisodeMatch:
     """``episode`` None: no TMDB episode, ``reason`` says why (no_series, no_match, ambiguous, conflict,
-    too_short). Else the signals that agreed: number, number_title, number_date, title, title_date, date."""
+    too_short). Else the signals that agreed: number, number_title, number_date, title, title_date, date, and
+    date_usual (the day, with the usual runtime of the season standing in for one TMDB does not have yet)."""
 
     episode: EpisodeInfo | None
     reason: str
@@ -139,12 +141,35 @@ def _too_short(film: Film, episode: EpisodeInfo) -> bool:
     return bool(film.duration and episode.runtime and film.duration < episode.runtime * 30)
 
 
-def _fits(film: Film, episode: EpisodeInfo) -> bool:
-    """The day alone decides only with both lengths known and close: TMDB lists no runtime for older Anstalt
-    episodes, and four clips of 2 to 8 minutes share the day of one of them (1.11.2016)."""
-    if not film.duration or not episode.runtime:
+def without_show(title: str, show: str) -> str:
+    """A Mediathek title without the show's name at its end or start, for a file named after it: ZDF calls an episode
+    "Deutschland und die Auslandsadoption - ZDF Magazin Royale" (20.11.2026), and the file name has the show already."""
+    name = re.escape(show.strip())
+    if not name:
+        return title
+    rest = re.sub(rf"\s*[-–—:|]\s*{name}\s*$", "", title, flags=re.IGNORECASE)
+    rest = re.sub(rf"^\s*{name}\s*[-–—:|]\s*", "", rest, flags=re.IGNORECASE)
+    return rest.strip() or title
+
+
+def usual_runtime(series: SeriesInfo, season: int) -> float | None:
+    """What an episode of ``season`` usually runs, in minutes: the median of the season, else of the regular
+    seasons. Specials run any length, so they only have their own season."""
+    own = [e.runtime for e in series.episodes if e.season == season and e.runtime]
+    if not own and season != 0:
+        own = [e.runtime for e in series.episodes if e.season != 0 and e.runtime]
+    return statistics.median(own) if own else None
+
+
+def _fits(film: Film, episode: EpisodeInfo, series: SeriesInfo) -> bool:
+    """The day alone decides only with both lengths known and close: four clips of 2 to 8 minutes share the day of
+    one Anstalt episode (1.11.2016). TMDB often lists a new episode with its day before anyone enters a runtime
+    (ZDF Magazin Royale S13E07, "Folge 7" for two days, 11/2026), and older Anstalt episodes have none: then the
+    usual runtime of the season stands in, which keeps the clips out as well."""
+    runtime = episode.runtime or usual_runtime(series, episode.season)
+    if not film.duration or not runtime:
         return False
-    return abs(film.duration / 60 - episode.runtime) <= max(5, 0.25 * episode.runtime)
+    return abs(film.duration / 60 - runtime) <= max(5, 0.25 * runtime)
 
 
 def match_episode(film: Film, series: SeriesInfo, timezone: dt.tzinfo) -> EpisodeMatch:
@@ -181,9 +206,9 @@ def match_episode(film: Film, series: SeriesInfo, timezone: dt.tzinfo) -> Episod
             if len(same_number) == 1:
                 return checked(same_number[0], "number_title")
         return EpisodeMatch(None, "ambiguous")
-    fitting = [e for e in dated if _fits(film, e)]
+    fitting = [e for e in dated if _fits(film, e, series)]
     if len(fitting) == 1:
-        return checked(fitting[0], "date")
+        return checked(fitting[0], "date" if fitting[0].runtime else "date_usual")
     return EpisodeMatch(None, "ambiguous" if fitting else "no_match")
 
 
@@ -369,7 +394,7 @@ def library_path(
         "imdb": found["imdb"][0] if "imdb" in found else "",
         "season": f"{episode.season:02d}",
         "episode": f"{episode.number:02d}",
-        "episode_title": episode.name if named or not rest.strip() else rest,
+        "episode_title": episode.name if named or not rest.strip() else without_show(rest, series.name),
         "season_folder": "Specials" if episode.season == 0 else f"Season {episode.season:02d}",
         "title": rest,
         "date": day,
