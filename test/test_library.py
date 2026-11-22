@@ -576,6 +576,73 @@ def test_plex_reads_the_folder_again_only_when_asked(tmp_path: Path) -> None:
         assert "x-plex-token" not in refresh.headers  # none set: Plex in the LAN may allow that
 
 
+def test_a_file_takes_the_title_tmdb_enters_later(tmp_path: Path) -> None:
+    """ZDF Magazin Royale S13E07 (20.11.2026): TMDB had only "Folge 7", so the file took the Mediathek's title. Once
+    TMDB has the title (it has none yet on 22.11.; the test enters one), the next check renames video and subtitles,
+    also a file named so by 0.2.0 (with the show's name twice); not while the setting is off, and only once."""
+    data = json.loads((FIXTURES / "zmr-2026-11-22.json").read_text(encoding="utf-8"))
+    zmr = [Film(**{**f, "id": int(f["id"]), "geo": tuple(f["geo"])}) for f in data["films"]]
+    key = "tmdb:tv:111956:de-DE"
+    value = data["tmdb_cache"]["value"]
+    title = "Eine Testfolge mit Titel"  # what TMDB might enter; TMDB still says "Folge 7"
+    with library_app(tmp_path) as api:
+        runtime = runtime_of(api)
+        runtime.subscriptions._source = lambda: Stub(zmr)
+        runtime.state.db.run(
+            "INSERT INTO metadata_cache (key, fetched_at, value) VALUES (?, ?, ?)",
+            (key, int(time.time()), json.dumps(value)),
+        )
+        events: list[Any] = []
+        runtime.bus.subscribe(events.append)
+        (library,) = api.get("/api/v1/libraries").json()
+        rules = [
+            {"field": "topic", "operator": "is", "value": "ZDF Magazin Royale"},
+            {"field": "title", "operator": "contains", "value": "Auslandsadoption"},
+        ]
+        naming = {"scheme": "season_episode", "target": "library", "tmdb_id": 111956, "library_id": library["id"]}
+        draft = {"name": "ZMR", "query": "zdf magazin royale", "conditions": rules, "naming": naming, "state": "paused"}
+        sub = api.post("/api/v1/subscriptions", json=draft).json()
+        assert api.post(f"/api/v1/subscriptions/{sub['id']}/check").json() == {"queued": 1}
+        wait_until_idle(api)
+        season = tmp_path / "shows" / "ZDF Magazin Royale {tmdb-111956}" / "Season 13"
+        given = season / "ZDF Magazin Royale - S13E07 - Deutschland und die Auslandsadoption.mp4"
+        assert given.is_file()
+        # As 0.2.0 named it, with subtitles beside it.
+        older = season / "ZDF Magazin Royale - S13E07 - Deutschland und die Auslandsadoption - ZDF Magazin Royale.mp4"
+        given.rename(older)
+        older.with_name(older.stem + ".de.srt").write_text("1\n00:00:01,000 --> 00:00:02,000\nTest\n", encoding="utf-8")
+        (download,) = api.get("/api/v1/downloads", params={"subscription": sub["id"]}).json()["items"]
+        runtime.downloads.queue.moved(download["id"], str(older.relative_to(tmp_path / "shows")))
+
+        api.post(f"/api/v1/subscriptions/{sub['id']}/check")  # TMDB still has "Folge 7": nothing moves
+        assert older.is_file() and not [e for e in events if e.name == "download.renamed"]
+
+        episodes = [[*e[:2], title, *e[3:]] if e[:2] == [13, 7] else e for e in value["episodes"]]
+        runtime.state.db.run(
+            "UPDATE metadata_cache SET value = ? WHERE key = ?", (json.dumps({**value, "episodes": episodes}), key)
+        )
+        api.patch("/api/v1/settings", json={"rename_on_tmdb_title": False})
+        api.post(f"/api/v1/subscriptions/{sub['id']}/check")
+        assert older.is_file()  # switched off
+
+        api.patch("/api/v1/settings", json={"rename_on_tmdb_title": True})
+        api.post(f"/api/v1/subscriptions/{sub['id']}/check")
+        named = season / f"ZDF Magazin Royale - S13E07 - {title}.mp4"
+        assert named.is_file() and not older.exists()
+        assert named.with_name(named.stem + ".de.srt").is_file()
+        assert sorted(p.name for p in season.iterdir()) == sorted([named.name, named.stem + ".de.srt"])
+        moved = api.get(f"/api/v1/downloads/{download['id']}").json()
+        assert moved["path"] == str(named.relative_to(tmp_path / "shows"))
+        (renamed,) = [e for e in events if e.name == "download.renamed"]
+        assert (renamed.old_path, renamed.path, renamed.download_id) == (
+            str(older.relative_to(tmp_path / "shows")),
+            moved["path"],
+            download["id"],
+        )
+        api.post(f"/api/v1/subscriptions/{sub['id']}/check")  # once only
+        assert len([e for e in events if e.name == "download.renamed"]) == 1 and named.is_file()
+
+
 def test_an_episode_tmdb_lists_later_loads_after_the_next_refresh(tmp_path: Path) -> None:
     """A real case (13.10.2026): a new Anstalt episode is in the Mediathek before TMDB lists it. Until then it is
     "unmatched" and loads nothing; the first check after TMDB lists it and the cached answer (6 h) is renewed loads

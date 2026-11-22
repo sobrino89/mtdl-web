@@ -13,6 +13,7 @@ Für die Nachbearbeitung führt mtdl-web eigene Skripte aus. Jede ausführbare D
 | `download.started.d/` | ein Download beginnt |
 | `download.completed.d/` | ein Download fertig ist |
 | `download.failed.d/` | ein Download gescheitert ist |
+| `download.renamed.d/` | eine Datei in einer Bibliothek den Folgentitel von TMDB bekommen hat |
 | `filmlist.updated.d/` | eine neue Filmliste eingelesen ist |
 | `subscription.expired.d/` | ein Abo seinen letzten Tag erreicht hat |
 

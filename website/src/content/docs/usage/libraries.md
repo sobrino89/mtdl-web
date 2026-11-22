@@ -63,7 +63,12 @@ der Mediathek. Für Filme: `{titel}`, `{originaltitel}`, `{jahr}`, `{tmdb}`, `{i
 Dateiendung hängt mtdl-web selbst an.
 
 Trägt eine Folge bei TMDB nur einen Platzhalternamen wie „Folge 9“, steht der Titel aus der Mediathek an seiner
-Stelle.
+Stelle, ohne den Namen der Sendung, den der Dateiname schon hat. Trägt TMDB den echten Titel später nach, benennt
+mtdl-web die Datei um, samt Untertiteln; Plex liest den Ordner dann neu ein, wenn die Bibliothek das wünscht. Das
+geschieht bei der nächsten Prüfung des Abos nach der Auffrischung der TMDB-Daten und nur für Dateien, die mtdl-web so
+benannt hat und die noch dort liegen: Was du verschoben oder umbenannt hast, bleibt, wie es ist. Abschalten lässt
+sich das unter **Einstellungen**, **Bibliotheken und Plex**, **Folgentitel nachtragen**; Webhooks und Skripte
+melden es als `download.renamed`.
 
 :::tip[Jellyfin]
 Plex liest die ID im Ordnernamen in geschweiften Klammern. Für Jellyfin passt die Vorlage **Ohne ID** oder eine

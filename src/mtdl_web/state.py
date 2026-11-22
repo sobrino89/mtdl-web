@@ -211,6 +211,9 @@ class AppSettings(BaseModel):
     # Subscriptions leave out audio description, sign language and similar versions (special.py);
     # each subscription may say otherwise.
     exclude_special_versions: bool = True
+    # A file in a library named after the Mediathek title because TMDB had only "Folge 7" takes TMDB's title once it
+    # is there (subscriptions.rename_named); only files mtdl-web named so and that are still where it put them.
+    rename_on_tmdb_title: bool = True
 
     @field_validator("schedule_days")
     @classmethod

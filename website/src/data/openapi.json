@@ -3119,6 +3119,11 @@
             "type": "boolean",
             "title": "Exclude Special Versions",
             "default": true
+          },
+          "rename_on_tmdb_title": {
+            "type": "boolean",
+            "title": "Rename On Tmdb Title",
+            "default": true
           }
         },
         "additionalProperties": false,
@@ -6199,6 +6204,7 @@
                 "download.started",
                 "download.completed",
                 "download.failed",
+                "download.renamed",
                 "subscription.expired"
               ]
             },

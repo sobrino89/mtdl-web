@@ -23,9 +23,9 @@ from mtdl_web.downloads import DownloadError
 from mtdl_web.downloads.manager import DownloadManager, Duplicate, is_livestream
 from mtdl_web.downloads.queue import State as DownloadState
 from mtdl_web.episodes import episode_key, same_duration, same_file
-from mtdl_web.events import Event, EventBus, FilmlistUpdated, SubscriptionExpired
+from mtdl_web.events import DownloadRenamed, Event, EventBus, FilmlistUpdated, SubscriptionExpired
 from mtdl_web.libraries import LibraryStore
-from mtdl_web.library import EpisodeMatch, LibraryUnavailable, Shelf
+from mtdl_web.library import EpisodeMatch, LibraryUnavailable, Shelf, has_name, provisional_titles
 from mtdl_web.metadata import EpisodeInfo, Tmdb
 from mtdl_web.models import Film, VideoCodec
 from mtdl_web.naming import Naming, target_path
@@ -538,7 +538,66 @@ class SubscriptionService:
         self.store.checked(subscription.id, error=error, queued=queued)
         if queued:
             log.info("subscription %d (%s): %d queued", subscription.id, subscription.name, queued)
+        try:
+            await self.rename_named(subscription)
+        except Exception as exc:  # a rename that fails must not stop the checks
+            log.warning("subscription %d (%s): renaming failed: %s", subscription.id, subscription.name, exc)
         return queued
+
+    async def rename_named(self, subscription: Subscription) -> int:
+        """Files of the subscription named after the Mediathek title while TMDB had only a placeholder ("Folge 7")
+        take TMDB's title once it is there: video and the files beside it with the same name (subtitles), the
+        download's path, and the event (Plex reads the folder again if the library asks for it). Only files that are
+        still where mtdl-web put them, under exactly the name it gave; a file moved or renamed by hand stays.
+        Returns the number renamed."""
+        naming = subscription.naming
+        if not self._settings().rename_on_tmdb_title or naming.target != "library" or naming.tmdb_id is None:
+            return 0
+        shelf = await self._shelf(naming)
+        if shelf.series is None:
+            return 0
+        renamed = 0
+        for download in self._downloads.queue.entries(("done",), subscription_id=subscription.id, limit=10_000):
+            if download.library_id != shelf.library.id or not download.path:
+                continue
+            match = shelf.match(download.film)
+            if match.episode is None or not has_name(match.episode):
+                continue
+            old = Path(shelf.library.path, download.path)
+            new = Path(shelf.path(download.film, match.episode))
+            if new == old or not old.is_file():
+                continue
+            given = {
+                Path(shelf.path(download.film, match.episode, title=t))
+                for t in provisional_titles(download.film, shelf.series)
+            }
+            if old not in given:  # not the name mtdl-web gave it while waiting for TMDB's
+                continue
+            moves = [(old, new)] + [
+                (side, new.with_name(new.stem + side.name[len(old.stem) :]))
+                for side in sorted(old.parent.iterdir())
+                if side != old and side.is_file() and side.name.startswith(old.stem + ".")
+            ]
+            if any(target.exists() for _, target in moves):
+                log.warning("not renamed, the name is taken: %s", new)
+                continue
+            new.parent.mkdir(parents=True, exist_ok=True)
+            for source, target in moves:
+                source.rename(target)
+            relative = str(new.relative_to(shelf.library.path))
+            self._downloads.queue.moved(download.id, relative)
+            moved = self._downloads.queue.get(download.id)
+            assert moved is not None
+            await self._bus.publish(
+                DownloadRenamed(
+                    **self._downloads.event_fields(moved),
+                    old_path=download.path,
+                    old_file=self._downloads.file_of(download),
+                )
+            )
+            log.info("renamed after TMDB's title: %s -> %s", old.name, new.name)
+            renamed += 1
+        return renamed
 
     async def current_keys(self, draft: SubscriptionDraft, skipped: frozenset[str] = frozenset()) -> list[str]:
         """What ``draft`` would load now, as episode keys: "only future episodes" saves them as skipped. Asked before

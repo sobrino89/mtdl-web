@@ -17,7 +17,7 @@ from typing import Any
 import httpx
 
 from mtdl_web import __version__
-from mtdl_web.events import DownloadCompleted, Event, EventBus
+from mtdl_web.events import DownloadCompleted, DownloadRenamed, Event, EventBus
 from mtdl_web.libraries import LibraryStore
 from mtdl_web.state import AppSettings
 
@@ -109,7 +109,7 @@ class Plex:
 
 
 class PlexRefresher:
-    """After a download into a library: Plex reads that folder again, if the library asks for it."""
+    """After a download into a library, or a rename there: Plex reads that folder again, if the library asks for it."""
 
     def __init__(self, plex: Plex, settings: Callable[[], AppSettings], libraries: LibraryStore, bus: EventBus):
         self._plex = plex
@@ -118,7 +118,7 @@ class PlexRefresher:
         self._tasks: set[asyncio.Task[None]] = set()
         bus.subscribe(self._on_event)
 
-    def plex_folder(self, event: DownloadCompleted) -> PurePosixPath | None:
+    def plex_folder(self, event: DownloadCompleted | DownloadRenamed) -> PurePosixPath | None:
         """The folder of the downloaded file as Plex sees it; None unless its library wants a rescan."""
         library = self._libraries.get(event.library_id) if event.library_id is not None else None
         if library is None or not library.plex_refresh:
@@ -126,7 +126,7 @@ class PlexRefresher:
         return PurePosixPath(library.plex_path or library.path, PurePosixPath(event.path).parent)
 
     def _on_event(self, event: Event) -> None:
-        if not isinstance(event, DownloadCompleted) or not self._settings().plex_url:
+        if not isinstance(event, DownloadCompleted | DownloadRenamed) or not self._settings().plex_url:
             return
         folder = self.plex_folder(event)
         if folder is None:

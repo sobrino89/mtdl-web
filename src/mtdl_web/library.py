@@ -141,6 +141,20 @@ def _too_short(film: Film, episode: EpisodeInfo) -> bool:
     return bool(film.duration and episode.runtime and film.duration < episode.runtime * 30)
 
 
+def has_name(episode: EpisodeInfo) -> bool:
+    """TMDB has a real name for the episode, not a placeholder such as "Folge 7" that waits for one."""
+    return bool(episode.name) and not _PLACEHOLDER_NAME.match(words(episode.name))
+
+
+def provisional_titles(film: Film, series: SeriesInfo) -> tuple[str, ...]:
+    """The episode titles a file of ``film`` got while TMDB had only a placeholder: the Mediathek's title, without
+    the show's name (since 0.2.1) or with it (before)."""
+    _, rest = marker(film.title)
+    if not rest.strip():
+        return ()
+    return tuple(dict.fromkeys((without_show(rest, series.name), rest)))
+
+
 def without_show(title: str, show: str) -> str:
     """A Mediathek title without the show's name at its end or start, for a file named after it: ZDF calls an episode
     "Deutschland und die Auslandsadoption - ZDF Magazin Royale" (20.11.2026), and the file name has the show already."""
@@ -348,7 +362,7 @@ class Shelf:
             return EpisodeMatch(None, "no_series")
         return match_episode(film, self.series, self._tz)
 
-    def path(self, film: Film, episode: EpisodeInfo) -> PurePosixPath:
+    def path(self, film: Film, episode: EpisodeInfo, title: str | None = None) -> PurePosixPath:
         assert self.series is not None
         return library_path(
             film,
@@ -359,6 +373,7 @@ class Shelf:
             existing=self._existing,
             normalize=self._normalize,
             timezone=self._tz,
+            title=title,
         )
 
     def has(self, episode: EpisodeInfo, path: PurePosixPath) -> bool:
@@ -377,15 +392,18 @@ def library_path(
     normalize: bool,
     timezone: dt.tzinfo,
     ext: str = "mp4",
+    title: str | None = None,
 ) -> PurePosixPath:
     """Absolute target of ``film`` as ``episode``. An existing series folder replaces the first part of the
-    template, so new episodes join the ones there (Plex shows a series in two folders as one, FileBot made such)."""
+    template, so new episodes join the ones there (Plex shows a series in two folders as one, FileBot made such).
+    ``title`` overrides the episode title (the name a file got earlier, see ``provisional_titles``)."""
     _, rest = marker(film.title)
     day = dt.datetime.fromtimestamp(film.timestamp, timezone).date().isoformat() if film.timestamp is not None else ""
     found = tags(series)
     # TMDB lists a new episode as "Folge 1" until someone enters its name (Das Gipfeltreffen season 9, 13.10.2026):
     # then the Mediathek's title names the file; season and number still come from TMDB.
-    named = bool(episode.name) and not _PLACEHOLDER_NAME.match(words(episode.name))
+    if title is None:
+        title = episode.name if has_name(episode) or not rest.strip() else without_show(rest, series.name)
     values = {
         "show": series.name,
         "show_year": str(series.year or ""),
@@ -394,7 +412,7 @@ def library_path(
         "imdb": found["imdb"][0] if "imdb" in found else "",
         "season": f"{episode.season:02d}",
         "episode": f"{episode.number:02d}",
-        "episode_title": episode.name if named or not rest.strip() else without_show(rest, series.name),
+        "episode_title": title,
         "season_folder": "Specials" if episode.season == 0 else f"Season {episode.season:02d}",
         "title": rest,
         "date": day,

@@ -15,6 +15,7 @@ den Inhalt und eigene Kopfzeilen. **Test senden** schickt ein Beispiel und zeigt
 | `download.started` | ein Download beginnt |
 | `download.completed` | ein Download ist fertig |
 | `download.failed` | ein Download ist gescheitert, mit `will_retry`, ob mtdl-web es erneut versucht |
+| `download.renamed` | eine Datei in einer Bibliothek hat den Folgentitel bekommen, den TMDB nach dem Download eingetragen hat |
 | `filmlist.updated` | eine neue Filmliste oder Änderungsliste ist eingelesen |
 | `subscription.expired` | ein Abo hat seinen letzten Tag erreicht und pausiert oder löscht sich |
 
@@ -53,6 +54,7 @@ Ohne Vorlage ist der Inhalt JSON mit Ereignis, Zeitpunkt (UTC) und den Feldern d
 | `subscription_id` | allen `download.*` | das Abo, `null` bei einzelnen Downloads |
 | `size`, `subtitle_path`, `subtitle_file` | `download.completed` | Größe in Byte, Untertitel relativ und absolut |
 | `error`, `will_retry` | `download.failed` | Fehlertext; ob ein weiterer Versuch folgt |
+| `old_path`, `old_file` | `download.renamed` | der frühere Pfad, relativ und absolut; `path` und `file` sind die neuen |
 | `kind`, `list_id`, `created`, `added`, `changed`, `removed`, `total` | `filmlist.updated` | `full` oder `diff`, Stand und Zahlen der Liste |
 | `subscription_id`, `subscription_name`, `valid_until`, `action` | `subscription.expired` | `action` ist `paused` oder `deleted` |
 

@@ -130,6 +130,7 @@ export interface Settings {
   mcp_enabled: boolean; // MCP server at /mcp, only with an API key
   setup_done: boolean; // the guide of the first start ran or was skipped
   exclude_special_versions: boolean; // subscriptions leave out audio description, sign language and the like
+  rename_on_tmdb_title: boolean; // a file named after the Mediathek title takes TMDB's once TMDB has one
 }
 
 export interface SystemInfo {
@@ -384,6 +385,7 @@ export type WebhookEvent =
   | "download.started"
   | "download.completed"
   | "download.failed"
+  | "download.renamed"
   | "subscription.expired";
 
 export interface Webhook {

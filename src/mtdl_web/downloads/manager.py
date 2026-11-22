@@ -180,7 +180,7 @@ class DownloadManager:
             library_id=library_id,
             video_codec=video_codec or settings.video_codec,
         )
-        await self._bus.publish(DownloadQueued(**self._event_fields(download)))
+        await self._bus.publish(DownloadQueued(**self.event_fields(download)))
         self.wake()
         return download
 
@@ -285,10 +285,10 @@ class DownloadManager:
     async def _run_one(self, download: Download) -> None:
         live = self.live.setdefault(download.id, Live(_last_time=time.monotonic()))
         try:
-            await self._bus.publish(DownloadStarted(**self._event_fields(download)))
+            await self._bus.publish(DownloadStarted(**self.event_fields(download)))
             size, subtitle = await self._download(download, live)
             self.queue.finish(download.id, size)
-            fields = self._event_fields(download)
+            fields = self.event_fields(download)
             subtitle_file = str(Path(fields["file"]).with_name(PurePosixPath(subtitle).name)) if subtitle else None
             await self._bus.publish(
                 DownloadCompleted(**fields, size=size, subtitle_path=subtitle, subtitle_file=subtitle_file)
@@ -320,7 +320,7 @@ class DownloadManager:
         retry_at = int(time.time()) + self._retry_delay * 2 ** (download.attempts - 1) if will_retry else None
         self.queue.fail(download.id, error, code=code, retry_at=retry_at)
         log.warning("download %d failed%s: %s", download.id, " (will retry)" if will_retry else "", error)
-        await self._bus.publish(DownloadFailed(**self._event_fields(download), error=error, will_retry=will_retry))
+        await self._bus.publish(DownloadFailed(**self.event_fields(download), error=error, will_retry=will_retry))
 
     def _progress(self, download_id: int, live: Live, done: int, total: int | None) -> None:
         now = time.monotonic()
@@ -339,7 +339,7 @@ class DownloadManager:
         target, _ = self._work(download)
         return str(target)
 
-    def _event_fields(self, download: Download) -> dict[str, Any]:
+    def event_fields(self, download: Download) -> dict[str, Any]:
         film = download.film
         return {
             "download_id": download.id,

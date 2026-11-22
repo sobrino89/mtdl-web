@@ -33,6 +33,7 @@ from mtdl_web.events import (
     DownloadCompleted,
     DownloadFailed,
     DownloadQueued,
+    DownloadRenamed,
     DownloadStarted,
     Event,
     EventBus,
@@ -49,6 +50,7 @@ EventName = Literal[
     "download.started",
     "download.completed",
     "download.failed",
+    "download.renamed",
     "subscription.expired",
 ]
 EVENTS: tuple[EventName, ...] = get_args(EventName)
@@ -58,6 +60,7 @@ EVENT_TYPES: tuple[type[Event], ...] = (
     DownloadStarted,
     DownloadCompleted,
     DownloadFailed,
+    DownloadRenamed,
     SubscriptionExpired,
 )
 TEST_EVENT = "webhook.test"

@@ -231,6 +231,10 @@ class DownloadQueue:
             (size, size, self._now(), path, download_id),
         )
 
+    def moved(self, download_id: int, path: str) -> None:
+        """The file of a finished download has a new name (relative like ``path``): TMDB named the episode later."""
+        self._db.run("UPDATE download SET path = ? WHERE id = ? AND state = 'done'", (path, download_id))
+
     def fail(self, download_id: int, error: str, *, code: str | None = None, retry_at: int | None = None) -> None:
         if retry_at is None:
             self._db.run(

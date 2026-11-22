@@ -468,6 +468,19 @@ function LibrarySection(props: { settings: AppSettings; editing: string | undefi
           <span class="small faint">{t("set.tmdb_notice")}</span>
         </div>
       </Row>
+      <Row label={t("set.rename")} sub={t("set.rename_sub")}>
+        <label class="check-label plain top">
+          <input
+            type="checkbox"
+            checked={settings.rename_on_tmdb_title}
+            onChange={() => void save({ rename_on_tmdb_title: !settings.rename_on_tmdb_title })}
+          />
+          <span>
+            <strong>{t("set.rename_on")}</strong>
+            <span class="small muted-text block-text">{t("set.rename_text")}</span>
+          </span>
+        </label>
+      </Row>
       <Row label={t("set.plex")} sub={t("set.plex_sub")}>
         <label class="field-label small" for="plex-url">
           {t("set.plex_url")}
@@ -1488,6 +1501,7 @@ const WEBHOOK_EVENTS: WebhookEvent[] = [
   "download.failed",
   "download.queued",
   "download.started",
+  "download.renamed",
   "filmlist.updated",
   "subscription.expired",
 ];

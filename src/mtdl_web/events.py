@@ -104,3 +104,14 @@ class DownloadFailed(DownloadEvent):
     name: ClassVar[str] = "download.failed"
     error: str
     will_retry: bool
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class DownloadRenamed(DownloadEvent):
+    """A file in a library took the episode title TMDB entered after the download (the file had the Mediathek's
+    title while TMDB had only "Folge 7"). ``path`` and ``file`` are the new names, ``old_path``/``old_file`` the
+    former; files next to it with the same name (subtitles) moved along."""
+
+    name: ClassVar[str] = "download.renamed"
+    old_path: str
+    old_file: str = ""
