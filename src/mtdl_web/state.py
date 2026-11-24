@@ -221,7 +221,7 @@ class AppSettings(BaseModel):
         return sorted(set(days))
 
     @model_validator(mode="after")
-    def _template_complete(self) -> "AppSettings":
+    def _template_complete(self) -> AppSettings:
         if self.naming_scheme == "template":
             if not (self.naming_template or "").strip():
                 raise ValueError("naming_template is required for the scheme template")

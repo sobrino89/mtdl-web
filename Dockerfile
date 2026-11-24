@@ -12,7 +12,7 @@ RUN npm ci --ignore-scripts --no-audit --no-fund
 COPY ui/ ./
 RUN npm run check && npm test && MTDL_UI_OUT=/ui/dist npm run build
 
-FROM python:3.13-slim@sha256:7249d5587b78209a006dc4a3b5340678f84ea729239193aa559962cd8c1fce50 AS base
+FROM python:3.15-slim@sha256:63bb298d2b7b88f176f51b5189f54ce6535c997682ea70885d2132f5d473a8a5 AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_PROJECT_ENVIRONMENT=/opt/venv \
@@ -21,11 +21,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_FROZEN=1 \
     PATH=/opt/venv/bin:$PATH
 # ffmpeg only muxes local files; tini (started by the entrypoint after the rights are dropped) is PID 1 and reaps what
-# hook scripts leave behind. zlib1g: a security update the base image does not carry yet. Versions pinned, Renovate
-# bumps them.
+# hook scripts leave behind. Versions pinned, Renovate bumps them.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg=7:7.1.5-0+deb13u1 tini=0.19.0-3+b8 \
-        zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY pyproject.toml uv.lock ./

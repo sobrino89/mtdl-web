@@ -23,7 +23,7 @@ def main() -> int:
     try:
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/health", timeout=4) as response:
             return 0 if response.status == 200 else 1
-    except (urllib.error.URLError, OSError):
+    except urllib.error.URLError, OSError:
         return 1
 
 

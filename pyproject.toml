@@ -5,7 +5,7 @@ description = "Search, download and subscribe to the German public broadcasters'
 readme = "README.md"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
-requires-python = ">=3.13"
+requires-python = ">=3.15"
 dependencies = [
     "fastapi>=0.143.0",
     "httpx>=0.28.1",
@@ -43,14 +43,14 @@ markers = [
 ]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.15"
 strict = true
 files = ["src", "test", "tools"]
 mypy_path = "src"
 
 [tool.ruff]
 line-length = 120
-target-version = "py313"
+target-version = "py315"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]

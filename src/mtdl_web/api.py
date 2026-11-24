@@ -387,7 +387,7 @@ class FilmOut(BaseModel):
     status: FilmStatusOut | None = None
 
     @classmethod
-    def of(cls, film: Film) -> "FilmOut":
+    def of(cls, film: Film) -> FilmOut:
         return cls(
             id=str(film.id),
             channel=film.channel,
@@ -423,7 +423,7 @@ class ImportOut(BaseModel):
     total: int
 
     @classmethod
-    def of(cls, result: ImportResult) -> "ImportOut":
+    def of(cls, result: ImportResult) -> ImportOut:
         return cls(
             kind=result.kind,
             list_id=result.list_id,
@@ -773,7 +773,7 @@ class DownloadOut(BaseModel):
     finished_at: dt.datetime | None
 
     @classmethod
-    def of(cls, download: Download, live: Live | None, file: str) -> "DownloadOut":
+    def of(cls, download: Download, live: Live | None, file: str) -> DownloadOut:
         def when(value: int | None) -> dt.datetime | None:
             return None if value is None else dt.datetime.fromtimestamp(value, dt.UTC)
 
@@ -864,7 +864,7 @@ class _Target:
     library: Library | None
 
 
-def _film_of(rt: Runtime, body: "DownloadIn") -> Film:
+def _film_of(rt: Runtime, body: DownloadIn) -> Film:
     if (found := _known_film(rt, body.film_id)) is not None:
         return found
     raise HTTPException(404, detail={"code": "film_not_found"})
@@ -1048,7 +1048,7 @@ class SubscriptionOut(SubscriptionIn):
     stats: dict[str, Any]
 
     @classmethod
-    def of(cls, sub: Subscription, stats: dict[str, Any] | None) -> "SubscriptionOut":
+    def of(cls, sub: Subscription, stats: dict[str, Any] | None) -> SubscriptionOut:
         def when(value: int | None) -> dt.datetime | None:
             return None if value is None else dt.datetime.fromtimestamp(value, dt.UTC)
 
@@ -1091,7 +1091,7 @@ class EpisodeOut(BaseModel):
     runtime: int | None
 
     @classmethod
-    def of(cls, e: EpisodeInfo) -> "EpisodeOut":
+    def of(cls, e: EpisodeInfo) -> EpisodeOut:
         return cls(season=e.season, number=e.number, name=e.name, air_date=e.air_date, runtime=e.runtime)
 
 
@@ -1657,7 +1657,7 @@ class LibraryOut(LibraryIn):
     subscriptions: list[int]  # subscriptions that load into the library
 
     @classmethod
-    def of(cls, rt: Runtime, library: Library) -> "LibraryOut":
+    def of(cls, rt: Runtime, library: Library) -> LibraryOut:
         return cls(
             id=library.id,
             name=library.name,
@@ -1751,7 +1751,7 @@ class ApiKeyOut(BaseModel):
     last_used_at: dt.datetime | None
 
     @classmethod
-    def of(cls, key: auth.ApiKey) -> "ApiKeyOut":
+    def of(cls, key: auth.ApiKey) -> ApiKeyOut:
         used = dt.datetime.fromtimestamp(key.last_used_at, dt.UTC) if key.last_used_at else None
         created = dt.datetime.fromtimestamp(key.created_at, dt.UTC)
         return cls(id=key.id, name=key.name, prefix=key.prefix, scope=key.scope, created_at=created, last_used_at=used)
@@ -1924,7 +1924,7 @@ class WebhookOut(BaseModel):
     last_sent_at: dt.datetime | None
 
     @classmethod
-    def of(cls, hook: Webhook) -> "WebhookOut":
+    def of(cls, hook: Webhook) -> WebhookOut:
         def when(value: int | None) -> dt.datetime | None:
             return None if value is None else dt.datetime.fromtimestamp(value, dt.UTC)
 
@@ -1944,7 +1944,7 @@ class WebhookOut(BaseModel):
             last_sent_at=when(hook.last_sent_at),
         )
 
-    def masked(self) -> "WebhookOut":
+    def masked(self) -> WebhookOut:
         return self.model_copy(update={"url": masked_url(self.url), "body_template": self.body_template and "***"})
 
 
@@ -2096,7 +2096,7 @@ class LimitOut(BaseModel):
     until: dt.datetime | None  # next change by the schedule
 
     @classmethod
-    def of(cls, rt: Runtime, settings: AppSettings) -> "LimitOut":
+    def of(cls, rt: Runtime, settings: AppSettings) -> LimitOut:
         state = rt.limit_state(settings)
         return cls(
             bandwidth_limit=settings.bandwidth_limit,

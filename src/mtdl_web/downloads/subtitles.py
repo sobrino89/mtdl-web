@@ -172,5 +172,5 @@ def convert(data: bytes, duration: int | None = None) -> str | None:
             return None
         cues = remove_time_code_offset(cues, duration)
         return to_srt(cues) if cues else None
-    except (ET.ParseError, ValueError, ArithmeticError):  # a broken file is no subtitle, not a failed download
+    except ET.ParseError, ValueError, ArithmeticError:  # a broken file is no subtitle, not a failed download
         return None

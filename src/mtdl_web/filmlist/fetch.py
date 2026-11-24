@@ -91,7 +91,7 @@ def _retry_after(response: httpx.Response, now: dt.datetime) -> float | None:
         return float(value)
     try:
         return max(0.0, (email.utils.parsedate_to_datetime(value) - now).total_seconds())
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
@@ -143,7 +143,7 @@ class ListFetcher:
     def _validators(self, kind: Kind) -> dict[str, Any]:
         try:
             value = json.loads((self._dir / f"{FILES[kind]}.http.json").read_text())
-        except (OSError, ValueError):
+        except OSError, ValueError:
             return {}
         return value if isinstance(value, dict) else {}
 

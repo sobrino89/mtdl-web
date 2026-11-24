@@ -218,7 +218,7 @@ class FilmStore:
         self._read.close()
         self._con.close()
 
-    def __enter__(self) -> "FilmStore":
+    def __enter__(self) -> FilmStore:
         return self
 
     def __exit__(self, *exc: object) -> None:

@@ -86,7 +86,7 @@ class Runtime:
     _tasks: list[asyncio.Task[None]] = field(default_factory=list)
 
     @classmethod
-    def create(cls, settings: Settings, transport: httpx.AsyncBaseTransport | None = None) -> "Runtime":
+    def create(cls, settings: Settings, transport: httpx.AsyncBaseTransport | None = None) -> Runtime:
         for directory in (settings.config_dir, settings.cache_dir, settings.list_dir):
             directory.mkdir(parents=True, exist_ok=True)
         state = StateStore(settings.state_db)

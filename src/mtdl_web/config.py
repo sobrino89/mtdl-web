@@ -132,7 +132,7 @@ class Settings:
         return self.cache_dir / "filmliste"
 
     @classmethod
-    def from_env(cls, environ: Mapping[str, str] = os.environ) -> "Settings":
+    def from_env(cls, environ: Mapping[str, str] = os.environ) -> Settings:
         config_dir = Path(environ.get("MTDL_CONFIG_DIR", "").strip() or "/config")
         auth = _auth_mode(environ)
         proxies = _networks(environ, "MTDL_TRUSTED_PROXIES")

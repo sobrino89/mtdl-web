@@ -530,7 +530,7 @@ class SubscriptionService:
                         video_codec=subscription.video_codec,
                     )
                     queued += 1
-                except (Duplicate, DownloadError):
+                except Duplicate, DownloadError:
                     continue
         except Exception as exc:  # one broken subscription must not stop the others
             error = f"{type(exc).__name__}: {exc}"
