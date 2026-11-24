@@ -5,7 +5,7 @@ FROM ghcr.io/astral-sh/uv:0.13.9@sha256:d3b601f0c7b118bc1753febf7c41cc80981df678
 # Frontend: typecheck, unit tests and the bundle; a failing check stops the build. Install scripts stay off
 # (only esbuild has one, and it finds its binary without it). The bundle is the same for every platform, so this
 # stage runs natively on the build machine, also when the image is for another architecture.
-FROM --platform=$BUILDPLATFORM node:24-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54 AS ui
+FROM --platform=$BUILDPLATFORM node:24-slim@sha256:873f586f3794f52281bd039bf02c048a0be08fde619338f9941bad1eb6b34530 AS ui
 WORKDIR /ui
 COPY ui/package.json ui/package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
